@@ -426,6 +426,147 @@ export const appRouter = router({
       return await db.getAuditLogs(input.page, input.limit);
     }),
   }),
+
+  // ─── Public API (no auth required) ───────────────────────────────────────────
+  public: router({
+    // 공개 투자 플랜 목록
+    plans: publicProcedure.input(z.object({
+      planType: z.enum(["investment", "staking"]).optional(),
+    })).query(async ({ input }) => {
+      return await db.getInvestmentPlans(input.planType);
+    }),
+
+    // 공개 노드 목록
+    nodes: publicProcedure.query(async () => {
+      return await db.getNodes();
+    }),
+
+    // 공개 공지사항
+    notices: publicProcedure.query(async () => {
+      const notices = await db.getNotices();
+      return notices.filter((n: { isActive: boolean }) => n.isActive);
+    }),
+
+    // 공개 이벤트 배너
+    banners: publicProcedure.query(async () => {
+      return await db.getEventBanners();
+    }),
+
+    // 추천 코드 검증
+    validateReferral: publicProcedure.input(z.object({
+      code: z.string().min(1),
+    })).query(async ({ input }) => {
+      const user = await db.getUserByReferralCode(input.code);
+      if (!user) return { valid: false, referrer: null };
+      return { valid: true, referrer: { name: user.name, code: user.referralCode } };
+    }),
+  }),
+
+  // ─── User API (auth required) ─────────────────────────────────────────────────
+  user: router({
+    // 내 프로필 조회
+    profile: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserById(ctx.user.id);
+    }),
+
+    // 지갑 주소 업데이트
+    updateWallet: protectedProcedure.input(z.object({
+      walletAddress: z.string().min(1),
+    })).mutation(async ({ input, ctx }) => {
+      await db.updateUserWallet(ctx.user.id, input.walletAddress);
+      return { success: true };
+    }),
+
+    // 추천 코드 생성
+    generateReferralCode: protectedProcedure.mutation(async ({ ctx }) => {
+      const code = await db.generateUserReferralCode(ctx.user.id);
+      return { code };
+    }),
+
+    // 추천인 등록
+    registerReferral: protectedProcedure.input(z.object({
+      referralCode: z.string().min(1),
+    })).mutation(async ({ input, ctx }) => {
+      const referrer = await db.getUserByReferralCode(input.referralCode);
+      if (!referrer) throw new TRPCError({ code: "NOT_FOUND", message: "Invalid referral code" });
+      if (referrer.id === ctx.user.id) throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot refer yourself" });
+      await db.setUserReferral(ctx.user.id, input.referralCode);
+      return { success: true, referrer: { name: referrer.name } };
+    }),
+
+    // 내 투자 내역
+    investments: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserInvestments(ctx.user.id);
+    }),
+
+    // 내 노드 구매 내역
+    nodeOrders: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserNodeOrders(ctx.user.id);
+    }),
+
+    // 내 추천 현황
+    referralStats: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserReferralStats(ctx.user.id);
+    }),
+
+    // 노드 구매 신청
+    purchaseNode: protectedProcedure.input(z.object({
+      nodeId: z.number(),
+      quantity: z.number().min(1).default(1),
+      txHash: z.string().optional(),
+    })).mutation(async ({ input, ctx }) => {
+      const node = await db.getNodeById(input.nodeId);
+      if (!node) throw new TRPCError({ code: "NOT_FOUND", message: "Node not found" });
+      await db.createNodeOrder({
+        userId: ctx.user.id,
+        nodeId: input.nodeId,
+        quantity: input.quantity,
+        totalAmount: String(Number(node.price) * input.quantity),
+        txHash: input.txHash ?? null,
+        status: "pending",
+      });
+      return { success: true };
+    }),
+
+    // 투자 신청
+    invest: protectedProcedure.input(z.object({
+      planId: z.number(),
+      amount: z.string(),
+      txHash: z.string().optional(),
+    })).mutation(async ({ input, ctx }) => {
+      const plan = await db.getInvestmentPlanById(input.planId);
+      if (!plan) throw new TRPCError({ code: "NOT_FOUND", message: "Plan not found" });
+      await db.createInvestment({
+        userId: ctx.user.id,
+        planId: input.planId,
+        amount: input.amount,
+        status: "active",
+      });
+      return { success: true };
+    }),
+
+    // 지원 티켓 생성
+    createTicket: protectedProcedure.input(z.object({
+      subject: z.string().min(1),
+      message: z.string().min(1),
+      category: z.string().default("general"),
+    })).mutation(async ({ input, ctx }) => {
+      await db.createSupportTicket({
+        userId: ctx.user.id,
+        subject: input.subject,
+        message: input.message,
+        category: input.category,
+        status: "open",
+        priority: "medium",
+      });
+      return { success: true };
+    }),
+
+    // 내 지원 티켓 목록
+    tickets: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserTickets(ctx.user.id);
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

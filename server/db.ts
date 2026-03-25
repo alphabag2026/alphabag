@@ -443,3 +443,114 @@ export async function getPlanDistribution() {
     count: count(),
   }).from(investments).where(eq(investments.status, "active")).groupBy(investments.planId).orderBy(desc(sum(investments.amount)));
 }
+
+// ─── User-facing helpers ──────────────────────────────────────────────────────
+
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getUserByReferralCode(code: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.referralCode, code)).limit(1);
+  return result[0];
+}
+
+export async function updateUserWallet(userId: number, walletAddress: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ walletAddress }).where(eq(users.id, userId));
+}
+
+export async function generateUserReferralCode(userId: number): Promise<string> {
+  const db = await getDb();
+  if (!db) return "";
+  // Check if user already has a referral code
+  const user = await getUserById(userId);
+  if (user?.referralCode) return user.referralCode;
+  // Generate a unique code
+  const code = `AB${userId.toString().padStart(6, "0")}`;
+  await db.update(users).set({ referralCode: code }).where(eq(users.id, userId));
+  return code;
+}
+
+export async function setUserReferral(userId: number, referralCode: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ referredBy: referralCode }).where(eq(users.id, userId));
+  // Create referral record
+  const referrer = await getUserByReferralCode(referralCode);
+  if (referrer) {
+    await db.insert(referrals).values({
+      referrerId: referrer.id,
+      referredId: userId,
+      level: 1,
+    } as InsertReferral);
+  }
+}
+
+export async function getInvestmentPlanById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(investmentPlans).where(eq(investmentPlans.id, id)).limit(1);
+  return result[0];
+}
+
+export async function getNodeById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(nodes).where(eq(nodes.id, id)).limit(1);
+  return result[0];
+}
+
+export async function createInvestment(data: InsertInvestment) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(investments).values(data);
+}
+
+export async function createNodeOrder(data: InsertNodeOrder) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(nodeOrders).values(data);
+}
+
+export async function getUserInvestments(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(investments).where(eq(investments.userId, userId)).orderBy(desc(investments.createdAt));
+}
+
+export async function getUserNodeOrders(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(nodeOrders).where(eq(nodeOrders.userId, userId)).orderBy(desc(nodeOrders.createdAt));
+}
+
+export async function createSupportTicket(data: InsertSupportTicket) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(supportTickets).values(data);
+}
+
+export async function getUserTickets(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(supportTickets).where(eq(supportTickets.userId, userId)).orderBy(desc(supportTickets.createdAt));
+}
+
+export async function getUserReferralStats(userId: number) {
+  const db = await getDb();
+  if (!db) return { totalReferrals: 0, activeReferrals: 0, referralCode: null };
+  const user = await getUserById(userId);
+  const allReferrals = await db.select().from(referrals).where(eq(referrals.referrerId, userId));
+  return {
+    totalReferrals: allReferrals.length,
+    activeReferrals: allReferrals.length,
+    referralCode: user?.referralCode ?? null,
+  };
+}
