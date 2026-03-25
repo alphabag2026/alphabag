@@ -1,4 +1,7 @@
 import { TRPCError } from "@trpc/server";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { ENV } from "./_core/env";
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -567,6 +570,56 @@ export const appRouter = router({
       return await db.getUserTickets(ctx.user.id);
     }),
   }),
-});
 
+  // ─── Admin Auth (ID/PW) ───────────────────────────────────────────────────────
+  adminAuth: router({
+    login: publicProcedure.input(z.object({
+      username: z.string().min(1),
+      password: z.string().min(1),
+    })).mutation(async ({ input, ctx }) => {
+      const account = await db.getAdminAccountByUsername(input.username);
+      if (!account || !account.isActive) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid credentials" });
+      }
+      const valid = await bcrypt.compare(input.password, account.passwordHash);
+      if (!valid) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid credentials" });
+      }
+      // Update last login
+      await db.updateAdminLastLogin(account.id);
+      // Issue JWT token
+      const secret = process.env.JWT_SECRET ?? "alphabag-admin-secret";
+      const token = jwt.sign(
+        { id: account.id, username: account.username, role: account.role },
+        secret,
+        { expiresIn: "24h" }
+      );
+      ctx.res.cookie("admin_token", token, {
+        httpOnly: true,
+        secure: ctx.req.protocol === "https",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+        path: "/",
+      });
+      return { success: true, role: account.role, username: account.username };
+    }),
+
+    logout: publicProcedure.mutation(({ ctx }) => {
+      ctx.res.clearCookie("admin_token", { path: "/" });
+      return { success: true };
+    }),
+
+    me: publicProcedure.query(({ ctx }) => {
+      const token = ctx.req.cookies?.admin_token;
+      if (!token) return null;
+      try {
+        const secret = process.env.JWT_SECRET ?? "alphabag-admin-secret";
+        const payload = jwt.verify(token, secret) as { id: number; username: string; role: string };
+        return payload;
+      } catch {
+        return null;
+      }
+    }),
+  }),
+});
 export type AppRouter = typeof appRouter;

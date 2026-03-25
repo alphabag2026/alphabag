@@ -79,3 +79,31 @@
 - [x] 사용자 프로필 페이지 - 지갑 연결, KYC, 설정
 - [x] 공지사항 페이지 - 공지 목록, 상세
 - [x] 지원 티켓 페이지 - 티켓 생성, 목록
+
+## Phase 3 - 지갑 연결 고도화 & 관리자 로그인 & 다국어
+
+### 1. 지갑 연결 고도화 (wagmi + WalletConnect)
+- [ ] wagmi, viem, @wagmi/connectors 패키지 설치
+- [ ] WalletConnect ProjectID 설정
+- [ ] WalletProvider 컨텍스트 구현 (MetaMask, WalletConnect, TrustWallet, OKX, Binance)
+- [ ] 지갑 연결 모달 컴포넌트 (WalletConnectModal)
+- [ ] 서명 기반 인증 (Sign-In With Ethereum)
+- [ ] 지갑 연결 후 DB 자동 저장
+- [ ] 노드 구매 온체인 트랜잭션 처리
+
+### 2. 관리자 전용 로그인 (ID/PW + JWT)
+- [ ] DB에 adminAccounts 테이블 추가
+- [ ] 관리자 로그인 API (POST /api/admin/login)
+- [ ] JWT 기반 관리자 세션 관리
+- [ ] /admin/login 로그인 페이지 (admin/admin321)
+- [ ] AdminLayout에 관리자 인증 미들웨어 적용
+- [ ] 기본 관리자 계정 시드 데이터
+
+### 3. 다국어(i18n) 지원 (한국어/영어/중국어)
+- [ ] react-i18next 패키지 설치
+- [ ] 번역 파일 생성 (ko, en, zh)
+- [ ] I18nProvider 설정
+- [ ] 언어 전환 컴포넌트 (국기 아이콘 포함)
+- [ ] 랜딩 페이지 번역 적용
+- [ ] 사용자 페이지 번역 적용
+- [ ] 언어 설정 localStorage 저장

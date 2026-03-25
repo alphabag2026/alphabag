@@ -15,6 +15,7 @@ import {
   airdropParticipants, InsertAirdropParticipant,
   referrals, InsertReferral,
   auditLogs, InsertAuditLog,
+  adminAccounts,
 } from "../drizzle/schema";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -553,4 +554,18 @@ export async function getUserReferralStats(userId: number) {
     activeReferrals: allReferrals.length,
     referralCode: user?.referralCode ?? null,
   };
+}
+
+// ─── Admin Accounts ───────────────────────────────────────────────────────────
+export async function getAdminAccountByUsername(username: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(adminAccounts).where(eq(adminAccounts.username, username)).limit(1);
+  return result[0];
+}
+
+export async function updateAdminLastLogin(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(adminAccounts).set({ lastLoginAt: new Date() }).where(eq(adminAccounts.id, id));
 }

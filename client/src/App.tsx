@@ -22,6 +22,8 @@ import ProfilePage from "./pages/ProfilePage";
 import TicketsPage from "./pages/TicketsPage";
 import ReferralsPage from "./pages/ReferralsPage";
 import NoticesPage from "./pages/NoticesPage";
+import AdminLogin from "./pages/admin/Login";
+import { WalletConnectModal } from "./components/WalletConnectModal";
 
 function Router() {
   return (
@@ -34,6 +36,7 @@ function Router() {
       <Route path="/tickets" component={TicketsPage} />
       <Route path="/referrals" component={ReferralsPage} />
       <Route path="/notices" component={NoticesPage} />
+      <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/plans" component={AdminPlans} />
       <Route path="/admin/nodes" component={AdminNodes} />
@@ -56,6 +59,7 @@ function App() {
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <Toaster />
+          <WalletConnectModal />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

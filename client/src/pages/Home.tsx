@@ -1,4 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -13,6 +15,7 @@ import {
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   const { data: plans, isLoading: plansLoading } = trpc.public.plans.useQuery({ planType: "investment" });
   const { data: nodes, isLoading: nodesLoading } = trpc.public.nodes.useQuery();
   const { data: notices } = trpc.public.notices.useQuery();
@@ -45,29 +48,30 @@ export default function Home() {
             </Link>
             <div className="hidden md:flex items-center gap-6">
               <Link href="/plans">
-                <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">Plans</span>
+                <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">{t('nav.plans')}</span>
               </Link>
               <Link href="/nodes">
-                <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">Nodes</span>
+                <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">{t('nav.nodes')}</span>
               </Link>
-              <Link href="/about">
-                <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">About</span>
+              <Link href="/notices">
+                <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">{t('nav.notices')}</span>
               </Link>
             </div>
             <div className="flex items-center gap-3">
+              <LanguageSwitcher />
               {isAuthenticated ? (
                 <Link href="/dashboard">
                   <Button size="sm" className="gap-2">
-                    Dashboard <ChevronRight className="w-3 h-3" />
+                    {t('nav.dashboard')} <ChevronRight className="w-3 h-3" />
                   </Button>
                 </Link>
               ) : (
                 <>
                   <Button variant="ghost" size="sm" onClick={() => window.location.href = getLoginUrl()}>
-                    Sign In
+                    {t('nav.signIn')}
                   </Button>
                   <Button size="sm" onClick={() => window.location.href = getLoginUrl()}>
-                    Get Started
+                    {t('nav.getStarted')}
                   </Button>
                 </>
               )}

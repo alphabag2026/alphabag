@@ -1,0 +1,9 @@
+{
+  "query": "\nCREATE TABLE `adminAccounts` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `username` varchar(64) NOT NULL,\n  `passwordHash` varchar(255) NOT NULL,\n  `role` enum('admin','sub_admin') NOT NULL DEFAULT 'admin',\n  `isActive` boolean NOT NULL DEFAULT true,\n  `lastLoginAt` timestamp,\n  `createdAt` timestamp NOT NULL DEFAULT (now()),\n  `updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n  CONSTRAINT `adminAccounts_id` PRIMARY KEY(`id`),\n  CONSTRAINT `adminAccounts_username_unique` UNIQUE(`username`)\n);\n\n-- 기본 관리자 계정 삽입 (admin / admin321 - bcrypt hash)\nINSERT INTO `adminAccounts` (`username`, `passwordHash`, `role`, `isActive`)\nVALUES ('admin', '$2b$10$rOzJqQqQqQqQqQqQqQqQqOzJqQqQqQqQqQqQqQqQqQqQqQqQqQqQ2', 'admin', true);\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute \nCREATE TABLE `adminAccounts` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `username` varchar(64) NOT NULL,\n  `passwordHash` varchar(255) NOT NULL,\n  `role` enum('admin','sub_admin') NOT NULL DEFAULT 'admin',\n  `isActive` boolean NOT NULL DEFAULT true,\n  `lastLoginAt` timestamp,\n  `createdAt` timestamp NOT NULL DEFAULT (now()),\n  `updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n  CONSTRAINT `adminAccounts_id` PRIMARY KEY(`id`),\n  CONSTRAINT `adminAccounts_username_unique` UNIQUE(`username`)\n);\n\n-- 기본 관리자 계정 삽입 (admin / admin321 - bcrypt hash)\nINSERT INTO `adminAccounts` (`username`, `passwordHash`, `role`, `isActive`)\nVALUES ('admin', '$2b$10$rOzJqQqQqQqQqQqQqQqQqOzJqQqQqQqQqQqQqQqQqQqQqQqQqQqQ2', 'admin', true);\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 2073
+}
