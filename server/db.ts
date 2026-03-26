@@ -1,4 +1,4 @@
-import { and, desc, eq, like, or, sql, count, sum, countDistinct } from "drizzle-orm";
+import { and, desc, eq, like, or, sql, count, sum } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users,
@@ -107,22 +107,11 @@ export async function findUserByEmailOrId(emailOrId: string) {
 }
 
 // --- Investment Plans ---
-export async function getInvestmentPlans(
-  planType?: "investment" | "staking" | "golden" | "self" | "node" | "leader" | "meme" | "influencer",
-  collectionType?: "golden" | "self" | "node" | "leader" | "meme" | "influencer",
-  limit?: number,
-  highlightOnly?: boolean
-) {
+export async function getInvestmentPlans(planType?: "investment" | "staking") {
   const db = await getDb();
   if (!db) return [];
-  const conditions = [];
-  if (planType) conditions.push(eq(investmentPlans.planType, planType));
-  if (collectionType) conditions.push(eq(investmentPlans.collectionType, collectionType));
-  if (highlightOnly) conditions.push(eq(investmentPlans.isHighlight, true));
-  const where = conditions.length > 0 ? and(...conditions) : undefined;
-  const query = db.select().from(investmentPlans).where(where).orderBy(investmentPlans.sortOrder);
-  if (limit) return (query as any).limit(limit);
-  return query;
+  const where = planType ? eq(investmentPlans.planType, planType) : undefined;
+  return db.select().from(investmentPlans).where(where).orderBy(investmentPlans.sortOrder);
 }
 
 export async function createInvestmentPlan(data: InsertInvestmentPlan) {
@@ -413,21 +402,12 @@ export async function getDashboardStats() {
       count: count(),
     }).from(investments).groupBy(sql`DATE(${investments.createdAt})`).orderBy(sql`DATE(${investments.createdAt})`).limit(30),
   ]);
-  const totalInvestmentNum = Number(totalInvestment[0]?.total ?? 0);
-  const totalNodeRevenueNum = Number(totalNodeRevenue[0]?.total ?? 0);
-  const totalUsersNum = totalUsers[0]?.count ?? 0;
-  const totalReferralsNum = totalReferrals[0]?.count ?? 0;
-  const investingUsers = await db.select({ count: countDistinct(investments.userId) }).from(investments).where(eq(investments.status, "active"));
-  const investingUsersNum = investingUsers[0]?.count ?? 0;
-  const conversionRate = totalUsersNum > 0 ? (investingUsersNum / totalUsersNum) * 100 : 0;
   return {
-    totalUsers: totalUsersNum,
-    totalInvestment: totalInvestmentNum,
-    totalNodeRevenue: totalNodeRevenueNum,
-    totalRevenue: totalInvestmentNum + totalNodeRevenueNum,
+    totalUsers: totalUsers[0]?.count ?? 0,
+    totalInvestment: Number(totalInvestment[0]?.total ?? 0),
+    totalNodeRevenue: Number(totalNodeRevenue[0]?.total ?? 0),
     openTickets: openTickets[0]?.count ?? 0,
-    totalReferrals: totalReferralsNum,
-    conversionRate: Math.round(conversionRate * 10) / 10,
+    totalReferrals: totalReferrals[0]?.count ?? 0,
     recentInvestments,
   };
 }

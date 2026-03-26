@@ -15,7 +15,6 @@ import AdminAirdrops from "./pages/admin/Airdrops";
 import AdminReferrals from "./pages/admin/Referrals";
 import AdminAnalytics from "./pages/admin/Analytics";
 import AdminSubAdmins from "./pages/admin/SubAdmins";
-import AdminNotifications from "./pages/admin/Notifications";
 import UserDashboard from "./pages/UserDashboard";
 import PlansPage from "./pages/PlansPage";
 import NodesPage from "./pages/NodesPage";
@@ -25,13 +24,6 @@ import ReferralsPage from "./pages/ReferralsPage";
 import NoticesPage from "./pages/NoticesPage";
 import AdminLogin from "./pages/admin/Login";
 import { WalletConnectModal } from "./components/WalletConnectModal";
-import GoldenPage from "./pages/GoldenPage";
-import SelfPage from "./pages/SelfPage";
-import NodePage from "./pages/NodePage";
-import LeaderPage from "./pages/LeaderPage";
-import MemePage from "./pages/MemePage";
-import InfluencerPage from "./pages/InfluencerPage";
-import PlanDetailPage from "./pages/PlanDetailPage";
 
 function Router() {
   return (
@@ -44,13 +36,6 @@ function Router() {
       <Route path="/tickets" component={TicketsPage} />
       <Route path="/referrals" component={ReferralsPage} />
       <Route path="/notices" component={NoticesPage} />
-      <Route path="/golden" component={GoldenPage} />
-      <Route path="/self" component={SelfPage} />
-      <Route path="/node" component={NodePage} />
-      <Route path="/leader" component={LeaderPage} />
-      <Route path="/meme" component={MemePage} />
-      <Route path="/influencer" component={InfluencerPage} />
-      <Route path="/plan/:id" component={PlanDetailPage} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/plans" component={AdminPlans} />
@@ -62,7 +47,6 @@ function Router() {
       <Route path="/admin/referrals" component={AdminReferrals} />
       <Route path="/admin/analytics" component={AdminAnalytics} />
       <Route path="/admin/sub-admins" component={AdminSubAdmins} />
-      <Route path="/admin/notifications" component={AdminNotifications} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

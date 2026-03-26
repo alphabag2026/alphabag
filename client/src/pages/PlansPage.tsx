@@ -92,7 +92,7 @@ export default function PlansPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {plans?.map((plan: any, i: number) => (
+            {plans?.map((plan, i) => (
               <Card
                 key={plan.id}
                 className={`relative overflow-hidden border-border/40 hover:border-primary/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5 ${i % 5 === 2 ? "border-primary/50 shadow-md shadow-primary/10" : ""}`}
