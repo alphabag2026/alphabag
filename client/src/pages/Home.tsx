@@ -8,11 +8,13 @@ import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import {
-  Star, ChevronRight, Bell, Shield, Zap, Globe,
+import { Star, ChevronRight, Bell, Shield, Zap, Globe,
   Users, BarChart3, Menu, X, ShoppingCart, LogOut,
-  Wallet, ExternalLink
+  Wallet, ExternalLink, Video, MessageSquare
 } from "lucide-react";
+import { PlanDetailModal } from "@/components/PlanDetailModal";
+import { ReferralMessageModal } from "@/components/ReferralMessageModal";
+import { MeetingNoticeModal } from "@/components/MeetingNoticeModal";
 
 // CDN URLs
 const ALPHABAG_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/alphabag-logo_df90878d.png";
@@ -48,6 +50,30 @@ function PlanCard({ plan, collectionColor }: { plan: any; collectionColor: strin
       rate: "text-purple-400",
       btn: "bg-purple-500/20 text-purple-300 border-purple-500/30 hover:bg-purple-500/30",
       overlay: "from-purple-900/60",
+    },
+    leader: {
+      border: "border-emerald-500/30",
+      glow: "hover:shadow-emerald-500/40",
+      badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+      rate: "text-emerald-400",
+      btn: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30",
+      overlay: "from-emerald-900/60",
+    },
+    meme: {
+      border: "border-pink-500/30",
+      glow: "hover:shadow-pink-500/40",
+      badge: "bg-pink-500/20 text-pink-300 border-pink-500/30",
+      rate: "text-pink-400",
+      btn: "bg-pink-500/20 text-pink-300 border-pink-500/30 hover:bg-pink-500/30",
+      overlay: "from-pink-900/60",
+    },
+    influencer: {
+      border: "border-orange-500/30",
+      glow: "hover:shadow-orange-500/40",
+      badge: "bg-orange-500/20 text-orange-300 border-orange-500/30",
+      rate: "text-orange-400",
+      btn: "bg-orange-500/20 text-orange-300 border-orange-500/30 hover:bg-orange-500/30",
+      overlay: "from-orange-900/60",
     },
   };
 
@@ -155,6 +181,9 @@ function CollectionSection({
     golden: { title: "text-amber-400", dot: "bg-amber-400", btn: "text-amber-400 border-amber-400/30 hover:bg-amber-400/10" },
     self: { title: "text-blue-400", dot: "bg-blue-400", btn: "text-blue-400 border-blue-400/30 hover:bg-blue-400/10" },
     node: { title: "text-purple-400", dot: "bg-purple-400", btn: "text-purple-400 border-purple-400/30 hover:bg-purple-400/10" },
+    leader: { title: "text-emerald-400", dot: "bg-emerald-400", btn: "text-emerald-400 border-emerald-400/30 hover:bg-emerald-400/10" },
+    meme: { title: "text-pink-400", dot: "bg-pink-400", btn: "text-pink-400 border-pink-400/30 hover:bg-pink-400/10" },
+    influencer: { title: "text-orange-400", dot: "bg-orange-400", btn: "text-orange-400 border-orange-400/30 hover:bg-orange-400/10" },
   };
   const c = colorMap[color] || colorMap.golden;
 
@@ -197,8 +226,14 @@ export default function Home() {
   const { data: goldenPlans = [] } = trpc.public.goldenPlans.useQuery();
   const { data: selfPlans = [] } = trpc.public.selfPlans.useQuery();
   const { data: nodePlans = [] } = trpc.public.nodePlans.useQuery();
+  const { data: leaderPlans = [] } = trpc.public.leaderPlans.useQuery();
+  const { data: memePlans = [] } = trpc.public.memePlans.useQuery();
+  const { data: influencerPlans = [] } = trpc.public.influencerPlans.useQuery();
   const { data: notices = [] } = trpc.public.notices.useQuery();
   const { data: banners = [] } = trpc.public.banners.useQuery();
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const [showReferralModal, setShowReferralModal] = useState(false);
+  const [meetingNotice, setMeetingNotice] = useState<any | null>(null);
 
   // 공지 롤링
   useEffect(() => {
@@ -210,6 +245,14 @@ export default function Home() {
   }, [notices.length]);
 
   const currentNotice = notices[noticeIndex];
+
+  // 미팅 공지 자동 표시 (type === 'meeting'인 최신 공지)
+  useEffect(() => {
+    const meetingNotices = (notices as any[]).filter((n: any) => n.type === 'meeting' && n.isActive);
+    if (meetingNotices.length > 0 && !meetingNotice) {
+      // 자동 팝업은 하지 않고 버튼으로만 표시
+    }
+  }, [notices]);
 
   // 광고 배너 이미지 (DB 배너 없으면 기본 이미지 사용)
   const adImages = (banners as any[]).length > 0
@@ -402,7 +445,7 @@ export default function Home() {
             )}
 
             {/* 하단 링크 */}
-            <div className="flex items-center gap-4 pt-3 border-t border-white/5">
+            <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-white/5">
               <Link href="/golden">
                 <button className="text-sm text-gray-400 hover:text-amber-400 transition-colors">
                   골든 컬렉션
@@ -413,6 +456,26 @@ export default function Home() {
                   커뮤니티
                 </button>
               </Link>
+              <button
+                onClick={() => {
+                  const meeting = (notices as any[]).find((n: any) => n.type === 'meeting' && n.isActive);
+                  if (meeting) setMeetingNotice(meeting);
+                  else {
+                    setMeetingNotice({ id: 0, title: '온라인 회의 안내', content: '현재 예정된 온라인 회의가 없습니다.\n새로운 일정이 공지되면 알려드리겠습니다.', meetingPlatform: 'zoom' });
+                  }
+                }}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-amber-400 transition-colors"
+              >
+                <Video className="w-3 h-3" />
+                줌/온라인 회의
+              </button>
+              <button
+                onClick={() => setShowReferralModal(true)}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-amber-400 transition-colors"
+              >
+                <MessageSquare className="w-3 h-3" />
+                추천글 선택
+              </button>
             </div>
           </div>
         </div>
@@ -470,6 +533,42 @@ export default function Home() {
           icon={<span className="text-base">🔷</span>}
         />
 
+        {/* ─── 리더 컬렉션 ─── */}
+        {(leaderPlans as any[]).length > 0 && (
+          <CollectionSection
+            title="Leader Collection"
+            subtitle="리더 추천 · 검증된 전략 · 커뮤니티 선택"
+            plans={leaderPlans as any[]}
+            color="leader"
+            href="/leader"
+            icon={<span className="text-base">👑</span>}
+          />
+        )}
+
+        {/* ─── 밈토큰 컬렉션 ─── */}
+        {(memePlans as any[]).length > 0 && (
+          <CollectionSection
+            title="Meme Token"
+            subtitle="밈토큰 · 고수익 · 커뮤니티 드리븐"
+            plans={memePlans as any[]}
+            color="meme"
+            href="/meme"
+            icon={<span className="text-base">🚀</span>}
+          />
+        )}
+
+        {/* ─── 인플루언서 섹션 ─── */}
+        {(influencerPlans as any[]).length > 0 && (
+          <CollectionSection
+            title="Influencer"
+            subtitle="인플루언서 추천 · 트렌딩 · 소셜 검증"
+            plans={influencerPlans as any[]}
+            color="influencer"
+            href="/influencer"
+            icon={<span className="text-base">⭐</span>}
+          />
+        )}
+
         {/* ─── 특징 섹션 ─── */}
         <section className="mt-4 mb-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -490,6 +589,23 @@ export default function Home() {
           </div>
         </section>
       </div>
+
+      {/* ─── 모달들 ─── */}
+      {selectedPlanId && (
+        <PlanDetailModal
+          planId={selectedPlanId}
+          onClose={() => setSelectedPlanId(null)}
+        />
+      )}
+      {showReferralModal && (
+        <ReferralMessageModal onClose={() => setShowReferralModal(false)} />
+      )}
+      {meetingNotice && (
+        <MeetingNoticeModal
+          notice={meetingNotice}
+          onClose={() => setMeetingNotice(null)}
+        />
+      )}
 
       {/* ─── 푸터 ─── */}
       <footer className="border-t border-white/5 bg-[#050505] py-8">

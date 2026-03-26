@@ -28,6 +28,10 @@ import { WalletConnectModal } from "./components/WalletConnectModal";
 import GoldenPage from "./pages/GoldenPage";
 import SelfPage from "./pages/SelfPage";
 import NodePage from "./pages/NodePage";
+import LeaderPage from "./pages/LeaderPage";
+import MemePage from "./pages/MemePage";
+import InfluencerPage from "./pages/InfluencerPage";
+import PlanDetailPage from "./pages/PlanDetailPage";
 
 function Router() {
   return (
@@ -43,6 +47,10 @@ function Router() {
       <Route path="/golden" component={GoldenPage} />
       <Route path="/self" component={SelfPage} />
       <Route path="/node" component={NodePage} />
+      <Route path="/leader" component={LeaderPage} />
+      <Route path="/meme" component={MemePage} />
+      <Route path="/influencer" component={InfluencerPage} />
+      <Route path="/plan/:id" component={PlanDetailPage} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/plans" component={AdminPlans} />

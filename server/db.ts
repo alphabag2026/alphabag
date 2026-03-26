@@ -108,8 +108,8 @@ export async function findUserByEmailOrId(emailOrId: string) {
 
 // --- Investment Plans ---
 export async function getInvestmentPlans(
-  planType?: "investment" | "staking" | "golden" | "self" | "node",
-  collectionType?: "golden" | "self" | "node",
+  planType?: "investment" | "staking" | "golden" | "self" | "node" | "leader" | "meme" | "influencer",
+  collectionType?: "golden" | "self" | "node" | "leader" | "meme" | "influencer",
   limit?: number,
   highlightOnly?: boolean
 ) {

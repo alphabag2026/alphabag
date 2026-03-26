@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ENV } from "./_core/env";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -10,6 +11,7 @@ import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import * as db from "./db";
 import { getDb } from "./db";
 import { createAuditLog } from "./db";
+import { referralMessages as referralMessagesTable } from "../drizzle/schema.js";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -453,6 +455,24 @@ export const appRouter = router({
     // 노드 컬렉션 (하이라이트)
     nodePlans: publicProcedure.query(async () => {
       return await db.getInvestmentPlans(undefined, "node");
+    }),
+    // 리더 컬렉션
+    leaderPlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "leader");
+    }),
+    // 밈토큰 컬렉션
+    memePlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "meme");
+    }),
+    // 인플루언서 컬렉션
+    influencerPlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "influencer");
+    }),
+    // 추천글 목록
+    referralMessages: publicProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      return await drizzleDb.select().from(referralMessagesTable).where(eq(referralMessagesTable.isActive, true)).orderBy(referralMessagesTable.sortOrder);
     }),
     // 단일 플랜 상세
     planDetail: publicProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {

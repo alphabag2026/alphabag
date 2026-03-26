@@ -133,3 +133,22 @@
 - [x] 카드 호버 효과 (이미지 확대 + 황금 그림자)
 - [x] 콜렉션 페이지 정렬 필터에 '최신 출시 순' 추가 (기본값)
 - [x] 지갑 연결 모달 개선 (MetaMask, WalletConnect 등)
+
+## Phase 6 - 플랜 상세 모달 + 새 컬렉션 + 공지 기능
+
+- [x] DB 스키마 확장 (planType: leader/meme/influencer, videoUrl2, docsUrl2, infoweb4Url, zoomUrl, zoomDate, referralMessages)
+- [x] 플랜 상세 페이지 (/plan/:id) - 고유 URL, 공유 가능
+- [x] 플랜 상세 모달 - 개요/비디오/자료 탭
+- [x] 개요 탭: 로고, 별점, 배지, 추천금액, 추천코드 입력, Ratio/Yield 박스, 썸네일 이미지
+- [x] 비디오 탭: YouTube 임베드 플레이어
+- [x] 자료 탭: 자료 링크 목록 (PDF, 링크 등)
+- [x] 카드 하단 버튼: 비디오/자료/Blog/상세/담기/이동
+- [x] 홈페이지 새 컬렉션 섹션: 리더 컬렉션 (Leader)
+- [x] 홈페이지 새 컬렉션 섹션: 밈토큰 (Meme Token)
+- [x] 홈페이지 새 컬렉션 섹션: 인플루언서 (Influencer)
+- [x] LeaderPage (/leader), MemePage (/meme), InfluencerPage (/influencer) 라우팅
+- [x] 줌/온라인 회의 공지 모달 (공지 박스 클릭 시)
+- [x] 추천글 선택 모달 (소개 시 추천글 선택 기능)
+- [x] infoweb4 원페이지 링크 연결 (외부 사이트 iframe 또는 새탭)
+- [x] 커뮤니티 활동 섹션 (API 연동 placeholder)
+- [x] App.tsx 라우팅 업데이트

@@ -49,8 +49,8 @@ export const investmentPlans = mysqlTable("investmentPlans", {
   urlId: varchar("urlId", { length: 50 }),
   sortOrder: int("sortOrder").default(0).notNull(),
   isActive: boolean("isActive").default(true).notNull(),
-  planType: mysqlEnum("planType", ["investment", "staking", "golden", "self", "node"]).default("investment").notNull(),
-  collectionType: mysqlEnum("collectionType", ["golden", "self", "node"]),
+  planType: mysqlEnum("planType", ["investment", "staking", "golden", "self", "node", "leader", "meme", "influencer"]).default("investment").notNull(),
+  collectionType: mysqlEnum("collectionType", ["golden", "self", "node", "leader", "meme", "influencer"]),
   tags: json("tags"),
   rating: decimal("rating", { precision: 3, scale: 1 }).default("4.0"),
   videoUrl: text("videoUrl"),
@@ -63,6 +63,13 @@ export const investmentPlans = mysqlTable("investmentPlans", {
   strategy: varchar("strategy", { length: 100 }),
   badgeLabels: json("badgeLabels"),
   isHighlight: boolean("isHighlight").default(false).notNull(),
+  // Extended fields
+  videoUrl2: text("videoUrl2"),
+  docsUrl2: text("docsUrl2"),
+  infoweb4Url: text("infoweb4Url"),
+  thumbnailImages: json("thumbnailImages"),
+  ratioInfo: varchar("ratioInfo", { length: 100 }),
+  yieldInfo: varchar("yieldInfo", { length: 100 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -143,12 +150,29 @@ export const announcements = mysqlTable("announcements", {
   id: int("id").autoincrement().primaryKey(),
   title: varchar("title", { length: 200 }).notNull(),
   content: text("content").notNull(),
-  type: mysqlEnum("type", ["info", "warning", "success", "urgent"]).default("info").notNull(),
+  type: mysqlEnum("type", ["info", "warning", "success", "urgent", "meeting"]).default("info").notNull(),
   isActive: boolean("isActive").default(true).notNull(),
   targetRole: mysqlEnum("targetRole", ["all", "user", "admin"]).default("all").notNull(),
+  // Meeting/Zoom fields
+  meetingUrl: text("meetingUrl"),
+  meetingDate: timestamp("meetingDate"),
+  meetingPlatform: varchar("meetingPlatform", { length: 50 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
+// ─── Referral Messages ────────────────────────────────────────────────────────
+export const referralMessages = mysqlTable("referralMessages", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 200 }).notNull(),
+  emoji: varchar("emoji", { length: 10 }),
+  subtitle: varchar("subtitle", { length: 200 }),
+  content: text("content").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ReferralMessage = typeof referralMessages.$inferSelect;
+export type InsertReferralMessage = typeof referralMessages.$inferInsert;
 
 export type Announcement = typeof announcements.$inferSelect;
 export type InsertAnnouncement = typeof announcements.$inferInsert;
