@@ -15,6 +15,7 @@ import AdminAirdrops from "./pages/admin/Airdrops";
 import AdminReferrals from "./pages/admin/Referrals";
 import AdminAnalytics from "./pages/admin/Analytics";
 import AdminSubAdmins from "./pages/admin/SubAdmins";
+import AdminNotifications from "./pages/admin/Notifications";
 import UserDashboard from "./pages/UserDashboard";
 import PlansPage from "./pages/PlansPage";
 import NodesPage from "./pages/NodesPage";
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/admin/referrals" component={AdminReferrals} />
       <Route path="/admin/analytics" component={AdminAnalytics} />
       <Route path="/admin/sub-admins" component={AdminSubAdmins} />
+      <Route path="/admin/notifications" component={AdminNotifications} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

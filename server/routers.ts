@@ -8,6 +8,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import * as db from "./db";
+import { getDb } from "./db";
 import { createAuditLog } from "./db";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
@@ -619,6 +620,35 @@ export const appRouter = router({
       } catch {
         return null;
       }
+    }),
+  }),
+
+  notifications: router({
+    list: adminProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return [];
+      const { notifications } = await import("../drizzle/schema");
+      return database.select().from(notifications).orderBy(notifications.createdAt);
+    }),
+    create: adminProcedure.input(z.object({
+      title: z.string(),
+      message: z.string(),
+      type: z.string().default("info"),
+      targetRole: z.string().default("all"),
+    })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { notifications } = await import("../drizzle/schema");
+      await database.insert(notifications).values(input);
+      return { success: true };
+    }),
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { notifications } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      await database.delete(notifications).where(eq(notifications.id, input.id));
+      return { success: true };
     }),
   }),
 });

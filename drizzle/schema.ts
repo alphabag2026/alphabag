@@ -269,3 +269,15 @@ export const adminAccounts = mysqlTable("adminAccounts", {
 });
 export type AdminAccount = typeof adminAccounts.$inferSelect;
 export type InsertAdminAccount = typeof adminAccounts.$inferInsert;
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 200 }).notNull(),
+  message: text("message").notNull(),
+  type: varchar("type", { length: 20 }).default("info").notNull(),
+  targetRole: varchar("targetRole", { length: 20 }).default("all").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;

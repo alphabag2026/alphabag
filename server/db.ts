@@ -1,4 +1,4 @@
-import { and, desc, eq, like, or, sql, count, sum } from "drizzle-orm";
+import { and, desc, eq, like, or, sql, count, sum, countDistinct } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users,
@@ -402,12 +402,21 @@ export async function getDashboardStats() {
       count: count(),
     }).from(investments).groupBy(sql`DATE(${investments.createdAt})`).orderBy(sql`DATE(${investments.createdAt})`).limit(30),
   ]);
+  const totalInvestmentNum = Number(totalInvestment[0]?.total ?? 0);
+  const totalNodeRevenueNum = Number(totalNodeRevenue[0]?.total ?? 0);
+  const totalUsersNum = totalUsers[0]?.count ?? 0;
+  const totalReferralsNum = totalReferrals[0]?.count ?? 0;
+  const investingUsers = await db.select({ count: countDistinct(investments.userId) }).from(investments).where(eq(investments.status, "active"));
+  const investingUsersNum = investingUsers[0]?.count ?? 0;
+  const conversionRate = totalUsersNum > 0 ? (investingUsersNum / totalUsersNum) * 100 : 0;
   return {
-    totalUsers: totalUsers[0]?.count ?? 0,
-    totalInvestment: Number(totalInvestment[0]?.total ?? 0),
-    totalNodeRevenue: Number(totalNodeRevenue[0]?.total ?? 0),
+    totalUsers: totalUsersNum,
+    totalInvestment: totalInvestmentNum,
+    totalNodeRevenue: totalNodeRevenueNum,
+    totalRevenue: totalInvestmentNum + totalNodeRevenueNum,
     openTickets: openTickets[0]?.count ?? 0,
-    totalReferrals: totalReferrals[0]?.count ?? 0,
+    totalReferrals: totalReferralsNum,
+    conversionRate: Math.round(conversionRate * 10) / 10,
     recentInvestments,
   };
 }
