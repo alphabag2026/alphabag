@@ -1,0 +1,9 @@
+{
+  "query": "\n-- 누락된 컬럼 추가\nALTER TABLE investmentPlans \n  ADD COLUMN IF NOT EXISTS thumbnailImages JSON,\n  ADD COLUMN IF NOT EXISTS videoUrl2 TEXT,\n  ADD COLUMN IF NOT EXISTS docsUrl2 TEXT,\n  ADD COLUMN IF NOT EXISTS infoweb4Url TEXT,\n  ADD COLUMN IF NOT EXISTS ratioInfo VARCHAR(100),\n  ADD COLUMN IF NOT EXISTS yieldInfo VARCHAR(100),\n  ADD COLUMN IF NOT EXISTS docsUrl TEXT,\n  ADD COLUMN IF NOT EXISTS blogUrl TEXT,\n  ADD COLUMN IF NOT EXISTS telegramUrl TEXT,\n  ADD COLUMN IF NOT EXISTS twitterUrl TEXT,\n  ADD COLUMN IF NOT EXISTS recommendedAmount DECIMAL(18,2),\n  ADD COLUMN IF NOT EXISTS allocation VARCHAR(50),\n  ADD COLUMN IF NOT EXISTS strategy VARCHAR(100),\n  ADD COLUMN IF NOT EXISTS badgeLabels JSON,\n  ADD COLUMN IF NOT EXISTS isHighlight TINYINT(1) DEFAULT 0 NOT NULL;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute \n-- 누락된 컬럼 추가\nALTER TABLE investmentPlans \n  ADD COLUMN IF NOT EXISTS thumbnailImages JSON,\n  ADD COLUMN IF NOT EXISTS videoUrl2 TEXT,\n  ADD COLUMN IF NOT EXISTS docsUrl2 TEXT,\n  ADD COLUMN IF NOT EXISTS infoweb4Url TEXT,\n  ADD COLUMN IF NOT EXISTS ratioInfo VARCHAR(100),\n  ADD COLUMN IF NOT EXISTS yieldInfo VARCHAR(100),\n  ADD COLUMN IF NOT EXISTS docsUrl TEXT,\n  ADD COLUMN IF NOT EXISTS blogUrl TEXT,\n  ADD COLUMN IF NOT EXISTS telegramUrl TEXT,\n  ADD COLUMN IF NOT EXISTS twitterUrl TEXT,\n  ADD COLUMN IF NOT EXISTS recommendedAmount DECIMAL(18,2),\n  ADD COLUMN IF NOT EXISTS allocation VARCHAR(50),\n  ADD COLUMN IF NOT EXISTS strategy VARCHAR(100),\n  ADD COLUMN IF NOT EXISTS badgeLabels JSON,\n  ADD COLUMN IF NOT EXISTS isHighlight TINYINT(1) DEFAULT 0 NOT NULL;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1623
+}

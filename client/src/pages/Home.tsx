@@ -86,11 +86,19 @@ function PlanCard({ plan, collectionColor }: { plan: any; collectionColor: strin
       >
         {/* 카드 이미지 영역 - 호버 시 확대 */}
         <div className="relative h-36 overflow-hidden">
+          {/* 썸네일 배경 이미지 */}
+          {Array.isArray((plan as any).thumbnailImages) && (plan as any).thumbnailImages.length > 0 && (
+            <img
+              src={(plan as any).thumbnailImages[0]}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover opacity-30 transition-transform duration-500 group-hover:scale-110"
+            />
+          )}
           {plan.logoUrl ? (
             <img
               src={plan.logoUrl}
               alt={plan.name}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              className="relative z-10 w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110"
             />
           ) : (
             <div className={`w-full h-full flex items-center justify-center transition-transform duration-500 group-hover:scale-110 ${
@@ -141,13 +149,36 @@ function PlanCard({ plan, collectionColor }: { plan: any; collectionColor: strin
             </div>
           )}
 
+          {/* Ratio / Yield 정보 */}
+          {((plan as any).ratioInfo || (plan as any).yieldInfo) && (
+            <div className="grid grid-cols-2 gap-1 mb-2">
+              {(plan as any).ratioInfo && (
+                <div className="bg-white/5 rounded-lg p-2">
+                  <div className="text-[9px] text-gray-500 mb-0.5">Ratio</div>
+                  <div className="text-[11px] font-bold text-white">{(plan as any).ratioInfo}</div>
+                </div>
+              )}
+              {(plan as any).yieldInfo && (
+                <div className="bg-white/5 rounded-lg p-2">
+                  <div className="text-[9px] text-gray-500 mb-0.5">Yield</div>
+                  <div className={`text-[11px] font-bold ${c.rate}`}>{(plan as any).yieldInfo}</div>
+                </div>
+              )}
+            </div>
+          )}
           {/* 수익률 */}
-          <div className="mb-3">
+          <div className="mb-2">
             <div className={`text-2xl font-bold ${c.rate}`}>
               {Number(plan.dailyRate).toFixed(2)}%
             </div>
             <div className="text-xs text-gray-500">Daily Return</div>
           </div>
+          {/* 추천금액 */}
+          {(plan as any).recommendedAmount && (
+            <div className="text-xs text-gray-400 mb-2">
+              추천금액: <span className={`font-bold ${c.rate}`}>{Number((plan as any).recommendedAmount).toLocaleString()} USDT</span>
+            </div>
+          )}
 
           {/* 별점 */}
           <div className="flex items-center gap-1 mb-3">

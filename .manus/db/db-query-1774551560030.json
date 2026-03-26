@@ -1,0 +1,115 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'investmentPlans' ORDER BY ORDINAL_POSITION;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'investmentPlans' ORDER BY ORDINAL_POSITION;",
+  "rows": [
+    {
+      "COLUMN_NAME": "id"
+    },
+    {
+      "COLUMN_NAME": "name"
+    },
+    {
+      "COLUMN_NAME": "logoUrl"
+    },
+    {
+      "COLUMN_NAME": "label"
+    },
+    {
+      "COLUMN_NAME": "dailyRate"
+    },
+    {
+      "COLUMN_NAME": "minAmount"
+    },
+    {
+      "COLUMN_NAME": "maxAmount"
+    },
+    {
+      "COLUMN_NAME": "duration"
+    },
+    {
+      "COLUMN_NAME": "totalReturn"
+    },
+    {
+      "COLUMN_NAME": "description"
+    },
+    {
+      "COLUMN_NAME": "urlId"
+    },
+    {
+      "COLUMN_NAME": "sortOrder"
+    },
+    {
+      "COLUMN_NAME": "isActive"
+    },
+    {
+      "COLUMN_NAME": "planType"
+    },
+    {
+      "COLUMN_NAME": "tags"
+    },
+    {
+      "COLUMN_NAME": "createdAt"
+    },
+    {
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "COLUMN_NAME": "collectionType"
+    },
+    {
+      "COLUMN_NAME": "rating"
+    },
+    {
+      "COLUMN_NAME": "videoUrl"
+    },
+    {
+      "COLUMN_NAME": "docsUrl"
+    },
+    {
+      "COLUMN_NAME": "blogUrl"
+    },
+    {
+      "COLUMN_NAME": "telegramUrl"
+    },
+    {
+      "COLUMN_NAME": "twitterUrl"
+    },
+    {
+      "COLUMN_NAME": "recommendedAmount"
+    },
+    {
+      "COLUMN_NAME": "allocation"
+    },
+    {
+      "COLUMN_NAME": "strategy"
+    },
+    {
+      "COLUMN_NAME": "badgeLabels"
+    },
+    {
+      "COLUMN_NAME": "isHighlight"
+    },
+    {
+      "COLUMN_NAME": "videoUrl2"
+    },
+    {
+      "COLUMN_NAME": "docsUrl2"
+    },
+    {
+      "COLUMN_NAME": "infoweb4Url"
+    },
+    {
+      "COLUMN_NAME": "thumbnailImages"
+    },
+    {
+      "COLUMN_NAME": "ratioInfo"
+    },
+    {
+      "COLUMN_NAME": "yieldInfo"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nid\nname\nlogoUrl\nlabel\ndailyRate\nminAmount\nmaxAmount\nduration\ntotalReturn\ndescription\nurlId\nsortOrder\nisActive\nplanType\ntags\ncreatedAt\nupdatedAt\ncollectionType\nrating\nvideoUrl\ndocsUrl\nblogUrl\ntelegramUrl\ntwitterUrl\nrecommendedAmount\nallocation\nstrategy\nbadgeLabels\nisHighlight\nvideoUrl2\ndocsUrl2\ninfoweb4Url\nthumbnailImages\nratioInfo\nyieldInfo\n",
+  "stderr": "",
+  "execution_time_ms": 1574
+}

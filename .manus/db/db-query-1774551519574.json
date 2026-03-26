@@ -1,0 +1,64 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "adImages"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "adminAccounts"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "airdropParticipants"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "airdrops"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "announcements"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "auditLogs"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "eventBanners"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "investmentPlans"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "investments"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "nodeOrders"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "nodes"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "notices"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "notifications"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "referralMessages"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "referrals"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "supportTickets"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe": "users"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe\n__drizzle_migrations\nadImages\nadminAccounts\nairdropParticipants\nairdrops\nannouncements\nauditLogs\neventBanners\ninvestmentPlans\ninvestments\nnodeOrders\nnodes\nnotices\nnotifications\nreferralMessages\nreferrals\nsupportTickets\nusers\n",
+  "stderr": "",
+  "execution_time_ms": 1562
+}

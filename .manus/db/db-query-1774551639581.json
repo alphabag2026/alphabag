@@ -1,0 +1,129 @@
+{
+  "query": "\n-- Golden 플랜 로고 + 썸네일 업데이트\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/maxfi-final_9c8e35f6.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-golden_fd2f169f.png'),\n  ratioInfo = '40% 40% 20%',\n  yieldInfo = 'Daily: 0.6% ~ 2%',\n  recommendedAmount = 1000,\n  badgeLabels = JSON_ARRAY('BINANCE Alpha', 'Insurance(Hedge)'),\n  isHighlight = 1\nWHERE name LIKE '%MAXFI%' AND planType = 'golden';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/loomx-final_b53d6ca0.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-golden_fd2f169f.png'),\n  ratioInfo = '50% 30% 20%',\n  yieldInfo = 'Daily: 0.5% ~ 1.5%',\n  recommendedAmount = 500,\n  badgeLabels = JSON_ARRAY('DEX Trading', 'Auto Compound'),\n  isHighlight = 1\nWHERE name LIKE '%LOOMX%' AND planType = 'golden';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/codexfield-final_a3c3854b.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-golden_fd2f169f.png'),\n  ratioInfo = '60% 40%',\n  yieldInfo = 'Daily: 0.4% ~ 1.2%',\n  recommendedAmount = 300,\n  badgeLabels = JSON_ARRAY('Futures', 'AI Strategy'),\n  isHighlight = 1\nWHERE name LIKE '%CodexField%' AND planType = 'golden';\n\n-- Self 플랜 로고 + 썸네일 업데이트\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-alpha-final_b162829d.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-self_71e63ecb.png'),\n  recommendedAmount = 500,\n  badgeLabels = JSON_ARRAY('Self Managed', 'Alpha Strategy')\nWHERE name LIKE '%Alpha%' AND planType = 'self';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-growth-final_6ec4b077.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-self_71e63ecb.png'),\n  recommendedAmount = 1000,\n  badgeLabels = JSON_ARRAY('Self Managed', 'Growth')\nWHERE name LIKE '%Growth%' AND planType = 'self';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-hedge-final_a3912842.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-self_71e63ecb.png'),\n  recommendedAmount = 2000,\n  badgeLabels = JSON_ARRAY('Self Managed', 'Hedge')\nWHERE name LIKE '%Hedge%' AND planType = 'self';\n\n-- Node 플랜 로고 + 썸네일 업데이트\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-starter-final_5b1c558a.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 100,\n  badgeLabels = JSON_ARRAY('Node', 'Starter')\nWHERE name LIKE '%Starter%' AND planType = 'node';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-pro-final_b0372377.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 500,\n  badgeLabels = JSON_ARRAY('Node', 'Pro')\nWHERE name LIKE '%Pro%' AND planType = 'node';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-elite-final_41a27e79.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 1000,\n  badgeLabels = JSON_ARRAY('Node', 'Elite')\nWHERE name LIKE '%Elite%' AND planType = 'node';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/nice-final_4f1dc208.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 200,\n  badgeLabels = JSON_ARRAY('Node', 'NICE')\nWHERE name LIKE '%NICE%' AND planType = 'node';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/maxfi-node-final_ab9516f2.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 300,\n  badgeLabels = JSON_ARRAY('Node', 'MaxFi')\nWHERE name LIKE '%MaxFi%' AND planType = 'node';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/csgobox-final_12a83830.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 150,\n  badgeLabels = JSON_ARRAY('Node', 'Gaming')\nWHERE name LIKE '%CSGOBOX%' AND planType = 'node';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/oraclex-final_34a5edf1.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 400,\n  badgeLabels = JSON_ARRAY('Node', 'Oracle')\nWHERE name LIKE '%ORACLEX%' AND planType = 'node';\n\n-- 결과 확인\nSELECT name, planType, logoUrl IS NOT NULL as hasLogo, thumbnailImages IS NOT NULL as hasThumb, recommendedAmount FROM investmentPlans WHERE logoUrl IS NOT NULL ORDER BY planType, name;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute \n-- Golden 플랜 로고 + 썸네일 업데이트\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/maxfi-final_9c8e35f6.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-golden_fd2f169f.png'),\n  ratioInfo = '40% 40% 20%',\n  yieldInfo = 'Daily: 0.6% ~ 2%',\n  recommendedAmount = 1000,\n  badgeLabels = JSON_ARRAY('BINANCE Alpha', 'Insurance(Hedge)'),\n  isHighlight = 1\nWHERE name LIKE '%MAXFI%' AND planType = 'golden';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/loomx-final_b53d6ca0.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-golden_fd2f169f.png'),\n  ratioInfo = '50% 30% 20%',\n  yieldInfo = 'Daily: 0.5% ~ 1.5%',\n  recommendedAmount = 500,\n  badgeLabels = JSON_ARRAY('DEX Trading', 'Auto Compound'),\n  isHighlight = 1\nWHERE name LIKE '%LOOMX%' AND planType = 'golden';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/codexfield-final_a3c3854b.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-golden_fd2f169f.png'),\n  ratioInfo = '60% 40%',\n  yieldInfo = 'Daily: 0.4% ~ 1.2%',\n  recommendedAmount = 300,\n  badgeLabels = JSON_ARRAY('Futures', 'AI Strategy'),\n  isHighlight = 1\nWHERE name LIKE '%CodexField%' AND planType = 'golden';\n\n-- Self 플랜 로고 + 썸네일 업데이트\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-alpha-final_b162829d.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-self_71e63ecb.png'),\n  recommendedAmount = 500,\n  badgeLabels = JSON_ARRAY('Self Managed', 'Alpha Strategy')\nWHERE name LIKE '%Alpha%' AND planType = 'self';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-growth-final_6ec4b077.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-self_71e63ecb.png'),\n  recommendedAmount = 1000,\n  badgeLabels = JSON_ARRAY('Self Managed', 'Growth')\nWHERE name LIKE '%Growth%' AND planType = 'self';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-hedge-final_a3912842.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-self_71e63ecb.png'),\n  recommendedAmount = 2000,\n  badgeLabels = JSON_ARRAY('Self Managed', 'Hedge')\nWHERE name LIKE '%Hedge%' AND planType = 'self';\n\n-- Node 플랜 로고 + 썸네일 업데이트\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-starter-final_5b1c558a.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 100,\n  badgeLabels = JSON_ARRAY('Node', 'Starter')\nWHERE name LIKE '%Starter%' AND planType = 'node';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-pro-final_b0372377.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 500,\n  badgeLabels = JSON_ARRAY('Node', 'Pro')\nWHERE name LIKE '%Pro%' AND planType = 'node';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-elite-final_41a27e79.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 1000,\n  badgeLabels = JSON_ARRAY('Node', 'Elite')\nWHERE name LIKE '%Elite%' AND planType = 'node';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/nice-final_4f1dc208.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 200,\n  badgeLabels = JSON_ARRAY('Node', 'NICE')\nWHERE name LIKE '%NICE%' AND planType = 'node';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/maxfi-node-final_ab9516f2.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 300,\n  badgeLabels = JSON_ARRAY('Node', 'MaxFi')\nWHERE name LIKE '%MaxFi%' AND planType = 'node';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/csgobox-final_12a83830.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 150,\n  badgeLabels = JSON_ARRAY('Node', 'Gaming')\nWHERE name LIKE '%CSGOBOX%' AND planType = 'node';\n\nUPDATE investmentPlans SET \n  logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/oraclex-final_34a5edf1.png',\n  thumbnailImages = JSON_ARRAY('https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/thumb-node_96f47bf6.png'),\n  recommendedAmount = 400,\n  badgeLabels = JSON_ARRAY('Node', 'Oracle')\nWHERE name LIKE '%ORACLEX%' AND planType = 'node';\n\n-- 결과 확인\nSELECT name, planType, logoUrl IS NOT NULL as hasLogo, thumbnailImages IS NOT NULL as hasThumb, recommendedAmount FROM investmentPlans WHERE logoUrl IS NOT NULL ORDER BY planType, name;\n",
+  "rows": [
+    {
+      "name": "LTF",
+      "planType": "investment",
+      "hasLogo": "1",
+      "hasThumb": "0",
+      "recommendedAmount": "NULL"
+    },
+    {
+      "name": "PINDEX",
+      "planType": "investment",
+      "hasLogo": "1",
+      "hasThumb": "0",
+      "recommendedAmount": "NULL"
+    },
+    {
+      "name": "B BAG CodexField",
+      "planType": "golden",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "300.00"
+    },
+    {
+      "name": "B BAG LOOMX",
+      "planType": "golden",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "500.00"
+    },
+    {
+      "name": "B BAG MAXFI",
+      "planType": "golden",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "1000.00"
+    },
+    {
+      "name": "NGP",
+      "planType": "golden",
+      "hasLogo": "1",
+      "hasThumb": "0",
+      "recommendedAmount": "2000.00"
+    },
+    {
+      "name": "WALLX",
+      "planType": "golden",
+      "hasLogo": "1",
+      "hasThumb": "0",
+      "recommendedAmount": "500.00"
+    },
+    {
+      "name": "Self Basket · Alpha",
+      "planType": "self",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "500.00"
+    },
+    {
+      "name": "Self Basket · Growth",
+      "planType": "self",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "1000.00"
+    },
+    {
+      "name": "Self Basket · Hedge",
+      "planType": "self",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "2000.00"
+    },
+    {
+      "name": "CSGOBOX",
+      "planType": "node",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "150.00"
+    },
+    {
+      "name": "MaxFi",
+      "planType": "node",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "300.00"
+    },
+    {
+      "name": "NICE",
+      "planType": "node",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "200.00"
+    },
+    {
+      "name": "Node · Elite",
+      "planType": "node",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "1000.00"
+    },
+    {
+      "name": "Node · Pro",
+      "planType": "node",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "500.00"
+    },
+    {
+      "name": "Node · Starter",
+      "planType": "node",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "100.00"
+    },
+    {
+      "name": "ORACLEX",
+      "planType": "node",
+      "hasLogo": "1",
+      "hasThumb": "1",
+      "recommendedAmount": "400.00"
+    }
+  ],
+  "messages": [],
+  "stdout": "name\tplanType\thasLogo\thasThumb\trecommendedAmount\nLTF\tinvestment\t1\t0\tNULL\nPINDEX\tinvestment\t1\t0\tNULL\nB BAG CodexField\tgolden\t1\t1\t300.00\nB BAG LOOMX\tgolden\t1\t1\t500.00\nB BAG MAXFI\tgolden\t1\t1\t1000.00\nNGP\tgolden\t1\t0\t2000.00\nWALLX\tgolden\t1\t0\t500.00\nSelf Basket · Alpha\tself\t1\t1\t500.00\nSelf Basket · Growth\tself\t1\t1\t1000.00\nSelf Basket · Hedge\tself\t1\t1\t2000.00\nCSGOBOX\tnode\t1\t1\t150.00\nMaxFi\tnode\t1\t1\t300.00\nNICE\tnode\t1\t1\t200.00\nNode · Elite\tnode\t1\t1\t1000.00\nNode · Pro\tnode\t1\t1\t500.00\nNode · Starter\tnode\t1\t1\t100.00\nORACLEX\tnode\t1\t1\t400.00\n",
+  "stderr": "",
+  "execution_time_ms": 4493
+}
