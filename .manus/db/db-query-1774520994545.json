@@ -1,0 +1,13 @@
+{
+  "query": "SELECT id, title, content, type, isActive FROM announcements LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute SELECT id, title, content, type, isActive FROM announcements LIMIT 5;",
+  "rows": [],
+  "messages": [
+    "1\t공지\t1) Golden / Self / Node / CS 는 별도 페이지입니다.",
+    "2) 광고는 이미지 전용(텍스트 없음)입니다.",
+    "3) 지갑 연결 후 Add / Go / Cart 사용 가능합니다.\tinfo\t1"
+  ],
+  "stdout": "id\ttitle\tcontent\ttype\tisActive\n1\t공지\t1) Golden / Self / Node / CS 는 별도 페이지입니다.\n2) 광고는 이미지 전용(텍스트 없음)입니다.\n3) 지갑 연결 후 Add / Go / Cart 사용 가능합니다.\tinfo\t1\n",
+  "stderr": "",
+  "execution_time_ms": 1544
+}

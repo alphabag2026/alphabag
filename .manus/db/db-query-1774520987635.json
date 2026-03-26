@@ -1,0 +1,140 @@
+{
+  "query": "\nSELECT id, name, planType, collectionType, rating, recommendedAmount, isHighlight, isActive \nFROM investmentPlans \nWHERE isActive = true \nORDER BY collectionType, sortOrder;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute \nSELECT id, name, planType, collectionType, rating, recommendedAmount, isHighlight, isActive \nFROM investmentPlans \nWHERE isActive = true \nORDER BY collectionType, sortOrder;\n",
+  "rows": [
+    {
+      "id": "1",
+      "name": "B BAG MAXFI",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "5.0",
+      "recommendedAmount": "1000.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    },
+    {
+      "id": "2",
+      "name": "B BAG LOOMX",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "4.0",
+      "recommendedAmount": "1000.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    },
+    {
+      "id": "3",
+      "name": "B BAG CodexField",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "4.0",
+      "recommendedAmount": "1000.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    },
+    {
+      "id": "6",
+      "name": "Self Basket · Alpha",
+      "planType": "self",
+      "collectionType": "self",
+      "rating": "4.5",
+      "recommendedAmount": "300.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    },
+    {
+      "id": "7",
+      "name": "Self Basket · Growth",
+      "planType": "self",
+      "collectionType": "self",
+      "rating": "4.0",
+      "recommendedAmount": "500.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    },
+    {
+      "id": "8",
+      "name": "Self Basket · Hedge",
+      "planType": "self",
+      "collectionType": "self",
+      "rating": "4.2",
+      "recommendedAmount": "200.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    },
+    {
+      "id": "9",
+      "name": "Node · Starter",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.3",
+      "recommendedAmount": "200.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    },
+    {
+      "id": "10",
+      "name": "Node · Pro",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.0",
+      "recommendedAmount": "1000.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    },
+    {
+      "id": "11",
+      "name": "Node · Elite",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.6",
+      "recommendedAmount": "3000.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    },
+    {
+      "id": "12",
+      "name": "NICE",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.0",
+      "recommendedAmount": "1000.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    },
+    {
+      "id": "13",
+      "name": "MaxFi",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.6",
+      "recommendedAmount": "3000.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    },
+    {
+      "id": "14",
+      "name": "CSGOBOX",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.4",
+      "recommendedAmount": "5000.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    },
+    {
+      "id": "15",
+      "name": "ORACLEX",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.2",
+      "recommendedAmount": "10000.00",
+      "isHighlight": "1",
+      "isActive": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tplanType\tcollectionType\trating\trecommendedAmount\tisHighlight\tisActive\n1\tB BAG MAXFI\tgolden\tgolden\t5.0\t1000.00\t1\t1\n2\tB BAG LOOMX\tgolden\tgolden\t4.0\t1000.00\t1\t1\n3\tB BAG CodexField\tgolden\tgolden\t4.0\t1000.00\t1\t1\n6\tSelf Basket · Alpha\tself\tself\t4.5\t300.00\t1\t1\n7\tSelf Basket · Growth\tself\tself\t4.0\t500.00\t1\t1\n8\tSelf Basket · Hedge\tself\tself\t4.2\t200.00\t1\t1\n9\tNode · Starter\tnode\tnode\t4.3\t200.00\t1\t1\n10\tNode · Pro\tnode\tnode\t4.0\t1000.00\t1\t1\n11\tNode · Elite\tnode\tnode\t4.6\t3000.00\t1\t1\n12\tNICE\tnode\tnode\t4.0\t1000.00\t1\t1\n13\tMaxFi\tnode\tnode\t4.6\t3000.00\t1\t1\n14\tCSGOBOX\tnode\tnode\t4.4\t5000.00\t1\t1\n15\tORACLEX\tnode\tnode\t4.2\t10000.00\t1\t1\n",
+  "stderr": "",
+  "execution_time_ms": 1505
+}

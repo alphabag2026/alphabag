@@ -1,0 +1,307 @@
+{
+  "query": "SELECT id, name, planType, collectionType, rating, recommendedAmount, isActive FROM investmentPlans ORDER BY planType, sortOrder LIMIT 50;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute SELECT id, name, planType, collectionType, rating, recommendedAmount, isActive FROM investmentPlans ORDER BY planType, sortOrder LIMIT 50;",
+  "rows": [
+    {
+      "id": "16",
+      "name": "PINDEX",
+      "planType": "investment",
+      "collectionType": "node",
+      "rating": "4.0",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "17",
+      "name": "LTF",
+      "planType": "investment",
+      "collectionType": "node",
+      "rating": "4.0",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "30001",
+      "name": "BINANCE Alpha Fund",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "4.9",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "1",
+      "name": "MoonExe",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "5.0",
+      "recommendedAmount": "1000.00",
+      "isActive": "1"
+    },
+    {
+      "id": "2",
+      "name": "Numi (BinanceAlpha+SBAG)",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "4.0",
+      "recommendedAmount": "1000.00",
+      "isActive": "1"
+    },
+    {
+      "id": "30002",
+      "name": "Insurance Hedge",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "4.7",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "3",
+      "name": "LOOM X",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "4.0",
+      "recommendedAmount": "1000.00",
+      "isActive": "1"
+    },
+    {
+      "id": "30003",
+      "name": "Golden Premium",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "4.8",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "30004",
+      "name": "Alpha Yield",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "4.5",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "4",
+      "name": "WALLX",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "4.2",
+      "recommendedAmount": "500.00",
+      "isActive": "1"
+    },
+    {
+      "id": "5",
+      "name": "NGP",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "4.5",
+      "recommendedAmount": "2000.00",
+      "isActive": "1"
+    },
+    {
+      "id": "30005",
+      "name": "Golden Shield",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "4.6",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "30006",
+      "name": "Binance Flex",
+      "planType": "golden",
+      "collectionType": "golden",
+      "rating": "4.4",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "6",
+      "name": "Legend ATM",
+      "planType": "self",
+      "collectionType": "golden",
+      "rating": "4.5",
+      "recommendedAmount": "300.00",
+      "isActive": "1"
+    },
+    {
+      "id": "7",
+      "name": "NexBat",
+      "planType": "self",
+      "collectionType": "self",
+      "rating": "4.0",
+      "recommendedAmount": "500.00",
+      "isActive": "1"
+    },
+    {
+      "id": "8",
+      "name": "CaryPact",
+      "planType": "self",
+      "collectionType": "self",
+      "rating": "4.2",
+      "recommendedAmount": "200.00",
+      "isActive": "1"
+    },
+    {
+      "id": "9",
+      "name": "ALFA",
+      "planType": "self",
+      "collectionType": "self",
+      "rating": "4.3",
+      "recommendedAmount": "100.00",
+      "isActive": "1"
+    },
+    {
+      "id": "10",
+      "name": "M78",
+      "planType": "self",
+      "collectionType": "self",
+      "rating": "4.1",
+      "recommendedAmount": "1000.00",
+      "isActive": "1"
+    },
+    {
+      "id": "30007",
+      "name": "Self Alpha",
+      "planType": "self",
+      "collectionType": "self",
+      "rating": "4.5",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "30008",
+      "name": "Custom Yield",
+      "planType": "self",
+      "collectionType": "self",
+      "rating": "4.3",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "30009",
+      "name": "Self Premium",
+      "planType": "self",
+      "collectionType": "self",
+      "rating": "4.7",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "30010",
+      "name": "Personal Fund",
+      "planType": "self",
+      "collectionType": "self",
+      "rating": "4.2",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "30011",
+      "name": "Self Staking",
+      "planType": "self",
+      "collectionType": "self",
+      "rating": "4.4",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "11",
+      "name": "METABANK",
+      "planType": "node",
+      "collectionType": "self",
+      "rating": "4.3",
+      "recommendedAmount": "200.00",
+      "isActive": "1"
+    },
+    {
+      "id": "12",
+      "name": "NICE",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.0",
+      "recommendedAmount": "1000.00",
+      "isActive": "1"
+    },
+    {
+      "id": "13",
+      "name": "MaxFi",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.6",
+      "recommendedAmount": "3000.00",
+      "isActive": "1"
+    },
+    {
+      "id": "14",
+      "name": "CSGOBOX",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.4",
+      "recommendedAmount": "5000.00",
+      "isActive": "1"
+    },
+    {
+      "id": "15",
+      "name": "ORACLEX",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.2",
+      "recommendedAmount": "10000.00",
+      "isActive": "1"
+    },
+    {
+      "id": "30012",
+      "name": "Node Starter",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.3",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "30013",
+      "name": "Node Pro",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.6",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "30014",
+      "name": "Node Elite",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.8",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "30015",
+      "name": "DApp Node",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.1",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "30016",
+      "name": "Node Validator",
+      "planType": "node",
+      "collectionType": "node",
+      "rating": "4.5",
+      "recommendedAmount": "NULL",
+      "isActive": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tplanType\tcollectionType\trating\trecommendedAmount\tisActive\n16\tPINDEX\tinvestment\tnode\t4.0\tNULL\t1\n17\tLTF\tinvestment\tnode\t4.0\tNULL\t1\n30001\tBINANCE Alpha Fund\tgolden\tgolden\t4.9\tNULL\t1\n1\tMoonExe\tgolden\tgolden\t5.0\t1000.00\t1\n2\tNumi (BinanceAlpha+SBAG)\tgolden\tgolden\t4.0\t1000.00\t1\n30002\tInsurance Hedge\tgolden\tgolden\t4.7\tNULL\t1\n3\tLOOM X\tgolden\tgolden\t4.0\t1000.00\t1\n30003\tGolden Premium\tgolden\tgolden\t4.8\tNULL\t1\n30004\tAlpha Yield\tgolden\tgolden\t4.5\tNULL\t1\n4\tWALLX\tgolden\tgolden\t4.2\t500.00\t1\n5\tNGP\tgolden\tgolden\t4.5\t2000.00\t1\n30005\tGolden Shield\tgolden\tgolden\t4.6\tNULL\t1\n30006\tBinance Flex\tgolden\tgolden\t4.4\tNULL\t1\n6\tLegend ATM\tself\tgolden\t4.5\t300.00\t1\n7\tNexBat\tself\tself\t4.0\t500.00\t1\n8\tCaryPact\tself\tself\t4.2\t200.00\t1\n9\tALFA\tself\tself\t4.3\t100.00\t1\n10\tM78\tself\tself\t4.1\t1000.00\t1\n30007\tSelf Alpha\tself\tself\t4.5\tNULL\t1\n30008\tCustom Yield\tself\tself\t4.3\tNULL\t1\n30009\tSelf Premium\tself\tself\t4.7\tNULL\t1\n30010\tPersonal Fund\tself\tself\t4.2\tNULL\t1\n30011\tSelf Staking\tself\tself\t4.4\tNULL\t1\n11\tMETABANK\tnode\tself\t4.3\t200.00\t1\n12\tNICE\tnode\tnode\t4.0\t1000.00\t1\n13\tMaxFi\tnode\tnode\t4.6\t3000.00\t1\n14\tCSGOBOX\tnode\tnode\t4.4\t5000.00\t1\n15\tORACLEX\tnode\tnode\t4.2\t10000.00\t1\n30012\tNode Starter\tnode\tnode\t4.3\tNULL\t1\n30013\tNode Pro\tnode\tnode\t4.6\tNULL\t1\n30014\tNode Elite\tnode\tnode\t4.8\tNULL\t1\n30015\tDApp Node\tnode\tnode\t4.1\tNULL\t1\n30016\tNode Validator\tnode\tnode\t4.5\tNULL\t1\n",
+  "stderr": "",
+  "execution_time_ms": 1574
+}
