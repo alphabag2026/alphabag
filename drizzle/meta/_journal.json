@@ -22,6 +22,27 @@
       "when": 1774436324551,
       "tag": "0002_slim_lucky_pierre",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1774504772036,
+      "tag": "0003_greedy_ma_gnuci",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1774507581630,
+      "tag": "0004_watery_barracuda",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1774510705322,
+      "tag": "0005_oval_doctor_octopus",
+      "breakpoints": true
     }
   ]
 }

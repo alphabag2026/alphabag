@@ -3,12 +3,15 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ENV } from "./_core/env";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import * as db from "./db";
+import { getDb } from "./db";
 import { createAuditLog } from "./db";
+import { referralMessages as referralMessagesTable } from "../drizzle/schema.js";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -434,9 +437,46 @@ export const appRouter = router({
   public: router({
     // 공개 투자 플랜 목록
     plans: publicProcedure.input(z.object({
-      planType: z.enum(["investment", "staking"]).optional(),
+      planType: z.enum(["investment", "staking", "golden", "self", "node"]).optional(),
+      collectionType: z.enum(["golden", "self", "node"]).optional(),
+      limit: z.number().optional(),
+      highlightOnly: z.boolean().optional(),
     })).query(async ({ input }) => {
-      return await db.getInvestmentPlans(input.planType);
+      return await db.getInvestmentPlans(input.planType, input.collectionType, input.limit, input.highlightOnly);
+    }),
+    // 골든 컬렉션 (하이라이트)
+    goldenPlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "golden");
+    }),
+    // 셀프 컬렉션 (하이라이트)
+    selfPlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "self");
+    }),
+    // 노드 컬렉션 (하이라이트)
+    nodePlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "node");
+    }),
+    // 리더 컬렉션
+    leaderPlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "leader");
+    }),
+    // 밈토큰 컬렉션
+    memePlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "meme");
+    }),
+    // 인플루언서 컬렉션
+    influencerPlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "influencer");
+    }),
+    // 추천글 목록
+    referralMessages: publicProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      return await drizzleDb.select().from(referralMessagesTable).where(eq(referralMessagesTable.isActive, true)).orderBy(referralMessagesTable.sortOrder);
+    }),
+    // 단일 플랜 상세
+    planDetail: publicProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+      return await db.getInvestmentPlanById(input.id);
     }),
 
     // 공개 노드 목록
@@ -619,6 +659,35 @@ export const appRouter = router({
       } catch {
         return null;
       }
+    }),
+  }),
+
+  notifications: router({
+    list: adminProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return [];
+      const { notifications } = await import("../drizzle/schema");
+      return database.select().from(notifications).orderBy(notifications.createdAt);
+    }),
+    create: adminProcedure.input(z.object({
+      title: z.string(),
+      message: z.string(),
+      type: z.string().default("info"),
+      targetRole: z.string().default("all"),
+    })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { notifications } = await import("../drizzle/schema");
+      await database.insert(notifications).values(input);
+      return { success: true };
+    }),
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { notifications } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      await database.delete(notifications).where(eq(notifications.id, input.id));
+      return { success: true };
     }),
   }),
 });

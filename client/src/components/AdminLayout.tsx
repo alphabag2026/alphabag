@@ -1,205 +1,129 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import {
-  LayoutDashboard, TrendingUp, Cpu, Users, FileText,
-  TicketCheck, Gift, ShieldCheck, BarChart3, Network,
-  LogOut, Menu, X, ChevronRight, Bell, Settings,
-  Loader2
+  LayoutDashboard, TrendingUp, FileText, Users, Cpu,
+  TicketCheck, Bell, Gift, ShieldCheck, LogOut, Shield,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 
-const navItems = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/admin/plans", label: "Investment Plans", icon: TrendingUp },
-  { href: "/admin/nodes", label: "Node Management", icon: Cpu },
-  { href: "/admin/users", label: "Users & Org", icon: Users },
-  { href: "/admin/content", label: "Content", icon: FileText },
-  { href: "/admin/tickets", label: "Support Tickets", icon: TicketCheck, badge: true },
-  { href: "/admin/airdrops", label: "Airdrop", icon: Gift },
-  { href: "/admin/referrals", label: "Referrals", icon: Network },
-  { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/admin/sub-admins", label: "Sub-Admins", icon: ShieldCheck },
+const NAV_ITEMS = [
+  { href: "/admin/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
+  { href: "/admin/plans", label: "Plans", icon: "TrendingUp" },
+  { href: "/admin/content", label: "Content", icon: "FileText" },
+  { href: "/admin/users", label: "Users & Org", icon: "Users" },
+  { href: "/admin/assets", label: "Assets", icon: "Cpu" },
+  { href: "/admin/tickets", label: "Support Tickets", icon: "TicketCheck" },
+  { href: "/admin/notifications", label: "Notifications", icon: "Bell" },
+  { href: "/admin/airdrops", label: "Airdrop", icon: "Gift" },
+  { href: "/admin/sub-admins", label: "Sub-Admins", icon: "ShieldCheck" },
 ];
+
+const ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
+  LayoutDashboard, TrendingUp, FileText, Users, Cpu,
+  TicketCheck, Bell, Gift, ShieldCheck,
+};
 
 interface AdminLayoutProps {
   children: React.ReactNode;
   title?: string;
 }
 
-export default function AdminLayout({ children, title }: AdminLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+export default function AdminLayout({ children, title = "Admin Panel" }: AdminLayoutProps) {
   const [location] = useLocation();
-  const { user, loading, isAuthenticated, logout } = useAuth();
 
-  const { data: stats } = trpc.dashboard.stats.useQuery(undefined, {
-    enabled: isAuthenticated && (user?.role === "admin" || user?.role === "sub_admin"),
-    refetchInterval: 60000,
+  const logoutMutation = trpc.adminAuth.logout.useMutation({
+    onSuccess: () => {
+      localStorage.removeItem("admin_token");
+      localStorage.removeItem("admin_name");
+      localStorage.removeItem("admin_role");
+      window.location.href = "/admin/login";
+    },
+    onError: () => {
+      localStorage.removeItem("admin_token");
+      window.location.href = "/admin/login";
+    },
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-muted-foreground text-sm">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    window.location.href = getLoginUrl();
-    return null;
-  }
-
-  if (user?.role !== "admin" && user?.role !== "sub_admin") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <ShieldCheck className="w-16 h-16 text-destructive mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-          <p className="text-muted-foreground">You don't have permission to access this area.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const isActive = (href: string, exact?: boolean) => {
-    if (exact) return location === href;
-    return location.startsWith(href) && href !== "/admin";
-  };
+  const adminName = localStorage.getItem("admin_name") || "관리자";
+  const adminRole = localStorage.getItem("admin_role") || "admin";
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
+    <div style={{ display: "flex", minHeight: "100vh", background: "oklch(0.08 0.005 240)" }}>
       {/* Sidebar */}
-      <aside className={`
-        fixed top-0 left-0 h-full w-64 z-50 flex flex-col
-        bg-sidebar border-r border-sidebar-border
-        transition-transform duration-300 ease-in-out
-        lg:translate-x-0 lg:static lg:z-auto
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-      `}>
+      <aside className="ab-sidebar">
         {/* Logo */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-sidebar-border">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">A</span>
-            </div>
-            <div>
-              <span className="font-display font-semibold text-sidebar-foreground text-sm">AlphaBag</span>
-              <p className="text-xs text-muted-foreground">Admin Panel</p>
-            </div>
+        <div className="ab-sidebar-logo">
+          <div style={{
+            width: 28, height: 28,
+            background: "oklch(0.72 0.18 55 / 0.15)",
+            border: "1px solid oklch(0.72 0.18 55 / 0.4)",
+            borderRadius: "50%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Shield size={14} color="oklch(0.72 0.18 55)" />
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-muted-foreground hover:text-foreground"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <span className="ab-sidebar-logo-text">AlphaBag Admin</span>
         </div>
+        <div className="ab-sidebar-role">{adminName}</div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.href, item.exact);
+        <nav className="ab-sidebar-nav">
+          {NAV_ITEMS.map(({ href, label, icon }) => {
+            const Icon = ICONS[icon];
+            const isActive = location === href || location.startsWith(href + "/");
             return (
-              <Link key={item.href} href={item.href}>
-                <div className={`
-                  flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                  transition-all duration-150 cursor-pointer group
-                  ${active
-                    ? "bg-primary/15 text-primary border border-primary/20"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                  }
-                `}>
-                  <Icon className={`w-4 h-4 flex-shrink-0 ${active ? "text-primary" : "text-muted-foreground group-hover:text-sidebar-foreground"}`} />
-                  <span className="flex-1">{item.label}</span>
-                  {item.badge && stats?.openTickets ? (
-                    <Badge className="bg-destructive/80 text-white text-xs px-1.5 py-0 h-4 min-w-4">
-                      {stats.openTickets}
-                    </Badge>
-                  ) : null}
-                  {active && <ChevronRight className="w-3 h-3 text-primary" />}
-                </div>
+              <Link key={href} href={href} className={`ab-sidebar-link${isActive ? " active" : ""}`}>
+                {Icon && <Icon size={14} />}
+                {label}
               </Link>
             );
           })}
         </nav>
 
-        {/* User section */}
-        <div className="px-3 py-4 border-t border-sidebar-border">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-sidebar-accent/50 mb-2">
-            <Avatar className="w-8 h-8">
-              <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
-                {user?.name?.charAt(0)?.toUpperCase() ?? "A"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.name ?? "Admin"}</p>
-              <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
-            </div>
-          </div>
+        {/* Footer */}
+        <div className="ab-sidebar-footer">
           <button
-            onClick={() => logout()}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 w-full transition-colors"
+            onClick={() => logoutMutation.mutate()}
+            className="ab-btn ab-btn-outline ab-btn-sm"
+            style={{ width: "100%", justifyContent: "center" }}
           >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
+            <LogOut size={12} />
+            LOGOUT
           </button>
         </div>
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
-        {/* Top header */}
-        <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-background/80 backdrop-blur-md border-b border-border/50">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-muted-foreground hover:text-foreground"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            {title && (
-              <h1 className="text-lg font-display font-semibold text-foreground">{title}</h1>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="relative text-muted-foreground hover:text-foreground transition-colors">
-              <Bell className="w-5 h-5" />
-              {stats?.openTickets ? (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive rounded-full text-xs text-white flex items-center justify-center">
-                  {stats.openTickets > 9 ? "9+" : stats.openTickets}
-                </span>
-              ) : null}
-            </button>
-            <div className="h-5 w-px bg-border" />
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs text-muted-foreground">Live</span>
-            </div>
-          </div>
-        </header>
-
-        {/* Page content */}
-        <main className="flex-1 p-6 overflow-auto">
+      <main className="ab-main">
+        <div className="ab-topbar">
+          <span className="ab-topbar-title">{title}</span>
+          <span className="ab-topbar-role">
+            {adminRole === "admin" ? "관리자" : "부운영자"}
+          </span>
+        </div>
+        <div className="ab-content ab-fade-in">
           {children}
-        </main>
-      </div>
+        </div>
+        <div style={{
+          padding: "1rem 1.5rem",
+          borderTop: "1px solid oklch(0.20 0.01 240)",
+          display: "flex", gap: "1rem",
+          fontSize: "0.72rem", color: "oklch(0.55 0.01 240)",
+        }}>
+          <a href="https://alphabag.net" target="_blank" rel="noopener noreferrer"
+            style={{ color: "oklch(0.72 0.18 55)", textDecoration: "none" }}>
+            COMPANY REGISTRATION
+          </a>
+          <a href="https://t.me/alphabag" target="_blank" rel="noopener noreferrer"
+            style={{ color: "oklch(0.55 0.01 240)", textDecoration: "none" }}>
+            TELEGRAM
+          </a>
+          <a href="https://twitter.com/alphabag" target="_blank" rel="noopener noreferrer"
+            style={{ color: "oklch(0.55 0.01 240)", textDecoration: "none" }}>
+            TWITTER
+          </a>
+        </div>
+      </main>
     </div>
   );
 }

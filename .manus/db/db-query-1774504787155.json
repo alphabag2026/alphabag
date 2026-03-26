@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `notifications` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `title` varchar(200) NOT NULL,\n  `message` text NOT NULL,\n  `type` varchar(20) NOT NULL DEFAULT 'info',\n  `targetRole` varchar(20) NOT NULL DEFAULT 'all',\n  `createdAt` timestamp NOT NULL DEFAULT (now()),\n  CONSTRAINT `notifications_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute CREATE TABLE IF NOT EXISTS `notifications` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `title` varchar(200) NOT NULL,\n  `message` text NOT NULL,\n  `type` varchar(20) NOT NULL DEFAULT 'info',\n  `targetRole` varchar(20) NOT NULL DEFAULT 'all',\n  `createdAt` timestamp NOT NULL DEFAULT (now()),\n  CONSTRAINT `notifications_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1767
+}
