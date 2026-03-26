@@ -1,0 +1,112 @@
+{
+  "query": "\n-- Golden 컬렉션 로고 업데이트\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/maxfi-logo_ca223387.png' WHERE name LIKE '%MAXFI%' AND planType = 'golden';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/loomx-logo_fabf0777.png' WHERE name LIKE '%LOOMX%' AND planType = 'golden';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/codexfield-logo_6bb1d506.png' WHERE name LIKE '%CodexField%' AND planType = 'golden';\n\n-- Self 컬렉션 로고 업데이트\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-alpha-logo_6fdbf7ff.png' WHERE name LIKE '%Alpha%' AND planType = 'self';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-growth-logo_dea42672.png' WHERE name LIKE '%Growth%' AND planType = 'self';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-hedge-logo_3a6121d5.png' WHERE name LIKE '%Hedge%' AND planType = 'self';\n\n-- Node 컬렉션 로고 업데이트\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-starter-logo_a7fdfbad.png' WHERE name LIKE '%Starter%' AND planType = 'node';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-pro-logo_627e38a9.png' WHERE name LIKE '%Pro%' AND planType = 'node';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-elite-logo_8ecb584a.png' WHERE name LIKE '%Elite%' AND planType = 'node';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/nice-logo_ab1d8d66.png' WHERE name LIKE '%NICE%' AND planType = 'node';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/maxfi-node-logo_6ba0cf73.png' WHERE name LIKE '%MaxFi%' AND planType = 'node';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/csgobox-logo_6858e1f5.png' WHERE name LIKE '%CSGOBOX%' AND planType = 'node';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/oraclex-logo_6be605f5.png' WHERE name LIKE '%ORACLEX%' AND planType = 'node';\n\n-- 업데이트 결과 확인\nSELECT id, name, planType, logoUrl FROM investmentPlans WHERE logoUrl IS NOT NULL ORDER BY planType, id;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute \n-- Golden 컬렉션 로고 업데이트\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/maxfi-logo_ca223387.png' WHERE name LIKE '%MAXFI%' AND planType = 'golden';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/loomx-logo_fabf0777.png' WHERE name LIKE '%LOOMX%' AND planType = 'golden';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/codexfield-logo_6bb1d506.png' WHERE name LIKE '%CodexField%' AND planType = 'golden';\n\n-- Self 컬렉션 로고 업데이트\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-alpha-logo_6fdbf7ff.png' WHERE name LIKE '%Alpha%' AND planType = 'self';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-growth-logo_dea42672.png' WHERE name LIKE '%Growth%' AND planType = 'self';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-hedge-logo_3a6121d5.png' WHERE name LIKE '%Hedge%' AND planType = 'self';\n\n-- Node 컬렉션 로고 업데이트\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-starter-logo_a7fdfbad.png' WHERE name LIKE '%Starter%' AND planType = 'node';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-pro-logo_627e38a9.png' WHERE name LIKE '%Pro%' AND planType = 'node';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-elite-logo_8ecb584a.png' WHERE name LIKE '%Elite%' AND planType = 'node';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/nice-logo_ab1d8d66.png' WHERE name LIKE '%NICE%' AND planType = 'node';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/maxfi-node-logo_6ba0cf73.png' WHERE name LIKE '%MaxFi%' AND planType = 'node';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/csgobox-logo_6858e1f5.png' WHERE name LIKE '%CSGOBOX%' AND planType = 'node';\nUPDATE investmentPlans SET logoUrl = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/oraclex-logo_6be605f5.png' WHERE name LIKE '%ORACLEX%' AND planType = 'node';\n\n-- 업데이트 결과 확인\nSELECT id, name, planType, logoUrl FROM investmentPlans WHERE logoUrl IS NOT NULL ORDER BY planType, id;\n",
+  "rows": [
+    {
+      "id": "16",
+      "name": "PINDEX",
+      "planType": "investment",
+      "logoUrl": "https://alphabag.net/logo.png"
+    },
+    {
+      "id": "17",
+      "name": "LTF",
+      "planType": "investment",
+      "logoUrl": "https://alphabag.net/logo.png"
+    },
+    {
+      "id": "1",
+      "name": "B BAG MAXFI",
+      "planType": "golden",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/maxfi-logo_ca223387.png"
+    },
+    {
+      "id": "2",
+      "name": "B BAG LOOMX",
+      "planType": "golden",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/loomx-logo_fabf0777.png"
+    },
+    {
+      "id": "3",
+      "name": "B BAG CodexField",
+      "planType": "golden",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/codexfield-logo_6bb1d506.png"
+    },
+    {
+      "id": "4",
+      "name": "WALLX",
+      "planType": "golden",
+      "logoUrl": "https://alphabag.net/logo.png"
+    },
+    {
+      "id": "5",
+      "name": "NGP",
+      "planType": "golden",
+      "logoUrl": "https://alphabag.net/logo.png"
+    },
+    {
+      "id": "6",
+      "name": "Self Basket · Alpha",
+      "planType": "self",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-alpha-logo_6fdbf7ff.png"
+    },
+    {
+      "id": "7",
+      "name": "Self Basket · Growth",
+      "planType": "self",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-growth-logo_dea42672.png"
+    },
+    {
+      "id": "8",
+      "name": "Self Basket · Hedge",
+      "planType": "self",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-hedge-logo_3a6121d5.png"
+    },
+    {
+      "id": "9",
+      "name": "Node · Starter",
+      "planType": "node",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-starter-logo_a7fdfbad.png"
+    },
+    {
+      "id": "10",
+      "name": "Node · Pro",
+      "planType": "node",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-pro-logo_627e38a9.png"
+    },
+    {
+      "id": "11",
+      "name": "Node · Elite",
+      "planType": "node",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-elite-logo_8ecb584a.png"
+    },
+    {
+      "id": "12",
+      "name": "NICE",
+      "planType": "node",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/nice-logo_ab1d8d66.png"
+    },
+    {
+      "id": "13",
+      "name": "MaxFi",
+      "planType": "node",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/maxfi-node-logo_6ba0cf73.png"
+    },
+    {
+      "id": "14",
+      "name": "CSGOBOX",
+      "planType": "node",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/csgobox-logo_6858e1f5.png"
+    },
+    {
+      "id": "15",
+      "name": "ORACLEX",
+      "planType": "node",
+      "logoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/oraclex-logo_6be605f5.png"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tplanType\tlogoUrl\n16\tPINDEX\tinvestment\thttps://alphabag.net/logo.png\n17\tLTF\tinvestment\thttps://alphabag.net/logo.png\n1\tB BAG MAXFI\tgolden\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/maxfi-logo_ca223387.png\n2\tB BAG LOOMX\tgolden\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/loomx-logo_fabf0777.png\n3\tB BAG CodexField\tgolden\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/codexfield-logo_6bb1d506.png\n4\tWALLX\tgolden\thttps://alphabag.net/logo.png\n5\tNGP\tgolden\thttps://alphabag.net/logo.png\n6\tSelf Basket · Alpha\tself\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-alpha-logo_6fdbf7ff.png\n7\tSelf Basket · Growth\tself\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-growth-logo_dea42672.png\n8\tSelf Basket · Hedge\tself\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/self-hedge-logo_3a6121d5.png\n9\tNode · Starter\tnode\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-starter-logo_a7fdfbad.png\n10\tNode · Pro\tnode\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-pro-logo_627e38a9.png\n11\tNode · Elite\tnode\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/node-elite-logo_8ecb584a.png\n12\tNICE\tnode\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/nice-logo_ab1d8d66.png\n13\tMaxFi\tnode\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/maxfi-node-logo_6ba0cf73.png\n14\tCSGOBOX\tnode\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/csgobox-logo_6858e1f5.png\n15\tORACLEX\tnode\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/oraclex-logo_6be605f5.png\n",
+  "stderr": "",
+  "execution_time_ms": 4613
+}
