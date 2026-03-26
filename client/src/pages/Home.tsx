@@ -205,11 +205,24 @@ function CollectionSection({
           </button>
         </Link>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {plans.slice(0, 4).map((plan: any) => (
-          <PlanCard key={plan.id} plan={plan} collectionColor={color} />
-        ))}
-      </div>
+      {plans.length === 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-2xl border border-white/5 bg-white/2 p-6 flex flex-col items-center justify-center gap-3 min-h-[200px]">
+              <div className={`w-12 h-12 rounded-full ${c.dot.replace('bg-', 'bg-').replace('-400', '-400/20')} flex items-center justify-center`}>
+                <span className="text-2xl opacity-30">{icon}</span>
+              </div>
+              <p className="text-xs text-gray-600 text-center">Coming Soon</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {plans.slice(0, 4).map((plan: any) => (
+            <PlanCard key={plan.id} plan={plan} collectionColor={color} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -534,40 +547,41 @@ export default function Home() {
         />
 
         {/* ─── 리더 컬렉션 ─── */}
-        {(leaderPlans as any[]).length > 0 && (
-          <CollectionSection
-            title="Leader Collection"
-            subtitle="리더 추천 · 검증된 전략 · 커뮤니티 선택"
-            plans={leaderPlans as any[]}
-            color="leader"
-            href="/leader"
-            icon={<span className="text-base">👑</span>}
-          />
-        )}
-
+        <CollectionSection
+          title="Leader Collection"
+          subtitle="리더 추천 · 검증된 전략 · 커뮤니티 선택"
+          plans={leaderPlans as any[]}
+          color="leader"
+          href="/leader"
+          icon={<span className="text-base">👑</span>}
+        />
+        {/* ─── 노드 컬렉션 (별도 섹션) ─── */}
+        <CollectionSection
+          title="Node Products"
+          subtitle="노드 인프라 · 안정적 수익 · 외부 DApp 연동"
+          plans={nodePlans as any[]}
+          color="node"
+          href="/node"
+          icon={<span className="text-base">🔷</span>}
+        />
         {/* ─── 밈토큰 컬렉션 ─── */}
-        {(memePlans as any[]).length > 0 && (
-          <CollectionSection
-            title="Meme Token"
-            subtitle="밈토큰 · 고수익 · 커뮤니티 드리븐"
-            plans={memePlans as any[]}
-            color="meme"
-            href="/meme"
-            icon={<span className="text-base">🚀</span>}
-          />
-        )}
-
+        <CollectionSection
+          title="Meme Token"
+          subtitle="밈토큰 · 고수익 · 커뮤니티 드리븐"
+          plans={memePlans as any[]}
+          color="meme"
+          href="/meme"
+          icon={<span className="text-base">🚀</span>}
+        />
         {/* ─── 인플루언서 섹션 ─── */}
-        {(influencerPlans as any[]).length > 0 && (
-          <CollectionSection
-            title="Influencer"
-            subtitle="인플루언서 추천 · 트렌딩 · 소셜 검증"
-            plans={influencerPlans as any[]}
-            color="influencer"
-            href="/influencer"
-            icon={<span className="text-base">⭐</span>}
-          />
-        )}
+        <CollectionSection
+          title="Influencer"
+          subtitle="인플루언서 추천 · 트렌딩 · 소셜 검증"
+          plans={influencerPlans as any[]}
+          color="influencer"
+          href="/influencer"
+          icon={<span className="text-base">⭐</span>}
+        />
 
         {/* ─── 특징 섹션 ─── */}
         <section className="mt-4 mb-12">
