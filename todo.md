@@ -107,3 +107,17 @@
 - [ ] 랜딩 페이지 번역 적용
 - [ ] 사용자 페이지 번역 적용
 - [ ] 언어 설정 localStorage 저장
+
+## Phase 4 - alphabag-live 스타일 전체 페이지 재구성
+
+- [x] DB 스키마 업데이트 (planType: golden/self/node, rating, tags, videoUrl, docsUrl, blogUrl, telegramUrl, twitterUrl, recommendedAmount, allocation)
+- [x] tRPC public API 업데이트 (Golden/Self/Node 분리 조회)
+- [x] 메인 홈 페이지 전면 재구현 (상단 네비, 히어로+공지, 광고배너, 골든/셀프/노드 카드 그리드)
+- [x] 골든 컬렉션 전체보기 페이지 (/golden)
+- [x] 셀프 컬렉션 전체보기 페이지 (/self)
+- [x] 노드 상품 전체보기 페이지 (/node)
+- [ ] 상품 상세 페이지 (/plan/:id)
+- [ ] 장바구니 페이지 (/cart)
+- [x] App.tsx 라우팅 업데이트
+- [x] 공유 MainNav 컴포넌트 구현
+- [x] Golden/Self/Node 컬렉션 샘플 데이터 삽입

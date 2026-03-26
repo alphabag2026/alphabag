@@ -435,9 +435,28 @@ export const appRouter = router({
   public: router({
     // 공개 투자 플랜 목록
     plans: publicProcedure.input(z.object({
-      planType: z.enum(["investment", "staking"]).optional(),
+      planType: z.enum(["investment", "staking", "golden", "self", "node"]).optional(),
+      collectionType: z.enum(["golden", "self", "node"]).optional(),
+      limit: z.number().optional(),
+      highlightOnly: z.boolean().optional(),
     })).query(async ({ input }) => {
-      return await db.getInvestmentPlans(input.planType);
+      return await db.getInvestmentPlans(input.planType, input.collectionType, input.limit, input.highlightOnly);
+    }),
+    // 골든 컬렉션 (하이라이트)
+    goldenPlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "golden");
+    }),
+    // 셀프 컬렉션 (하이라이트)
+    selfPlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "self");
+    }),
+    // 노드 컬렉션 (하이라이트)
+    nodePlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "node");
+    }),
+    // 단일 플랜 상세
+    planDetail: publicProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+      return await db.getInvestmentPlanById(input.id);
     }),
 
     // 공개 노드 목록

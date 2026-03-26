@@ -1,382 +1,477 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { getLoginUrl } from "@/const";
+import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "wouter";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
-  TrendingUp, Cpu, Shield, ChevronRight, ArrowRight,
-  Star, Zap, Globe, Lock, BarChart3, Users,
-  Loader2, ExternalLink
+  Star, TrendingUp, ChevronRight, Wallet, Bell,
+  Shield, Zap, Globe, Users, BarChart3, Menu, X,
+  ShoppingCart, Search, LogOut
 } from "lucide-react";
 
-export default function Home() {
-  const { user, isAuthenticated } = useAuth();
-  const { t } = useTranslation();
-  const { data: plans, isLoading: plansLoading } = trpc.public.plans.useQuery({ planType: "investment" });
-  const { data: nodes, isLoading: nodesLoading } = trpc.public.nodes.useQuery();
-  const { data: notices } = trpc.public.notices.useQuery();
+// ─── 컬렉션 카드 컴포넌트 ─────────────────────────────────────────────────────
+function PlanCard({ plan, collectionColor }: { plan: any; collectionColor: string }) {
+  const badges: string[] = Array.isArray(plan.badgeLabels) ? plan.badgeLabels : [];
+  const rating = Number(plan.rating) || 4.0;
 
-  const featuredPlans = plans?.slice(0, 3) ?? [];
-  const featuredNodes = nodes?.slice(0, 4) ?? [];
-  const latestNotice = notices?.[0];
-
-  const nodeColorMap: Record<string, string> = {
-    gold: "from-yellow-500/20 to-amber-500/10 border-yellow-500/30",
-    orange: "from-orange-500/20 to-amber-500/10 border-orange-500/30",
-    blue: "from-blue-500/20 to-cyan-500/10 border-blue-500/30",
-    green: "from-green-500/20 to-emerald-500/10 border-green-500/30",
-    purple: "from-purple-500/20 to-violet-500/10 border-purple-500/30",
+  const colorMap: Record<string, { border: string; glow: string; badge: string; rate: string }> = {
+    golden: {
+      border: "border-amber-500/30 hover:border-amber-400/60",
+      glow: "hover:shadow-amber-500/10",
+      badge: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+      rate: "text-amber-400",
+    },
+    self: {
+      border: "border-blue-500/30 hover:border-blue-400/60",
+      glow: "hover:shadow-blue-500/10",
+      badge: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+      rate: "text-blue-400",
+    },
+    node: {
+      border: "border-purple-500/30 hover:border-purple-400/60",
+      glow: "hover:shadow-purple-500/10",
+      badge: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+      rate: "text-purple-400",
+    },
   };
 
+  const c = colorMap[collectionColor] || colorMap.golden;
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* ── Navigation ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+    <Link href={`/plan/${plan.id}`}>
+      <div
+        className={`relative bg-[#0d0d0d] border ${c.border} rounded-xl p-4 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${c.glow} group`}
+      >
+        {/* 하이라이트 상단 라인 */}
+        {plan.isHighlight && (
+          <div className={`absolute top-0 left-0 right-0 h-[2px] rounded-t-xl ${
+            collectionColor === "golden" ? "bg-gradient-to-r from-transparent via-amber-400 to-transparent" :
+            collectionColor === "self" ? "bg-gradient-to-r from-transparent via-blue-400 to-transparent" :
+            "bg-gradient-to-r from-transparent via-purple-400 to-transparent"
+          }`} />
+        )}
+
+        {/* 로고 + 이름 */}
+        <div className="flex items-center gap-3 mb-3">
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold ${
+            collectionColor === "golden" ? "bg-amber-500/20 text-amber-400" :
+            collectionColor === "self" ? "bg-blue-500/20 text-blue-400" :
+            "bg-purple-500/20 text-purple-400"
+          }`}>
+            {plan.logoUrl ? (
+              <img src={plan.logoUrl} alt={plan.name} className="w-8 h-8 rounded object-cover" />
+            ) : (
+              plan.name.charAt(0)
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-white text-sm truncate">{plan.name}</div>
+            {plan.strategy && (
+              <div className="text-xs text-gray-500 truncate">{plan.strategy}</div>
+            )}
+          </div>
+          {plan.isHighlight && (
+            <Badge className="text-[10px] px-1.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 flex-shrink-0">
+              HOT
+            </Badge>
+          )}
+        </div>
+
+        {/* 배지 태그 */}
+        {badges.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {badges.slice(0, 3).map((b: string, idx: number) => (
+              <span key={idx} className={`text-[10px] px-2 py-0.5 rounded-full border ${c.badge}`}>
+                {b}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* 수익률 */}
+        <div className="mb-3">
+          <div className={`text-2xl font-bold ${c.rate}`}>
+            {Number(plan.dailyRate).toFixed(2)}%
+          </div>
+          <div className="text-xs text-gray-500">Daily Return</div>
+        </div>
+
+        {/* 추천 금액 */}
+        {plan.recommendedAmount && (
+          <div className="flex justify-between text-xs mb-3">
+            <span className="text-gray-500">Recommended</span>
+            <span className="text-gray-300 font-medium">${Number(plan.recommendedAmount).toLocaleString()} USDT</span>
+          </div>
+        )}
+
+        {/* 할당 비율 */}
+        {plan.allocation && (
+          <div className="flex justify-between text-xs mb-3">
+            <span className="text-gray-500">Allocation</span>
+            <span className="text-gray-300">{plan.allocation}</span>
+          </div>
+        )}
+
+        {/* 별점 */}
+        <div className="flex items-center gap-1 mb-3">
+          {[1, 2, 3, 4, 5].map((s) => (
+            <Star
+              key={s}
+              className={`w-3 h-3 ${s <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-gray-600"}`}
+            />
+          ))}
+          <span className="text-xs text-gray-500 ml-1">{rating.toFixed(1)}</span>
+        </div>
+
+        {/* 버튼 */}
+        <button className={`w-full py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
+          collectionColor === "golden"
+            ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30"
+            : collectionColor === "self"
+            ? "bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30"
+            : "bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30"
+        }`}>
+          View Details →
+        </button>
+      </div>
+    </Link>
+  );
+}
+
+// ─── 컬렉션 섹션 컴포넌트 ─────────────────────────────────────────────────────
+function CollectionSection({
+  title,
+  subtitle,
+  plans,
+  color,
+  href,
+  icon,
+}: {
+  title: string;
+  subtitle: string;
+  plans: any[];
+  color: string;
+  href: string;
+  icon: React.ReactNode;
+}) {
+  const colorMap: Record<string, { title: string; dot: string; btn: string }> = {
+    golden: { title: "text-amber-400", dot: "bg-amber-400", btn: "text-amber-400 border-amber-400/30 hover:bg-amber-400/10" },
+    self: { title: "text-blue-400", dot: "bg-blue-400", btn: "text-blue-400 border-blue-400/30 hover:bg-blue-400/10" },
+    node: { title: "text-purple-400", dot: "bg-purple-400", btn: "text-purple-400 border-purple-400/30 hover:bg-purple-400/10" },
+  };
+  const c = colorMap[color] || colorMap.golden;
+
+  return (
+    <section className="mb-12">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className={`w-2 h-2 rounded-full ${c.dot}`} />
+          <div>
+            <h2 className={`text-xl font-bold ${c.title} flex items-center gap-2`}>
+              {icon} {title}
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
+          </div>
+        </div>
+        <Link href={href}>
+          <button className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${c.btn}`}>
+            View All <ChevronRight className="w-3 h-3 inline" />
+          </button>
+        </Link>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {plans.slice(0, 4).map((plan: any) => (
+          <PlanCard key={plan.id} plan={plan} collectionColor={color} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ─── 메인 홈 페이지 ───────────────────────────────────────────────────────────
+export default function Home() {
+  const { t } = useTranslation();
+  const { user, isAuthenticated, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [noticeIndex, setNoticeIndex] = useState(0);
+
+  const { data: goldenPlans = [] } = trpc.public.goldenPlans.useQuery();
+  const { data: selfPlans = [] } = trpc.public.selfPlans.useQuery();
+  const { data: nodePlans = [] } = trpc.public.nodePlans.useQuery();
+  const { data: notices = [] } = trpc.public.notices.useQuery();
+  const { data: banners = [] } = trpc.public.banners.useQuery();
+
+  // 공지 롤링
+  useEffect(() => {
+    if (notices.length <= 1) return;
+    const timer = setInterval(() => {
+      setNoticeIndex((i) => (i + 1) % notices.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [notices.length]);
+
+  const currentNotice = notices[noticeIndex];
+
+  return (
+    <div className="min-h-screen bg-[#080808] text-white">
+      {/* ─── 상단 네비게이션 ─── */}
+      <nav className="sticky top-0 z-50 bg-[#080808]/95 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="h-14 flex items-center justify-between gap-4">
+            {/* 로고 */}
             <Link href="/">
               <div className="flex items-center gap-2 cursor-pointer">
-                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">A</span>
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                  <span className="text-black font-black text-xs">AB</span>
                 </div>
-                <span className="font-display text-lg font-bold text-foreground">AlphaBag</span>
+                <span className="font-bold text-white text-sm tracking-wide">AlphaBag</span>
               </div>
             </Link>
-            <div className="hidden md:flex items-center gap-6">
-              <Link href="/plans">
-                <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">{t('nav.plans')}</span>
+
+            {/* 데스크탑 메뉴 */}
+            <div className="hidden md:flex items-center gap-1">
+              <Link href="/golden">
+                <button className="px-3 py-1.5 text-xs text-gray-400 hover:text-amber-400 transition-colors rounded-lg hover:bg-amber-400/5">
+                  Golden
+                </button>
+              </Link>
+              <Link href="/self">
+                <button className="px-3 py-1.5 text-xs text-gray-400 hover:text-blue-400 transition-colors rounded-lg hover:bg-blue-400/5">
+                  Self
+                </button>
               </Link>
               <Link href="/nodes">
-                <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">{t('nav.nodes')}</span>
+                <button className="px-3 py-1.5 text-xs text-gray-400 hover:text-purple-400 transition-colors rounded-lg hover:bg-purple-400/5">
+                  Node
+                </button>
               </Link>
               <Link href="/notices">
-                <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">{t('nav.notices')}</span>
+                <button className="px-3 py-1.5 text-xs text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/5">
+                  Notices
+                </button>
               </Link>
             </div>
-            <div className="flex items-center gap-3">
+
+            {/* 우측 액션 */}
+            <div className="flex items-center gap-2">
               <LanguageSwitcher />
+
               {isAuthenticated ? (
-                <Link href="/dashboard">
-                  <Button size="sm" className="gap-2">
-                    {t('nav.dashboard')} <ChevronRight className="w-3 h-3" />
-                  </Button>
-                </Link>
-              ) : (
                 <>
-                  <Button variant="ghost" size="sm" onClick={() => window.location.href = getLoginUrl()}>
-                    {t('nav.signIn')}
-                  </Button>
-                  <Button size="sm" onClick={() => window.location.href = getLoginUrl()}>
-                    {t('nav.getStarted')}
+                  <Link href="/dashboard">
+                    <Button size="sm" variant="ghost" className="text-xs text-gray-400 hover:text-white h-8 px-3">
+                      <BarChart3 className="w-3.5 h-3.5 mr-1.5" />
+                      <span className="hidden sm:inline">Dashboard</span>
+                    </Button>
+                  </Link>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs text-gray-400 hover:text-red-400 h-8 px-2"
+                    onClick={() => logout()}
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
                   </Button>
                 </>
+              ) : (
+                <Button
+                  size="sm"
+                  className="h-8 px-4 text-xs bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                  onClick={() => window.location.href = getLoginUrl()}
+                >
+                  <Wallet className="w-3.5 h-3.5 mr-1.5" />
+                  Connect
+                </Button>
               )}
+
+              {/* 모바일 메뉴 버튼 */}
+              <button
+                className="md:hidden p-1.5 text-gray-400 hover:text-white"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              </button>
             </div>
           </div>
         </div>
+
+        {/* 모바일 메뉴 */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-white/5 bg-[#0d0d0d] px-4 py-3 space-y-1">
+            {[
+              { href: "/golden", label: "Golden Collection", color: "text-amber-400" },
+              { href: "/self", label: "Self Collection", color: "text-blue-400" },
+              { href: "/nodes", label: "Node Products", color: "text-purple-400" },
+              { href: "/notices", label: "Notices", color: "text-gray-300" },
+              { href: "/dashboard", label: "Dashboard", color: "text-gray-300" },
+            ].map((item) => (
+              <Link key={item.href} href={item.href}>
+                <button
+                  className={`w-full text-left px-3 py-2 text-sm ${item.color} hover:bg-white/5 rounded-lg transition-colors`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </button>
+              </Link>
+            ))}
+          </div>
+        )}
       </nav>
 
-      {/* ── Notice Banner ── */}
-      {latestNotice && (
-        <div className="fixed top-16 left-0 right-0 z-40 bg-primary/10 border-b border-primary/20 py-2 px-4 text-center">
-          <p className="text-xs text-primary font-medium truncate max-w-2xl mx-auto">
-            📢 {latestNotice.title}
-          </p>
-        </div>
-      )}
-
-      {/* ── Hero Section ── */}
-      <section className={`relative pt-${latestNotice ? "28" : "24"} pb-20 px-4 overflow-hidden`}>
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto relative">
-          <div className="max-w-3xl">
-            <Badge variant="outline" className="mb-6 border-primary/40 text-primary bg-primary/5 px-3 py-1">
-              <Zap className="w-3 h-3 mr-1" />
-              Web3 Investment Platform
-            </Badge>
-            <h1 className="font-display text-5xl md:text-7xl font-bold leading-tight mb-6">
-              Invest Smart,{" "}
-              <span className="text-primary">Earn More</span>{" "}
-              with AlphaBag
-            </h1>
-            <p className="text-lg text-muted-foreground mb-8 max-w-xl leading-relaxed">
-              AlphaBag provides curated Web3 investment plans and node opportunities with transparent daily returns and a powerful referral ecosystem.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Button
-                size="lg"
-                className="gap-2 text-base px-8"
-                onClick={() => window.location.href = isAuthenticated ? "/plans" : getLoginUrl()}
-              >
-                Start Investing <ArrowRight className="w-4 h-4" />
-              </Button>
-              <Link href="/nodes">
-                <Button variant="outline" size="lg" className="gap-2 text-base px-8 border-border/60">
-                  Explore Nodes <Cpu className="w-4 h-4" />
-                </Button>
-              </Link>
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* ─── 공지 배너 ─── */}
+        {currentNotice && (
+          <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2.5 mb-5">
+            <Bell className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-xs text-amber-300 font-medium mr-2">[Notice]</span>
+              <span className="text-xs text-gray-300 truncate">{(currentNotice as any).title}</span>
             </div>
-
-            {/* Stats row */}
-            <div className="flex flex-wrap gap-8 mt-12 pt-8 border-t border-border/30">
-              {[
-                { label: "Total Plans", value: `${plans?.length ?? 17}+` },
-                { label: "Node Types", value: `${nodes?.length ?? 10}+` },
-                { label: "Daily Returns", value: "Up to 3%" },
-                { label: "Network", value: "Web3" },
-              ].map((stat) => (
-                <div key={stat.label}>
-                  <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </div>
-              ))}
-            </div>
+            {notices.length > 1 && (
+              <span className="text-xs text-gray-500 flex-shrink-0">{noticeIndex + 1}/{notices.length}</span>
+            )}
           </div>
-        </div>
-      </section>
+        )}
 
-      {/* ── Features Section ── */}
-      <section className="py-16 px-4 border-y border-border/30 bg-card/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: TrendingUp,
-                title: "High-Yield Plans",
-                desc: "Choose from 17+ curated investment plans with daily returns up to 3%.",
-                color: "text-primary",
-              },
-              {
-                icon: Cpu,
-                title: "Node Ownership",
-                desc: "Purchase nodes to participate in the network and earn passive income.",
-                color: "text-blue-400",
-              },
-              {
-                icon: Shield,
-                title: "Secure & Transparent",
-                desc: "All transactions are on-chain with full transparency and security.",
-                color: "text-green-400",
-              },
-            ].map((f) => (
-              <div key={f.title} className="flex gap-4 p-6 rounded-xl bg-card border border-border/40 hover:border-border/80 transition-colors">
-                <div className={`w-10 h-10 rounded-lg bg-background flex items-center justify-center flex-shrink-0 ${f.color}`}>
-                  <f.icon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground mb-1">{f.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Investment Plans Preview ── */}
-      <section className="py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <p className="text-primary text-sm font-medium mb-2">Investment Plans</p>
-              <h2 className="font-display text-3xl md:text-4xl font-bold">
-                Choose Your Strategy
-              </h2>
-            </div>
-            <Link href="/plans">
-              <Button variant="ghost" className="gap-1 text-muted-foreground hover:text-foreground">
-                View All <ChevronRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
-
-          {plansLoading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featuredPlans.map((plan, i) => (
-                <Card key={plan.id} className={`relative overflow-hidden border-border/40 hover:border-primary/40 transition-all duration-300 hover:-translate-y-1 ${i === 1 ? "border-primary/50 shadow-lg shadow-primary/10" : ""}`}>
-                  {i === 1 && (
-                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent" />
-                  )}
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="font-semibold text-foreground">{plan.name}</h3>
-                        {plan.label && (
-                          <Badge variant="secondary" className="mt-1 text-xs">{plan.label}</Badge>
-                        )}
-                      </div>
-                      {i === 1 && <Badge className="bg-primary text-primary-foreground text-xs">Popular</Badge>}
-                    </div>
-                    <div className="mb-4">
-                      <span className="text-3xl font-bold text-primary">{Number(plan.dailyRate).toFixed(2)}%</span>
-                      <span className="text-muted-foreground text-sm ml-1">/ day</span>
-                    </div>
-                    <div className="space-y-2 mb-6 text-sm text-muted-foreground">
-                      {plan.minAmount && (
-                        <div className="flex justify-between">
-                          <span>Min. Investment</span>
-                          <span className="text-foreground">${Number(plan.minAmount).toLocaleString()}</span>
-                        </div>
-                      )}
-                      {plan.duration && (
-                        <div className="flex justify-between">
-                          <span>Duration</span>
-                          <span className="text-foreground">{plan.duration} days</span>
-                        </div>
-                      )}
-                      {plan.totalReturn && (
-                        <div className="flex justify-between">
-                          <span>Total Return</span>
-                          <span className="text-primary font-medium">{Number(plan.totalReturn).toFixed(0)}%</span>
-                        </div>
-                      )}
-                    </div>
-                    <Button
-                      className="w-full"
-                      variant={i === 1 ? "default" : "outline"}
-                      onClick={() => window.location.href = isAuthenticated ? "/dashboard" : getLoginUrl()}
-                    >
-                      Invest Now
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── Nodes Preview ── */}
-      <section className="py-20 px-4 bg-card/20 border-y border-border/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <p className="text-primary text-sm font-medium mb-2">Node Ecosystem</p>
-              <h2 className="font-display text-3xl md:text-4xl font-bold">
-                Own a Node
-              </h2>
-            </div>
-            <Link href="/nodes">
-              <Button variant="ghost" className="gap-1 text-muted-foreground hover:text-foreground">
-                View All <ChevronRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
-
-          {nodesLoading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {featuredNodes.map((node) => {
-                const colorClass = nodeColorMap[node.color] ?? nodeColorMap.gold;
-                return (
-                  <div
-                    key={node.id}
-                    className={`p-5 rounded-xl bg-gradient-to-br border ${colorClass} hover:scale-[1.02] transition-transform cursor-pointer`}
-                    onClick={() => window.location.href = isAuthenticated ? "/nodes" : getLoginUrl()}
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <Cpu className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground uppercase tracking-wide">{node.color} node</span>
-                    </div>
-                    <h3 className="font-semibold text-foreground text-sm mb-2 leading-tight">{node.name}</h3>
-                    <div className="text-xl font-bold text-foreground">
-                      ${Number(node.price).toLocaleString()}
-                    </div>
-                    {node.description && (
-                      <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{node.description}</p>
+        {/* ─── 광고 배너 ─── */}
+        {(banners as any[]).length > 0 && (
+          <div className="mb-6 overflow-hidden rounded-xl">
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+              {(banners as any[]).map((b: any) => (
+                <a key={b.id} href={b.linkUrl || "#"} target="_blank" rel="noopener noreferrer"
+                  className="flex-shrink-0 w-full max-w-sm">
+                  <div className="h-24 bg-gradient-to-r from-amber-500/20 to-amber-600/10 border border-amber-500/20 rounded-xl flex items-center justify-center">
+                    {b.imageUrl ? (
+                      <img src={b.imageUrl} alt={b.title} className="w-full h-full object-cover rounded-xl" />
+                    ) : (
+                      <span className="text-amber-400 text-sm font-medium">{b.title}</span>
                     )}
                   </div>
-                );
-              })}
+                </a>
+              ))}
             </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── Why AlphaBag ── */}
-      <section className="py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-primary text-sm font-medium mb-2">Why Choose Us</p>
-            <h2 className="font-display text-3xl md:text-4xl font-bold">
-              Built for Web3 Investors
-            </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        )}
+
+        {/* ─── 히어로 섹션 ─── */}
+        <div className="text-center mb-12 py-8">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-full px-4 py-1.5 mb-6">
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-xs text-amber-300 font-medium">Multi-Asset Investment Platform</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black mb-4 leading-tight">
+            <span className="text-white">Alpha</span>
+            <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">Bag</span>
+          </h1>
+          <p className="text-gray-400 text-sm md:text-base max-w-lg mx-auto mb-8 leading-relaxed">
+            Discover curated investment collections across Golden, Self, and Node strategies.
+            Earn daily returns with transparent, secure asset management.
+          </p>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <Link href="/golden">
+              <Button className="h-10 px-6 bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm">
+                Explore Collections
+              </Button>
+            </Link>
+            {!isAuthenticated && (
+              <Button
+                variant="outline"
+                className="h-10 px-6 border-white/10 text-gray-300 hover:text-white hover:border-white/20 text-sm"
+                onClick={() => window.location.href = getLoginUrl()}
+              >
+                <Wallet className="w-4 h-4 mr-2" />
+                Connect Wallet
+              </Button>
+            )}
+          </div>
+
+          {/* 통계 */}
+          <div className="flex items-center justify-center gap-8 mt-10 pt-8 border-t border-white/5">
             {[
-              { icon: Globe, title: "Global Access", desc: "Invest from anywhere in the world with crypto wallets." },
-              { icon: Lock, title: "Non-Custodial", desc: "Your funds remain in your control at all times." },
-              { icon: BarChart3, title: "Real-time Analytics", desc: "Track your portfolio performance with live dashboards." },
-              { icon: Users, title: "Referral Rewards", desc: "Earn commissions by referring friends to the platform." },
-              { icon: Star, title: "Curated Projects", desc: "Only the best Binance Alpha and Web3 projects." },
-              { icon: Zap, title: "Instant Setup", desc: "Connect your wallet and start investing in minutes." },
-            ].map((item) => (
-              <div key={item.title} className="flex gap-3 p-5 rounded-xl border border-border/30 hover:border-border/60 transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <item.icon className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-foreground text-sm mb-1">{item.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-                </div>
+              { label: "Total Users", value: "663+" },
+              { label: "Total Invested", value: "$214K+" },
+              { label: "Active Plans", value: "17" },
+              { label: "Daily Returns", value: "Up to 3%" },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="text-lg font-bold text-white">{stat.value}</div>
+                <div className="text-xs text-gray-500">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* ── CTA Section ── */}
-      <section className="py-20 px-4 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-t border-border/30">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">
-            Ready to Start Your<br />
-            <span className="text-primary">Investment Journey?</span>
-          </h2>
-          <p className="text-muted-foreground mb-8 text-lg">
-            Join thousands of investors already earning with AlphaBag.
-          </p>
-          <Button
-            size="lg"
-            className="gap-2 text-base px-10"
-            onClick={() => window.location.href = isAuthenticated ? "/dashboard" : getLoginUrl()}
-          >
-            {isAuthenticated ? "Go to Dashboard" : "Get Started Free"}
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </section>
+        {/* ─── 골든 컬렉션 ─── */}
+        <CollectionSection
+          title="Golden Collection"
+          subtitle="BINANCE Alpha · Insurance(Hedge) · Daily Returns"
+          plans={goldenPlans as any[]}
+          color="golden"
+          href="/golden"
+          icon={<span className="text-base">🏆</span>}
+        />
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-border/30 py-10 px-4">
-        <div className="max-w-7xl mx-auto">
+        {/* ─── 셀프 컬렉션 ─── */}
+        <CollectionSection
+          title="Self Collection"
+          subtitle="Custom Strategy · Flexible · Self-managed"
+          plans={selfPlans as any[]}
+          color="self"
+          href="/self"
+          icon={<span className="text-base">⚡</span>}
+        />
+
+        {/* ─── 노드 컬렉션 ─── */}
+        <CollectionSection
+          title="Node Products"
+          subtitle="Node Infrastructure · Deposit · External DApp"
+          plans={nodePlans as any[]}
+          color="node"
+          href="/nodes"
+          icon={<span className="text-base">🔷</span>}
+        />
+
+        {/* ─── 특징 섹션 ─── */}
+        <section className="mt-4 mb-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { icon: <Shield className="w-5 h-5" />, title: "Secure", desc: "Multi-sig protection", color: "text-green-400" },
+              { icon: <Zap className="w-5 h-5" />, title: "Daily Payouts", desc: "Automated distribution", color: "text-amber-400" },
+              { icon: <Globe className="w-5 h-5" />, title: "Global Access", desc: "21 languages supported", color: "text-blue-400" },
+              { icon: <Users className="w-5 h-5" />, title: "Referral Rewards", desc: "Earn from your network", color: "text-purple-400" },
+            ].map((f) => (
+              <div key={f.title} className="bg-[#0d0d0d] border border-white/5 rounded-xl p-4 text-center">
+                <div className={`${f.color} flex justify-center mb-2`}>{f.icon}</div>
+                <div className="text-sm font-semibold text-white mb-1">{f.title}</div>
+                <div className="text-xs text-gray-500">{f.desc}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {/* ─── 푸터 ─── */}
+      <footer className="border-t border-white/5 bg-[#050505] py-8">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xs">A</span>
+              <div className="w-6 h-6 rounded bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                <span className="text-black font-black text-[10px]">AB</span>
               </div>
-              <span className="font-display font-bold text-sm">AlphaBag</span>
+              <span className="text-sm font-bold text-gray-400">AlphaBag</span>
             </div>
-            <div className="flex items-center gap-6 text-xs text-muted-foreground">
-              <Link href="/plans"><span className="hover:text-foreground cursor-pointer transition-colors">Plans</span></Link>
-              <Link href="/nodes"><span className="hover:text-foreground cursor-pointer transition-colors">Nodes</span></Link>
-              <Link href="/dashboard"><span className="hover:text-foreground cursor-pointer transition-colors">Dashboard</span></Link>
+            <div className="flex items-center gap-6 text-xs text-gray-500">
+              <Link href="/golden"><span className="hover:text-amber-400 cursor-pointer transition-colors">Golden</span></Link>
+              <Link href="/self"><span className="hover:text-blue-400 cursor-pointer transition-colors">Self</span></Link>
+              <Link href="/nodes"><span className="hover:text-purple-400 cursor-pointer transition-colors">Node</span></Link>
+              <Link href="/notices"><span className="hover:text-white cursor-pointer transition-colors">Notices</span></Link>
+              <Link href="/tickets"><span className="hover:text-white cursor-pointer transition-colors">Support</span></Link>
             </div>
-            <p className="text-xs text-muted-foreground">© 2025 AlphaBag. All rights reserved.</p>
+            <div className="text-xs text-gray-600">© 2025 AlphaBag. All rights reserved.</div>
           </div>
         </div>
       </footer>

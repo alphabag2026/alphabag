@@ -107,11 +107,22 @@ export async function findUserByEmailOrId(emailOrId: string) {
 }
 
 // --- Investment Plans ---
-export async function getInvestmentPlans(planType?: "investment" | "staking") {
+export async function getInvestmentPlans(
+  planType?: "investment" | "staking" | "golden" | "self" | "node",
+  collectionType?: "golden" | "self" | "node",
+  limit?: number,
+  highlightOnly?: boolean
+) {
   const db = await getDb();
   if (!db) return [];
-  const where = planType ? eq(investmentPlans.planType, planType) : undefined;
-  return db.select().from(investmentPlans).where(where).orderBy(investmentPlans.sortOrder);
+  const conditions = [];
+  if (planType) conditions.push(eq(investmentPlans.planType, planType));
+  if (collectionType) conditions.push(eq(investmentPlans.collectionType, collectionType));
+  if (highlightOnly) conditions.push(eq(investmentPlans.isHighlight, true));
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+  const query = db.select().from(investmentPlans).where(where).orderBy(investmentPlans.sortOrder);
+  if (limit) return (query as any).limit(limit);
+  return query;
 }
 
 export async function createInvestmentPlan(data: InsertInvestmentPlan) {
