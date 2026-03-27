@@ -137,9 +137,9 @@ function PlanCardB({ plan, collectionColor }: { plan: any; collectionColor: stri
 
   return (
     <Link href={`/plan/${plan.id}`}>
-      <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 dark:hover:bg-white/5 hover:bg-black/5 transition-colors cursor-pointer border-b border-white/5 dark:border-white/5 border-black/5 group">
+      <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer border-b border-gray-100 dark:border-white/5 group">
         {/* 로고 */}
-        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-white/5">
+        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-white/5">
           {plan.logoUrl ? (
             <img src={plan.logoUrl} alt={plan.name} className="w-full h-full object-contain p-0.5" />
           ) : (
@@ -171,7 +171,7 @@ function PlanCardB({ plan, collectionColor }: { plan: any; collectionColor: stri
 }
 
 // ─── 카드 타입 C: 현재 방식 (기존 PlanCard) ──────────────────────────────────
-function PlanCardC({ plan, collectionColor }: { plan: any; collectionColor: string }) {
+function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; collectionColor: string; isDark?: boolean }) {
   const badges: string[] = Array.isArray(plan.badgeLabels) ? plan.badgeLabels : [];
   const rating = Number(plan.rating) || 4.0;
 
@@ -187,7 +187,7 @@ function PlanCardC({ plan, collectionColor }: { plan: any; collectionColor: stri
 
   return (
     <Link href={`/plan/${plan.id}`}>
-      <div className={`relative bg-[#0d0d0d] dark:bg-[#0d0d0d] border ${c.border} rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${c.glow} group`}>
+      <div className={`relative border ${c.border} rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${c.glow} group ${isDark ? "bg-[#0d0d0d]" : "bg-white"}`}>
         <div className="relative h-36 overflow-hidden">
           {Array.isArray(plan.thumbnailImages) && plan.thumbnailImages.length > 0 && (
             <img src={plan.thumbnailImages[0]} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 transition-transform duration-500 group-hover:scale-110" />
@@ -207,7 +207,7 @@ function PlanCardC({ plan, collectionColor }: { plan: any; collectionColor: stri
           )}
         </div>
         <div className="p-4">
-          <div className="font-bold text-white text-sm truncate mb-1">{plan.name}</div>
+          <div className={`font-bold text-sm truncate mb-1 ${isDark ? "text-white" : "text-gray-900"}`}>{plan.name}</div>
           {plan.strategy && <div className="text-xs text-gray-500 truncate mb-2">{plan.strategy}</div>}
           {badges.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
@@ -218,8 +218,8 @@ function PlanCardC({ plan, collectionColor }: { plan: any; collectionColor: stri
           )}
           {(plan.ratioInfo || plan.yieldInfo) && (
             <div className="grid grid-cols-2 gap-1 mb-2">
-              {plan.ratioInfo && <div className="bg-white/5 rounded-lg p-2"><div className="text-[9px] text-gray-500 mb-0.5">Ratio</div><div className="text-[11px] font-bold text-white">{plan.ratioInfo}</div></div>}
-              {plan.yieldInfo && <div className="bg-white/5 rounded-lg p-2"><div className="text-[9px] text-gray-500 mb-0.5">Yield</div><div className={`text-[11px] font-bold ${c.rate}`}>{plan.yieldInfo}</div></div>}
+              {plan.ratioInfo && <div className={`rounded-lg p-2 ${isDark ? "bg-white/5" : "bg-gray-50"}`}><div className="text-[9px] text-gray-500 mb-0.5">Ratio</div><div className={`text-[11px] font-bold ${isDark ? "text-white" : "text-gray-800"}`}>{plan.ratioInfo}</div></div>}
+              {plan.yieldInfo && <div className={`rounded-lg p-2 ${isDark ? "bg-white/5" : "bg-gray-50"}`}><div className="text-[9px] text-gray-500 mb-0.5">Yield</div><div className={`text-[11px] font-bold ${c.rate}`}>{plan.yieldInfo}</div></div>}
             </div>
           )}
           <div className="mb-2">
@@ -279,7 +279,7 @@ function MarketWidget({ isDark }: { isDark: boolean }) {
 
   return (
     <div className={`rounded-xl border ${bgCard} mb-4 overflow-hidden`}>
-      <div className="px-4 py-3 flex items-center justify-between border-b border-white/5">
+      <div className={`px-4 py-3 flex items-center justify-between border-b ${isDark ? "border-white/5" : "border-gray-100"}`}>
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-amber-400" />
           <span className={`text-sm font-bold ${textPrimary}`}>금융 시장</span>
@@ -292,14 +292,14 @@ function MarketWidget({ isDark }: { isDark: boolean }) {
         </button>
       </div>
 
-      {/* 암호화폐 가격 - 2열 그리드 */}
+      {/* 암호화폐 가격 - 1줄 4열 가로 레이아웃 */}
       <div className="px-3 pb-2">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {cryptoItems.map((item) => (
-            <div key={item.symbol} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors ${
+            <div key={item.symbol} className={`flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors ${
               isDark ? "bg-white/4 border border-white/8" : "bg-gray-50 border border-gray-100"
             }`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 ${
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${
                 item.symbol === "BTC" ? "bg-orange-500/20 text-orange-400" :
                 item.symbol === "ETH" ? "bg-blue-500/20 text-blue-400" :
                 item.symbol === "BNB" ? "bg-yellow-500/20 text-yellow-400" :
@@ -309,7 +309,7 @@ function MarketWidget({ isDark }: { isDark: boolean }) {
               </div>
               <div className="min-w-0">
                 <div className={`text-xs font-bold ${textPrimary}`}>{item.symbol}</div>
-                <div className={`text-xs font-semibold ${textPrimary} truncate`}>
+                <div className={`text-[11px] font-semibold ${textPrimary} truncate`}>
                   ${item.price >= 1000 ? item.price.toLocaleString() : item.price.toFixed(2)}
                 </div>
                 <div className={`text-[10px] flex items-center gap-0.5 ${
@@ -326,7 +326,7 @@ function MarketWidget({ isDark }: { isDark: boolean }) {
 
       {/* 환율 */}
       {fx && (
-        <div className="px-4 py-2.5 border-t border-white/5">
+        <div className={`px-4 py-2.5 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
           <div className={`text-[10px] ${textSecondary} mb-2`}>주요 환율 (1 USD 기준)</div>
           <div className="grid grid-cols-4 gap-2">
             {[
@@ -461,7 +461,7 @@ function CollectionSection({
           {plans.slice(0, 4).map((plan) => (
             viewType === "A"
               ? <PlanCardA key={plan.id} plan={plan} collectionColor={color} />
-              : <PlanCardC key={plan.id} plan={plan} collectionColor={color} />
+              : <PlanCardC key={plan.id} plan={plan} collectionColor={color} isDark={isDark} />
           ))}
         </div>
       )}
@@ -579,8 +579,8 @@ export default function Home() {
               {[
                 { href: "/golden", label: "Golden", cls: "hover:text-amber-400" },
                 { href: "/self", label: "Self", cls: "hover:text-blue-400" },
-                { href: "/node", label: "Node", cls: "hover:text-purple-400" },
                 { href: "/notices", label: "Notices", cls: `hover:${isDark ? "text-white" : "text-gray-900"}` },
+                { href: "/#airdrop", label: "Airdrop", cls: "hover:text-emerald-400" },
               ].map((item) => (
                 <Link key={item.href} href={item.href}>
                   <button className={`px-3 py-1.5 text-xs ${textSecondary} rounded-lg transition-colors ${item.cls}`}>{item.label}</button>
@@ -644,8 +644,8 @@ export default function Home() {
             {[
               { href: "/golden", label: "Golden Collection", color: "text-amber-400" },
               { href: "/self", label: "Self Collection", color: "text-blue-400" },
-              { href: "/node", label: "Node Products", color: "text-purple-400" },
               { href: "/notices", label: "Notices", color: textSecondary },
+              { href: "/#airdrop", label: "Airdrop", color: "text-emerald-400" },
               { href: "/dashboard", label: "Dashboard", color: textSecondary },
             ].map((item) => (
               <Link key={item.href} href={item.href}>
@@ -1172,8 +1172,8 @@ export default function Home() {
             <div className={`flex items-center gap-5 text-xs ${textSecondary}`}>
               <Link href="/golden"><span className="hover:text-amber-400 cursor-pointer transition-colors">Golden</span></Link>
               <Link href="/self"><span className="hover:text-blue-400 cursor-pointer transition-colors">Self</span></Link>
-              <Link href="/node"><span className="hover:text-purple-400 cursor-pointer transition-colors">Node</span></Link>
               <Link href="/notices"><span className="hover:text-amber-400 cursor-pointer transition-colors">Notices</span></Link>
+              <Link href="/#airdrop"><span className="hover:text-emerald-400 cursor-pointer transition-colors">Airdrop</span></Link>
             </div>
             <div className={`text-xs ${textSecondary}`}>© 2025 AlphaBag. All rights reserved.</div>
           </div>
