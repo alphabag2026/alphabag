@@ -342,6 +342,28 @@ export default function Nodes() {
             )}
           </SheetHeader>
 
+          {/* 요약 카드 */}
+          {!purchasersLoading && purchasers && purchasers.length > 0 && (() => {
+            const totalRevenue = purchasers.reduce((sum: number, p: any) => sum + Number(p.totalAmount ?? 0), 0);
+            const avgAmount = totalRevenue / purchasers.length;
+            return (
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <div className="rounded-lg bg-primary/10 border border-primary/20 p-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-0.5">총 구매자</p>
+                  <p className="text-lg font-bold text-primary">{purchasers.length}<span className="text-xs font-normal ml-0.5">명</span></p>
+                </div>
+                <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-0.5">총 매출</p>
+                  <p className="text-lg font-bold text-emerald-400">${totalRevenue.toLocaleString()}</p>
+                </div>
+                <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-0.5">평균 구매</p>
+                  <p className="text-lg font-bold text-blue-400">${Math.round(avgAmount).toLocaleString()}</p>
+                </div>
+              </div>
+            );
+          })()}
+
           {purchasersLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (

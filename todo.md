@@ -241,3 +241,8 @@
 - [x] 노드 판매 상세 백엔드 API (getNodePurchasers, nodes.purchasers 프로시저)
 - [x] 노드 판매 상세 드릴다운 UI (Nodes 카드 구매자 N명 버튼 → 우측 Sheet)
 - [x] Plans 탭 카드 로고 영역 호버 시 Upload 아이콘 → 클릭 시 직접 S3 업로드
+
+## Phase 18 - CSV 개선, 노드 총계, 로고 스피너 (2026-03-27)
+- [x] Users CSV에 walletAddress, referralCode, totalInvested 컨럼 확인 (이미 포함되어 있음)
+- [x] 노드 구매자 Sheet 상단 총 매출 + 평균 구매금액 요약 카드 (총 구매자/총 매출/평균 구매 3개 카드)
+- [x] Plans 카드 로고 업로드 중 스피너 표시 + 완료 시 ✅ 토스트 피드백

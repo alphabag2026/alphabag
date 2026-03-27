@@ -40,31 +40,43 @@ const defaultForm: PlanForm = {
   sortOrder: "0", isActive: true, planType: "investment", tags: "",
 };
 
-function PlanCard({ plan, onEdit, onDelete, onToggle, onLogoUpload }: {
+function PlanCard({ plan, onEdit, onDelete, onToggle, onLogoUpload, uploadingPlanId }: {
   plan: any;
   onEdit: (plan: any) => void;
   onDelete: (id: number) => void;
   onToggle: (id: number, current: boolean) => void;
   onLogoUpload: (planId: number, file: File) => void;
+  uploadingPlanId: number | null;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const isUploading = uploadingPlanId === plan.id;
   return (
     <div className="flex items-center gap-3 p-4 rounded-xl border border-border/40 bg-card hover:border-primary/30 transition-all group">
       <GripVertical className="w-4 h-4 text-muted-foreground/40 cursor-grab flex-shrink-0" />
       {/* 로고 영역 - 클릭하면 업로드 */}
       <div
-        className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden cursor-pointer relative group/logo hover:ring-2 hover:ring-primary/40 transition-all"
-        title="로고 업로드"
-        onClick={() => fileRef.current?.click()}
+        className={`w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden relative group/logo transition-all ${isUploading ? 'ring-2 ring-primary/60 cursor-wait' : 'cursor-pointer hover:ring-2 hover:ring-primary/40'}`}
+        title={isUploading ? "업로드 중..." : "로고 업로드"}
+        onClick={() => !isUploading && fileRef.current?.click()}
       >
         {plan.logoUrl ? (
           <img src={plan.logoUrl} alt={plan.name} className="w-full h-full object-cover rounded-lg" />
         ) : (
           <TrendingUp className="w-5 h-5 text-primary" />
         )}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/logo:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-          <Upload className="w-3.5 h-3.5 text-white" />
-        </div>
+        {/* 업로드 중 오버레이 */}
+        {isUploading ? (
+          <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center">
+            <svg className="w-4 h-4 text-white animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/logo:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+            <Upload className="w-3.5 h-3.5 text-white" />
+          </div>
+        )}
       </div>
       <input
         ref={fileRef}
@@ -118,6 +130,7 @@ export default function Plans() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [editingPlan, setEditingPlan] = useState<any>(null);
   const [form, setForm] = useState<PlanForm>(defaultForm);
+  const [uploadingPlanId, setUploadingPlanId] = useState<number | null>(null);
 
   const utils = trpc.useUtils();
   const { data: plans, isLoading } = trpc.plans.list.useQuery({ planType: activeTab });
@@ -136,11 +149,12 @@ export default function Plans() {
   });
   const uploadLogoMutation = trpc.plans.uploadLogo.useMutation({
     onSuccess: (data) => {
-      toast.success("Logo uploaded successfully");
+      toast.success("✅ 로고 업로드 완료!");
       setForm(f => ({ ...f, logoUrl: data.url }));
+      setUploadingPlanId(null);
       utils.plans.list.invalidate();
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e) => { toast.error(e.message); setUploadingPlanId(null); },
   });
 
   const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -272,6 +286,7 @@ export default function Plans() {
                 onToggle={(id, cur) => updateMutation.mutate({ id, isActive: !cur })}
                 onLogoUpload={(planId, file) => {
                   if (file.size > 2 * 1024 * 1024) { toast.error("Image must be under 2MB"); return; }
+                  setUploadingPlanId(planId);
                   const reader = new FileReader();
                   reader.onload = (ev) => {
                     const base64 = (ev.target?.result as string).split(",")[1];
@@ -279,6 +294,7 @@ export default function Plans() {
                   };
                   reader.readAsDataURL(file);
                 }}
+                uploadingPlanId={uploadingPlanId}
               />
                       ))}
                     </div>
