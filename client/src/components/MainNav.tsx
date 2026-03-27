@@ -17,18 +17,17 @@ export function MainNav() {
   const [location] = useLocation();
 
   const navItems = [
-    { href: "/golden", label: "Golden", color: "hover:text-amber-400 hover:bg-amber-400/5", active: "text-amber-400 bg-amber-400/10" },
-    { href: "/self", label: "Self", color: "hover:text-blue-400 hover:bg-blue-400/5", active: "text-blue-400 bg-blue-400/10" },
-    { href: "/node", label: "Node", color: "hover:text-purple-400 hover:bg-purple-400/5", active: "text-purple-400 bg-purple-400/10" },
-    { href: "/leader", label: "Leader", color: "hover:text-emerald-400 hover:bg-emerald-400/5", active: "text-emerald-400 bg-emerald-400/10" },
-    { href: "/meme", label: "Meme", color: "hover:text-pink-400 hover:bg-pink-400/5", active: "text-pink-400 bg-pink-400/10" },
-    { href: "/influencer", label: "Influencer", color: "hover:text-orange-400 hover:bg-orange-400/5", active: "text-orange-400 bg-orange-400/10" },
-    { href: "/notices", label: "Notices", color: "hover:text-white hover:bg-white/5", active: "text-white bg-white/10" },
+    { href: "/golden", label: "Golden", color: "hover:text-amber-600 hover:bg-amber-50", active: "text-amber-600 bg-amber-50 font-semibold" },
+    { href: "/self", label: "Self", color: "hover:text-blue-600 hover:bg-blue-50", active: "text-blue-600 bg-blue-50 font-semibold" },
+    { href: "/node", label: "Node", color: "hover:text-purple-600 hover:bg-purple-50", active: "text-purple-600 bg-purple-50 font-semibold" },
+    { href: "/leader", label: "Leader", color: "hover:text-emerald-600 hover:bg-emerald-50", active: "text-emerald-600 bg-emerald-50 font-semibold" },
+    { href: "/meme", label: "Meme", color: "hover:text-pink-600 hover:bg-pink-50", active: "text-pink-600 bg-pink-50 font-semibold" },
+    { href: "/influencer", label: "Influencer", color: "hover:text-orange-600 hover:bg-orange-50", active: "text-orange-600 bg-orange-50 font-semibold" },
+    { href: "/notices", label: "Notices", color: "hover:text-foreground hover:bg-muted", active: "text-foreground bg-muted font-semibold" },
   ];
 
   const isActive = (href: string) => location === href || location.startsWith(href + "/");
 
-  // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
@@ -53,19 +52,14 @@ export function MainNav() {
 
   const getChainName = (id?: number) => {
     const chains: Record<number, string> = {
-      1: "Ethereum",
-      56: "BSC",
-      137: "Polygon",
-      42161: "Arbitrum",
-      10: "Optimism",
-      8453: "Base",
-      43114: "Avalanche",
+      1: "Ethereum", 56: "BSC", 137: "Polygon",
+      42161: "Arbitrum", 10: "Optimism", 8453: "Base", 43114: "Avalanche",
     };
     return id ? (chains[id] || `Chain ${id}`) : "Unknown";
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/5">
+    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/40">
       <div className="max-w-7xl mx-auto px-4">
         <div className="h-16 flex items-center justify-between gap-4">
           {/* 로고 */}
@@ -74,7 +68,7 @@ export function MainNav() {
               <img
                 src={ALPHABAG_LOGO}
                 alt="AlphaBag"
-                className="w-9 h-9 rounded-lg object-contain bg-black"
+                className="w-9 h-9 rounded-lg object-contain"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = "none";
                   const next = (e.target as HTMLImageElement).nextElementSibling as HTMLElement;
@@ -85,8 +79,8 @@ export function MainNav() {
                 <span className="text-black font-black text-xs">AB</span>
               </div>
               <div>
-                <div className="font-black text-white text-base leading-tight">AlphaBag</div>
-                <div className="text-[10px] text-amber-400/70 leading-tight">Multi-Asset</div>
+                <div className="font-black text-foreground text-base leading-tight">AlphaBag</div>
+                <div className="text-[10px] text-amber-500 leading-tight">Multi-Asset</div>
               </div>
             </div>
           </Link>
@@ -96,7 +90,7 @@ export function MainNav() {
             {navItems.map((item) => (
               <Link key={item.href} href={item.href}>
                 <button className={`px-3 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap ${
-                  isActive(item.href) ? item.active : `text-gray-400 ${item.color}`
+                  isActive(item.href) ? item.active : `text-muted-foreground ${item.color}`
                 }`}>
                   {item.label}
                 </button>
@@ -106,17 +100,15 @@ export function MainNav() {
 
           {/* 우측 액션 */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* 언어 전환 */}
             <LanguageSwitcher />
 
-            {/* 지갑 연결 / 프로필 드롭다운 */}
             {isConnected ? (
               <div className="relative" ref={profileRef}>
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-medium hover:bg-amber-500/30 transition-all"
+                  className="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium hover:bg-amber-100 transition-all"
                 >
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                   <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
                     <User className="w-3 h-3 text-black" />
                   </div>
@@ -126,70 +118,66 @@ export function MainNav() {
 
                 {/* 프로필 드롭다운 */}
                 {profileOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-[#111] border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50">
-                    {/* 헤더 */}
-                    <div className="px-4 py-3 border-b border-white/5 bg-amber-500/5">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-50">
+                    <div className="px-4 py-3 border-b border-border bg-amber-50/50">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center flex-shrink-0">
                           <User className="w-5 h-5 text-black" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-xs text-gray-400">연결된 지갑</div>
-                          <div className="font-mono text-sm text-white truncate">
+                          <div className="text-xs text-muted-foreground">연결된 지갑</div>
+                          <div className="font-mono text-sm text-foreground truncate">
                             {address?.slice(0, 10)}...{address?.slice(-8)}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* 체인 정보 */}
-                    <div className="px-4 py-2.5 border-b border-white/5">
+                    <div className="px-4 py-2.5 border-b border-border">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">네트워크</span>
+                        <span className="text-xs text-muted-foreground">네트워크</span>
                         <div className="flex items-center gap-1.5">
-                          <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                          <span className="text-xs text-green-400 font-medium">{getChainName(chainId)}</span>
+                          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                          <span className="text-xs text-green-600 font-medium">{getChainName(chainId)}</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* 메뉴 항목 */}
                     <div className="py-1">
                       <button
                         onClick={handleCopyAddress}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                       >
-                        <Copy className="w-4 h-4 text-gray-500" />
+                        <Copy className="w-4 h-4 text-muted-foreground" />
                         주소 복사
                       </button>
                       <a
                         href={`https://etherscan.io/address/${address}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                         onClick={() => setProfileOpen(false)}
                       >
-                        <ExternalLink className="w-4 h-4 text-gray-500" />
+                        <ExternalLink className="w-4 h-4 text-muted-foreground" />
                         Explorer에서 보기
                       </a>
                       {isAuthenticated && (
                         <Link href="/dashboard">
                           <button
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                             onClick={() => setProfileOpen(false)}
                           >
-                            <BarChart3 className="w-4 h-4 text-gray-500" />
+                            <BarChart3 className="w-4 h-4 text-muted-foreground" />
                             대시보드
                           </button>
                         </Link>
                       )}
                     </div>
 
-                    {/* 연결 해제 */}
-                    <div className="border-t border-white/5 py-1">
+                    <div className="border-t border-border py-1">
                       <button
                         onClick={handleDisconnect}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
                         지갑 연결 해제
@@ -208,17 +196,15 @@ export function MainNav() {
               </button>
             )}
 
-            {/* 장바구니 */}
             <Link href="/cart">
-              <button className="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs font-medium hover:bg-amber-500/20 transition-all">
+              <button className="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 text-xs font-medium hover:bg-amber-100 transition-all">
                 <ShoppingCart className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">장바구니</span>
               </button>
             </Link>
 
-            {/* 모바일 메뉴 버튼 */}
             <button
-              className="md:hidden p-1.5 text-gray-400 hover:text-white"
+              className="md:hidden p-1.5 text-muted-foreground hover:text-foreground"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -229,12 +215,12 @@ export function MainNav() {
 
       {/* 모바일 메뉴 */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-white/5 bg-[#0d0d0d] px-4 py-3 space-y-1">
+        <div className="md:hidden border-t border-border/40 bg-background px-4 py-3 space-y-1">
           {navItems.map((item) => (
             <Link key={item.href} href={item.href}>
               <button
                 className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
-                  isActive(item.href) ? item.active : `text-gray-400 ${item.color}`
+                  isActive(item.href) ? item.active : `text-muted-foreground ${item.color}`
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -243,31 +229,30 @@ export function MainNav() {
             </Link>
           ))}
 
-          {/* 모바일 지갑 */}
-          <div className="pt-2 border-t border-white/5">
+          <div className="pt-2 border-t border-border/40">
             {isConnected ? (
               <div className="space-y-1">
-                <div className="px-3 py-2 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                <div className="px-3 py-2 bg-amber-50 rounded-lg border border-amber-200">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
                       <User className="w-3 h-3 text-black" />
                     </div>
                     <div>
-                      <div className="text-xs text-amber-300 font-mono">{address?.slice(0, 10)}...{address?.slice(-6)}</div>
-                      <div className="text-[10px] text-gray-500">{getChainName(chainId)}</div>
+                      <div className="text-xs text-amber-700 font-mono">{address?.slice(0, 10)}...{address?.slice(-6)}</div>
+                      <div className="text-[10px] text-muted-foreground">{getChainName(chainId)}</div>
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={() => { handleCopyAddress(); setMobileMenuOpen(false); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
                 >
                   <Copy className="w-4 h-4" />
                   주소 복사
                 </button>
                 <button
                   onClick={() => { handleDisconnect(); setMobileMenuOpen(false); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
                   지갑 연결 해제
@@ -276,7 +261,7 @@ export function MainNav() {
             ) : (
               <button
                 onClick={() => { openModal(); setMobileMenuOpen(false); }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
               >
                 <Wallet className="w-4 h-4" />
                 지갑 연결

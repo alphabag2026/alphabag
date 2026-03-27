@@ -372,3 +372,11 @@
 - [x] 파트너 어드민 이미지 업로드 기능 추가 (파일 업로드 + URL 직접 입력 병행)
 - [x] 리스팅 신청 시 notifyOwner 알림 연동 (카테고리/프로젝트명/담당자/이메일/텔레그램/웹사이트 포함)
 - [x] 테스트 추가 (listing/partners/collection plans 25개 테스트 통과)
+
+## Phase 33 - 파트너 편집·리스팅 이메일 알림·컬렉션 라이트 테마 (2026-03-28)
+- [x] 파트너 어드민 인라인 편집 기능 (행 클릭 → 로고/이름/설명/웹사이트 편집 모드, 파일 업로드 + URL 입력 병행)
+- [x] partners.update 백엔드 프로시저 추가
+- [x] 리스팅 상태 변경 시 관리자 notifyOwner 알림 + 이메일 복사 버튼 UI 제공
+- [x] listing.updateStatus 백엔드 프로시저 + notifyOwner 알림 연동
+- [x] 컬렉션 페이지 라이트 테마 적용 (GoldenPage/SelfPage/LeaderPage/InfluencerPage/MemePage 5개)
+- [x] MainNav 라이트 테마 전환 (bg-background/95, semantic 토큰 전체 적용)

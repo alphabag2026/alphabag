@@ -1172,7 +1172,31 @@ export const appRouter = router({
       const drizzleDb = await getDb();
       if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { listingRequests } = await import("../drizzle/schema");
+      // 기존 신청 정보 조회
+      const [existing] = await drizzleDb.select().from(listingRequests).where(eq(listingRequests.id, input.id));
       await drizzleDb.update(listingRequests).set({ status: input.status, adminNote: input.adminNote }).where(eq(listingRequests.id, input.id));
+      // 상태 변경 시 관리자에게 알림 발송
+      if (existing) {
+        const statusLabels: Record<string, string> = {
+          pending: "대기 중", reviewing: "검토 중", approved: "승인", rejected: "거절",
+        };
+        try {
+          await notifyOwner({
+            title: `[AlphaBag] 리스팅 상태 변경: ${existing.projectName} → ${statusLabels[input.status] || input.status}`,
+            content: [
+              `프로젝트명: ${existing.projectName}`,
+              `변경된 상태: ${statusLabels[input.status] || input.status}`,
+              `신청자: ${existing.contactName}`,
+              `신청자 이메일: ${existing.contactEmail}`,
+              existing.contactTelegram ? `신청자 텔레그램: ${existing.contactTelegram}` : "",
+              input.adminNote ? `\n관리자 메모:\n${input.adminNote}` : "",
+              `\n※ 신청자(${existing.contactEmail})에게 직접 이메일로 결과를 안내해 주세요.`,
+            ].filter(Boolean).join("\n"),
+          });
+        } catch (err) {
+          console.warn("[Listing] notifyOwner on status change failed:", err);
+        }
+      }
       return { success: true };
     }),
   }),
@@ -1203,6 +1227,22 @@ export const appRouter = router({
       if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { partners } = await import("../drizzle/schema");
       await drizzleDb.update(partners).set({ isHidden: input.isHidden }).where(eq(partners.id, input.id));
+      return { success: true };
+    }),
+    update: adminProcedure.input(z.object({
+      id: z.number(),
+      name: z.string().min(1).optional(),
+      logoUrl: z.string().optional(),
+      website: z.string().optional(),
+      description: z.string().optional(),
+      category: z.string().optional(),
+      sortOrder: z.number().optional(),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { partners } = await import("../drizzle/schema");
+      const { id, ...fields } = input;
+      await drizzleDb.update(partners).set(fields).where(eq(partners.id, id));
       return { success: true };
     }),
     delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {

@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { MainNav } from "@/components/MainNav";
 import { PlanDetailModal } from "@/components/PlanDetailModal";
-import { Star, Crown, ChevronRight } from "lucide-react";
+import { Star, Crown } from "lucide-react";
 
 const ALPHABAG_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/alphabag-logo_df90878d.png";
 
@@ -24,19 +24,19 @@ export default function LeaderPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <MainNav />
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* 헤더 */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <h1 className="text-2xl font-black text-emerald-400 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <h1 className="text-2xl font-black text-emerald-600 flex items-center gap-2">
               <Crown className="w-6 h-6" />
               Leader Collection
             </h1>
           </div>
-          <p className="text-gray-400 text-sm">리더 추천 · 검증된 전략 · 커뮤니티 선택</p>
+          <p className="text-muted-foreground text-sm">리더 추천 · 검증된 전략 · 커뮤니티 선택</p>
         </div>
 
         {/* 정렬 필터 */}
@@ -52,8 +52,8 @@ export default function LeaderPage() {
               onClick={() => setSort(s.key as SortKey)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 sort === s.key
-                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                  : "text-gray-400 border border-white/10 hover:border-white/20"
+                  ? "bg-emerald-100 text-emerald-700 border border-emerald-300"
+                  : "text-muted-foreground border border-border/40 hover:border-border"
               }`}
             >
               {s.label}
@@ -65,11 +65,11 @@ export default function LeaderPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="h-64 bg-[#111] rounded-xl animate-pulse" />
+              <div key={i} className="h-64 bg-muted rounded-xl animate-pulse" />
             ))}
           </div>
         ) : sorted.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-gray-600">
+          <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
             <Crown className="w-16 h-16 mb-4 opacity-20" />
             <div className="text-lg font-medium">등록된 리더 컬렉션이 없습니다</div>
             <div className="text-sm mt-1">곧 업데이트될 예정입니다.</div>
@@ -83,39 +83,39 @@ export default function LeaderPage() {
                 <div
                   key={plan.id}
                   onClick={() => setSelectedPlanId(plan.id)}
-                  className="relative bg-[#0d0d0d] border border-emerald-500/30 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/40 group"
+                  className="relative bg-card border border-emerald-200/60 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-emerald-200/60 hover:border-emerald-400/80 group"
                 >
                   <div className="relative h-36 overflow-hidden">
                     {plan.logoUrl ? (
                       <img src={plan.logoUrl} alt={plan.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-emerald-900/40 to-emerald-600/20 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
-                        <span className="text-5xl font-black opacity-30 text-emerald-400">{plan.name.charAt(0)}</span>
+                      <div className="w-full h-full bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
+                        <span className="text-5xl font-black text-emerald-300">{plan.name.charAt(0)}</span>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-emerald-100/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
                   <div className="p-4">
-                    <div className="font-bold text-white text-sm truncate mb-1">{plan.name}</div>
-                    {plan.strategy && <div className="text-xs text-gray-500 truncate mb-2">{plan.strategy}</div>}
+                    <div className="font-bold text-foreground text-sm truncate mb-1">{plan.name}</div>
+                    {plan.strategy && <div className="text-xs text-muted-foreground truncate mb-2">{plan.strategy}</div>}
                     {badges.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-3">
                         {badges.slice(0, 3).map((b: string, i: number) => (
-                          <span key={i} className="text-[10px] px-2 py-0.5 rounded-full border bg-emerald-500/20 text-emerald-300 border-emerald-500/30">{b}</span>
+                          <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">{b}</span>
                         ))}
                       </div>
                     )}
                     <div className="mb-3">
-                      <div className="text-2xl font-bold text-emerald-400">{Number(plan.dailyRate).toFixed(2)}%</div>
-                      <div className="text-xs text-gray-500">Daily Return</div>
+                      <div className="text-2xl font-bold text-emerald-600">{Number(plan.dailyRate).toFixed(2)}%</div>
+                      <div className="text-xs text-muted-foreground">Daily Return</div>
                     </div>
                     <div className="flex items-center gap-1 mb-3">
                       {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className={`w-3 h-3 ${s <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-gray-600"}`} />
+                        <Star key={s} className={`w-3 h-3 ${s <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-gray-300"}`} />
                       ))}
-                      <span className="text-xs text-gray-500 ml-1">{rating.toFixed(1)}</span>
+                      <span className="text-xs text-muted-foreground ml-1">{rating.toFixed(1)}</span>
                     </div>
-                    <button className="w-full py-2 rounded-lg text-xs font-semibold transition-all duration-200 border bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30">
+                    <button className="w-full py-2 rounded-lg text-xs font-semibold transition-all duration-200 bg-emerald-500 text-white hover:bg-emerald-400">
                       View Details →
                     </button>
                   </div>
@@ -127,13 +127,13 @@ export default function LeaderPage() {
       </div>
 
       {/* 푸터 */}
-      <footer className="border-t border-white/5 bg-[#050505] py-8 mt-12">
+      <footer className="border-t border-border/40 bg-muted/30 py-8 mt-12">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <img src={ALPHABAG_LOGO} alt="AlphaBag" className="w-7 h-7 rounded object-contain bg-black" />
-            <div className="text-sm font-bold text-gray-400">AlphaBag</div>
+            <img src={ALPHABAG_LOGO} alt="AlphaBag" className="w-7 h-7 rounded object-contain" />
+            <div className="text-sm font-bold text-muted-foreground">AlphaBag</div>
           </div>
-          <div className="text-xs text-gray-600">© 2025 AlphaBag. All rights reserved.</div>
+          <div className="text-xs text-muted-foreground">© 2025 AlphaBag. All rights reserved.</div>
         </div>
       </footer>
 
