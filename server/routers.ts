@@ -171,6 +171,20 @@ export const appRouter = router({
     purchasers: adminProcedure.input(z.object({ nodeId: z.number() })).query(async ({ input }) => {
       return await db.getNodePurchasers(input.nodeId);
     }),
+    // 노드 구매 상태 일괄 업데이트
+    bulkUpdateStatus: adminProcedure.input(z.object({
+      orderIds: z.array(z.number()),
+      status: z.enum(["pending", "confirmed", "cancelled"]),
+    })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { nodeOrders } = await import("../drizzle/schema");
+      const { inArray } = await import("drizzle-orm");
+      await database.update(nodeOrders)
+        .set({ status: input.status })
+        .where(inArray(nodeOrders.id, input.orderIds));
+      return { success: true, updated: input.orderIds.length };
+    }),
   }),
 
   // ─── Users ─────────────────────────────────────────────────────────────────
@@ -761,6 +775,49 @@ export const appRouter = router({
       } catch {
         return null;
       }
+    }),
+
+    // 관리자 계정 목록
+    list: adminProcedure.query(async () => {
+      return db.getAllAdminAccounts();
+    }),
+
+    // 관리자 계정 생성
+    create: adminProcedure.input(z.object({
+      username: z.string().min(3).max(64),
+      password: z.string().min(6),
+      role: z.enum(["admin", "sub_admin"]).default("sub_admin"),
+    })).mutation(async ({ input }) => {
+      const existing = await db.getAdminAccountByUsername(input.username);
+      if (existing) throw new TRPCError({ code: "CONFLICT", message: "Username already exists" });
+      const hash = await bcrypt.hash(input.password, 10);
+      await db.createAdminAccount(input.username, hash, input.role);
+      return { success: true };
+    }),
+
+    // 비밀번호 변경
+    changePassword: adminProcedure.input(z.object({
+      id: z.number(),
+      newPassword: z.string().min(6),
+    })).mutation(async ({ input }) => {
+      const hash = await bcrypt.hash(input.newPassword, 10);
+      await db.updateAdminPassword(input.id, hash);
+      return { success: true };
+    }),
+
+    // 활성/비활성 토글
+    toggleActive: adminProcedure.input(z.object({
+      id: z.number(),
+      isActive: z.boolean(),
+    })).mutation(async ({ input }) => {
+      await db.toggleAdminActive(input.id, input.isActive);
+      return { success: true };
+    }),
+
+    // 계정 삭제
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      await db.deleteAdminAccount(input.id);
+      return { success: true };
     }),
   }),
 

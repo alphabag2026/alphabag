@@ -697,3 +697,40 @@ export async function updateAdminLastLogin(id: number) {
   if (!db) return;
   await db.update(adminAccounts).set({ lastLoginAt: new Date() }).where(eq(adminAccounts.id, id));
 }
+
+export async function getAllAdminAccounts() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    id: adminAccounts.id,
+    username: adminAccounts.username,
+    role: adminAccounts.role,
+    isActive: adminAccounts.isActive,
+    lastLoginAt: adminAccounts.lastLoginAt,
+    createdAt: adminAccounts.createdAt,
+  }).from(adminAccounts).orderBy(adminAccounts.createdAt);
+}
+
+export async function createAdminAccount(username: string, passwordHash: string, role: "admin" | "sub_admin") {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.insert(adminAccounts).values({ username, passwordHash, role, isActive: true });
+}
+
+export async function updateAdminPassword(id: number, passwordHash: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(adminAccounts).set({ passwordHash }).where(eq(adminAccounts.id, id));
+}
+
+export async function toggleAdminActive(id: number, isActive: boolean) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(adminAccounts).set({ isActive }).where(eq(adminAccounts.id, id));
+}
+
+export async function deleteAdminAccount(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(adminAccounts).where(eq(adminAccounts.id, id));
+}

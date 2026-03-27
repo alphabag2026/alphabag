@@ -255,3 +255,8 @@
 - [x] Users 탭 필터 버튼: 투자 있음 / 노드 구매 있음 / KYC 완료 (토글 방식, 필터 초기화 버튼 포함)
 - [x] users.list 백엔드에 filter 파라미터 추가 (hasInvestment, hasNode, kycApproved)
 - [x] 노드 구매자 Sheet에 CSV 다운로드 버튼 추가 (지갑주소/이름/이메일/금액/상태/날짜/TxHash)
+
+## Phase 20 - SubAdmins 계정 관리, 노드 일괄 업데이트 (2026-03-27)
+- [x] SubAdmins 탭 관리자 계정 추가/수정/비활성화 UI (비밀번호 변경, 권한 설정, 삭제)
+- [x] 노드 구매자 Sheet에 pending → confirmed 일괄 업데이트 버튼 추가 (체크박스 선택 방식)
+- [x] nodes.bulkUpdateStatus 백엔드 프로시저 (inArray로 일괄 UPDATE, confirmed/cancelled 지원)

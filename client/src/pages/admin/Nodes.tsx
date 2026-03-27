@@ -2,7 +2,7 @@ import { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Cpu, ToggleLeft, ToggleRight, Users, Copy, CheckCheck, ExternalLink, Download } from "lucide-react";
+import { Plus, Pencil, Trash2, Cpu, ToggleLeft, ToggleRight, Users, Copy, CheckCheck, ExternalLink, Download, CheckSquare, Square, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +63,7 @@ export default function Nodes() {
   const [editingNode, setEditingNode] = useState<any>(null);
   const [form, setForm] = useState(defaultForm);
   const [buyersNode, setBuyersNode] = useState<any>(null); // 구매자 목록 드릴다운용
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<number>>(new Set());
 
   const utils = trpc.useUtils();
   const { data: nodes, isLoading } = trpc.nodes.list.useQuery();
@@ -71,6 +72,14 @@ export default function Nodes() {
     { nodeId: buyersNode?.id ?? 0 },
     { enabled: buyersNode !== null }
   );
+  const bulkUpdateMutation = trpc.nodes.bulkUpdateStatus.useMutation({
+    onSuccess: (res) => {
+      toast.success(`${res.updated}건 상태가 업데이트되었습니다`);
+      setSelectedOrderIds(new Set());
+      utils.nodes.purchasers.invalidate({ nodeId: buyersNode?.id ?? 0 });
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   const createMutation = trpc.nodes.create.useMutation({
     onSuccess: () => { toast.success("Node created"); utils.nodes.list.invalidate(); setDialogOpen(false); },
@@ -396,6 +405,40 @@ export default function Nodes() {
             );
           })()}
 
+          {/* 일괄 상태 업데이트 바 */}
+          {selectedOrderIds.size > 0 && (
+            <div className="flex items-center gap-2 p-3 mb-3 rounded-lg bg-primary/10 border border-primary/20">
+              <CheckSquare className="w-4 h-4 text-primary flex-shrink-0" />
+              <span className="text-sm font-medium flex-1">{selectedOrderIds.size}건 선택됨</span>
+              <Button
+                size="sm"
+                className="h-7 px-3 text-xs bg-emerald-600 hover:bg-emerald-700"
+                onClick={() => bulkUpdateMutation.mutate({ orderIds: Array.from(selectedOrderIds), status: "confirmed" })}
+                disabled={bulkUpdateMutation.isPending}
+              >
+                <RefreshCw className="w-3 h-3 mr-1" />
+                Confirmed
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-3 text-xs hover:border-red-500/50 hover:text-red-400"
+                onClick={() => bulkUpdateMutation.mutate({ orderIds: Array.from(selectedOrderIds), status: "cancelled" })}
+                disabled={bulkUpdateMutation.isPending}
+              >
+                Cancelled
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 text-xs"
+                onClick={() => setSelectedOrderIds(new Set())}
+              >
+                취소
+              </Button>
+            </div>
+          )}
+
           {purchasersLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -405,7 +448,19 @@ export default function Nodes() {
           ) : purchasers && purchasers.length > 0 ? (
             <div className="space-y-2">
               {purchasers.map((p: any, i: number) => (
-                <div key={p.orderId} className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors border border-border/30">
+                <div
+                  key={p.orderId}
+                  className={`flex items-center gap-3 p-3 rounded-lg transition-colors border cursor-pointer ${
+                    selectedOrderIds.has(p.orderId)
+                      ? "bg-primary/10 border-primary/30"
+                      : "bg-muted/20 hover:bg-muted/40 border-border/30"
+                  }`}
+                  onClick={() => setSelectedOrderIds(prev => {
+                    const next = new Set(prev);
+                    if (next.has(p.orderId)) next.delete(p.orderId); else next.add(p.orderId);
+                    return next;
+                  })}
+                >
                   <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground flex-shrink-0">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     {p.userWallet ? (
