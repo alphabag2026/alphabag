@@ -91,7 +91,7 @@ export default function AuditLogs() {
                 <TableHead className="w-12">#</TableHead>
                 <TableHead>Action</TableHead>
                 <TableHead>Target</TableHead>
-                <TableHead>Admin ID</TableHead>
+                <TableHead>Admin</TableHead>
                 <TableHead>Time</TableHead>
                 <TableHead className="w-16">Detail</TableHead>
               </TableRow>
@@ -131,7 +131,7 @@ export default function AuditLogs() {
                       ) : "—"}
                     </TableCell>
                     <TableCell className="text-sm font-mono text-muted-foreground">
-                      #{log.adminId}
+                      {(log as any).adminUsername || `#${log.adminId}`}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {new Date(log.createdAt).toLocaleString()}
@@ -203,8 +203,8 @@ export default function AuditLogs() {
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Admin ID</p>
-                  <p className="font-mono">#{selectedLog.adminId}</p>
+                  <p className="text-xs text-muted-foreground mb-1">Admin</p>
+                  <p className="font-mono">{(selectedLog as any).adminUsername || `#${selectedLog.adminId}`}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Time</p>

@@ -290,3 +290,11 @@
 - [x] telegram.schedules CRUD 프로시저 (list/create/delete)
 - [x] 예약 발송 관리 UI (백오피스 - 새 탭 또는 텔레그램 발송 다이얼로그 내 탭)
 - [x] 예약 발송 결과 기록 (실행 후 lastRunAt, lastResult 업데이트)
+
+## Phase 23 - 텔레그램 웹훅·Audit Log 개선·즉시 발송 (2026-03-27)
+- [x] 텔레그램 봇 웹훅 엔드포인트 (/api/telegram/webhook) - /start 수신 시 Chat ID 자동 DB 저장
+- [x] 웹훅 URL 등록 안내 (ProfilePage에 봇 링크 + 웹훅 설정 방법 표시)
+- [x] Audit Logs auditLogs.list 프로시저에 adminAccounts JOIN → adminUsername 반환
+- [x] AuditLogs.tsx 테이블에 Admin ID 대신 username 표시
+- [x] telegramSchedules.runNow 프로시저 (즉시 실행)
+- [x] TelegramSchedules.tsx 카드에 "지금 발송" 버튼 추가

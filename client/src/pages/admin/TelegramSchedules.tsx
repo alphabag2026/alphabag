@@ -86,6 +86,14 @@ export default function TelegramSchedules() {
     onError: (err: any) => toast.error(err.message),
   });
 
+  const runNowMutation = trpc.telegramSchedules.runNow.useMutation({
+    onSuccess: (res) => {
+      toast.success(`즈시 발송 완료! 성공: ${res.successCount}, 실패: ${res.failCount}`);
+      utils.telegramSchedules.list.invalidate();
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
   const handleOpenEdit = (s: any) => {
     const f = s.filter as any ?? {};
     setForm({
@@ -182,6 +190,17 @@ export default function TelegramSchedules() {
                         </div>
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs gap-1 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                          onClick={() => runNowMutation.mutate({ id: s.id })}
+                          disabled={runNowMutation.isPending}
+                          title="지금 즉시 발송"
+                        >
+                          {runNowMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                          지금 발송
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"

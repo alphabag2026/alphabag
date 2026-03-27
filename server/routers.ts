@@ -637,14 +637,28 @@ export const appRouter = router({
     })).query(async ({ input }) => {
       const database = await getDb();
       if (!database) return { data: [], total: 0 };
-      const { auditLogs } = await import("../drizzle/schema");
-      const { desc, count, like } = await import("drizzle-orm");
+      const { auditLogs, adminAccounts: adminAccountsTable } = await import("../drizzle/schema");
+      const { desc, count, like, sql } = await import("drizzle-orm");
       const offset = (input.page - 1) * input.limit;
       const whereClause = input.action ? like(auditLogs.action, `%${input.action}%`) : undefined;
+      const selectFields = {
+        id: auditLogs.id,
+        adminId: auditLogs.adminId,
+        adminUsername: sql<string>`COALESCE(${adminAccountsTable.username}, CONCAT('#', ${auditLogs.adminId}))`.as('adminUsername'),
+        action: auditLogs.action,
+        targetType: auditLogs.targetType,
+        targetId: auditLogs.targetId,
+        details: auditLogs.details,
+        createdAt: auditLogs.createdAt,
+      };
+      const baseQuery = database
+        .select(selectFields)
+        .from(auditLogs)
+        .leftJoin(adminAccountsTable, sql`${adminAccountsTable.id} = ${auditLogs.adminId}`);
       const [data, totalResult] = await Promise.all([
         whereClause
-          ? database.select().from(auditLogs).where(whereClause).orderBy(desc(auditLogs.createdAt)).limit(input.limit).offset(offset)
-          : database.select().from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(input.limit).offset(offset),
+          ? baseQuery.where(whereClause).orderBy(desc(auditLogs.createdAt)).limit(input.limit).offset(offset)
+          : baseQuery.orderBy(desc(auditLogs.createdAt)).limit(input.limit).offset(offset),
         whereClause
           ? database.select({ count: count() }).from(auditLogs).where(whereClause)
           : database.select({ count: count() }).from(auditLogs),
@@ -723,6 +737,56 @@ export const appRouter = router({
       await database.delete(telegramSchedules).where(eq(telegramSchedules.id, input.id));
       await createAuditLog({ adminId: ctx.user.id, action: "DELETE_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", targetId: input.id });
       return { success: true };
+    }),
+    // 즉시 발송 (테스트용)
+    runNow: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { telegramSchedules } = await import("../drizzle/schema");
+      const schedules = await database.select().from(telegramSchedules).where(eq(telegramSchedules.id, input.id));
+      if (!schedules[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Schedule not found" });
+      const schedule = schedules[0];
+      // 실제 발송 로직 (broadcastTelegram과 동일)
+      const token = process.env.TELEGRAM_BOT_TOKEN;
+      if (!token) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "TELEGRAM_BOT_TOKEN not set" });
+      const { users: usersTable } = await import("../drizzle/schema");
+      const { isNotNull, and } = await import("drizzle-orm");
+      const filter = schedule.filter as any;
+      let query = database.select({ id: usersTable.id, telegramChatId: usersTable.telegramChatId }).from(usersTable).where(isNotNull(usersTable.telegramChatId));
+      const allUsers = await query;
+      let successCount = 0;
+      let failCount = 0;
+      // 채널 발송
+      if (schedule.channelChatId) {
+        try {
+          const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: schedule.channelChatId, text: schedule.message, parse_mode: "HTML" }),
+          });
+          if (r.ok) successCount++; else failCount++;
+        } catch { failCount++; }
+      }
+      // 개별 DM
+      for (const u of allUsers) {
+        if (!u.telegramChatId) continue;
+        try {
+          const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: u.telegramChatId, text: schedule.message, parse_mode: "HTML" }),
+          });
+          if (r.ok) successCount++; else failCount++;
+          await new Promise(res => setTimeout(res, 50));
+        } catch { failCount++; }
+      }
+      // lastRunAt, lastResult 업데이트
+      await database.update(telegramSchedules).set({
+        lastRunAt: new Date(),
+        lastResult: JSON.stringify({ successCount, failCount, total: successCount + failCount, runBy: `admin#${ctx.user.id}` }),
+      }).where(eq(telegramSchedules.id, input.id));
+      await createAuditLog({ adminId: ctx.user.id, action: "RUN_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", targetId: input.id, details: { successCount, failCount, title: schedule.title } });
+      return { success: true, successCount, failCount };
     }),
   }),
 
