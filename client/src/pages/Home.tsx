@@ -252,40 +252,41 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
 }
 
 // ─── 금융 위젯 ────────────────────────────────────────────────────────────────
-function MarketWidget({ isDark }: { isDark: boolean }) {
+function MarketWidget({ isDark, sidebar = false }: { isDark: boolean; sidebar?: boolean }) {
   const { data: marketData, isLoading, refetch } = trpc.market.prices.useQuery(undefined, {
-    refetchInterval: 60000, // 1분마다 갱신
+    refetchInterval: 60000,
     staleTime: 30000,
   });
-
+  const [showBNB, setShowBNB] = useState(false);
+  const [showSOL, setShowSOL] = useState(false);
   const bgCard = isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200 shadow-sm";
   const textPrimary = isDark ? "text-white" : "text-gray-900";
   const textSecondary = isDark ? "text-gray-400" : "text-gray-500";
-
   if (isLoading) {
     return (
-      <div className={`rounded-xl p-4 border ${bgCard} mb-4`}>
+      <div className={`rounded-xl p-4 border ${bgCard} ${sidebar ? "" : "mb-4"}`}>
         <div className="flex items-center gap-2 mb-3">
           <TrendingUp className="w-4 h-4 text-amber-400" />
           <span className={`text-sm font-bold ${textPrimary}`}>금융 시장</span>
         </div>
         <div className="animate-pulse space-y-2">
-          {[1, 2, 3].map(i => <div key={i} className="h-8 bg-white/5 rounded-lg" />)}
+          {[1, 2].map(i => <div key={i} className="h-10 bg-white/5 rounded-lg" />)}
         </div>
       </div>
     );
   }
-
   const crypto = marketData?.crypto;
   const fx = marketData?.fx;
-
-  const cryptoItems = crypto ? [
-    { symbol: "BTC", price: crypto.BTC.usd, change: crypto.BTC.change24h, icon: "₿" },
-    { symbol: "ETH", price: crypto.ETH.usd, change: crypto.ETH.change24h, icon: "Ξ" },
+  const allCoins = crypto ? [
+    { symbol: "BTC", price: crypto.BTC.usd, change: crypto.BTC.change24h, icon: "₿", color: "bg-orange-500/20 text-orange-400", always: true },
+    { symbol: "ETH", price: crypto.ETH.usd, change: crypto.ETH.change24h, icon: "Ξ", color: "bg-blue-500/20 text-blue-400", always: true },
+    { symbol: "BNB", price: crypto.BNB.usd, change: crypto.BNB.change24h, icon: "B", color: "bg-yellow-500/20 text-yellow-500", always: false, show: showBNB },
+    { symbol: "SOL", price: crypto.SOL.usd, change: crypto.SOL.change24h, icon: "◎", color: "bg-purple-500/20 text-purple-400", always: false, show: showSOL },
   ] : [];
+  const cryptoItems = allCoins.filter(c => c.always || c.show);
 
   return (
-    <div className={`rounded-xl border ${bgCard} mb-4 overflow-hidden`}>
+    <div className={`rounded-xl border ${bgCard} ${sidebar ? "" : "mb-4"} overflow-hidden`}>
       <div className={`px-4 py-3 flex items-center justify-between border-b ${isDark ? "border-white/5" : "border-gray-100"}`}>
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-amber-400" />
@@ -299,16 +300,28 @@ function MarketWidget({ isDark }: { isDark: boolean }) {
         </button>
       </div>
 
-      {/* 암호화폐 가격 - 2개 컴팩트 가로 레이아웃 */}
-      <div className="px-3 py-2">
-        <div className="grid grid-cols-2 gap-2">
+      {/* 코인 토글 */}
+      <div className={`px-3 pt-2 pb-1 flex items-center gap-2`}>
+        {[{ label: "BNB", active: showBNB, toggle: () => setShowBNB(v => !v) }, { label: "SOL", active: showSOL, toggle: () => setShowSOL(v => !v) }].map(t => (
+          <button key={t.label} onClick={t.toggle} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all ${
+            t.active
+              ? isDark ? "bg-amber-500/20 border-amber-500/40 text-amber-300" : "bg-amber-100 border-amber-300 text-amber-700"
+              : isDark ? "bg-white/5 border-white/10 text-gray-500" : "bg-gray-100 border-gray-200 text-gray-400"
+          }`}>
+            <span className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${t.active ? "bg-amber-400 border-amber-400" : isDark ? "border-gray-600" : "border-gray-300"}`} />
+            {t.label}
+          </button>
+        ))}
+        <span className={`text-[9px] ml-auto ${textSecondary}`}>코인 선택</span>
+      </div>
+      {/* 암호화폐 가격 */}
+      <div className="px-3 pb-2">
+        <div className={`grid gap-2 ${cryptoItems.length > 2 ? "grid-cols-2" : "grid-cols-2"}`}>
           {cryptoItems.map((item) => (
             <div key={item.symbol} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors ${
               isDark ? "bg-white/4 border border-white/8" : "bg-gray-50 border border-gray-100"
             }`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 ${
-                item.symbol === "BTC" ? "bg-orange-500/20 text-orange-400" : "bg-blue-500/20 text-blue-400"
-              }`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 ${item.color}`}>
                 {item.icon}
               </div>
               <div className="min-w-0">
@@ -762,6 +775,10 @@ export default function Home() {
           </div>
         </div>
 
+        {/* ─── 메인 + 사이드바 2열 레이아웃 ─── */}
+        <div className="flex gap-4 items-start">
+          {/* 왼쪽 메인 콘텐츠 */}
+          <div className="flex-1 min-w-0">
         {/* ─── 소메뉴 탭 (네이버 스타일) ─── */}
         <div className={`rounded-xl border mb-4 overflow-hidden ${cardBg}`}>
           <div className="flex overflow-x-auto scrollbar-hide">
@@ -1101,9 +1118,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ─── 금융 시장 위젯 ─── */}
-        <MarketWidget isDark={isDark} />
-
         {/* ─── 뷰 타입 선택 + 통계 ─── */}
         <div className="flex items-center justify-between mb-4">
           <div className={`text-xs font-bold ${textPrimary}`}>투자 플랜</div>
@@ -1154,6 +1168,14 @@ export default function Home() {
             ))}
           </div>
         </section>
+          </div>{/* end main */}
+          {/* 오른쪽 사이드바 */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-20">
+              <MarketWidget isDark={isDark} sidebar />
+            </div>
+          </div>
+        </div>{/* end 2열 */}
       </div>
 
       {/* ─── 모달들 ─── */}
