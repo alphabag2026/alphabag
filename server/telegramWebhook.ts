@@ -98,6 +98,64 @@ export function registerTelegramWebhook(app: Express) {
       const firstName = message.from?.first_name || "User";
       const lang = detectLang(message.from?.language_code);
 
+      // /help 명령어
+      if (text === "/help" || text.startsWith("/help ")) {
+        const helpMessages: Record<LangCode, string> = {
+          ko: `📖 <b>AlphaBag 봇 도움말</b>\n\n/start - 텔레그램 연동 시작\n/status - 내 연동 상태 확인\n/help - 도움말 보기\n\n📌 AlphaBag 사이트: ${process.env.VITE_OAUTH_PORTAL_URL || "https://alphabag.io"}`,
+          en: `📖 <b>AlphaBag Bot Help</b>\n\n/start - Start Telegram linking\n/status - Check my connection status\n/help - Show this help\n\n📌 AlphaBag site: ${process.env.VITE_OAUTH_PORTAL_URL || "https://alphabag.io"}`,
+          zh: `📖 <b>AlphaBag 机器人帮助</b>\n\n/start - 开始 Telegram 绑定\n/status - 查看我的连接状态\n/help - 显示帮助\n\n📌 AlphaBag 网站: ${process.env.VITE_OAUTH_PORTAL_URL || "https://alphabag.io"}`,
+          ja: `📖 <b>AlphaBag ボットヘルプ</b>\n\n/start - Telegram 連携を開始\n/status - 接続状態を確認\n/help - ヘルプを表示\n\n📌 AlphaBag サイト: ${process.env.VITE_OAUTH_PORTAL_URL || "https://alphabag.io"}`,
+          vi: `📖 <b>Trợ giúp Bot AlphaBag</b>\n\n/start - Bắt đầu liên kết Telegram\n/status - Kiểm tra trạng thái kết nối\n/help - Hiển thị trợ giúp\n\n📌 Trang AlphaBag: ${process.env.VITE_OAUTH_PORTAL_URL || "https://alphabag.io"}`,
+          th: `📖 <b>ความช่วยเหลือบอท AlphaBag</b>\n\n/start - เริ่มเชื่อมต่อ Telegram\n/status - ตรวจสอบสถานะการเชื่อมต่อ\n/help - แสดงความช่วยเหลือ\n\n📌 เว็บ AlphaBag: ${process.env.VITE_OAUTH_PORTAL_URL || "https://alphabag.io"}`,
+          id: `📖 <b>Bantuan Bot AlphaBag</b>\n\n/start - Mulai menghubungkan Telegram\n/status - Cek status koneksi saya\n/help - Tampilkan bantuan\n\n📌 Situs AlphaBag: ${process.env.VITE_OAUTH_PORTAL_URL || "https://alphabag.io"}`,
+        };
+        await sendTelegramMessage(chatId, helpMessages[lang]);
+        res.json({ ok: true });
+        return;
+      }
+
+      // /status 명령어
+      if (text === "/status" || text.startsWith("/status ")) {
+        const database = await getDb();
+        if (database) {
+          const existingUsers = await database
+            .select({ id: users.id, name: users.name, walletAddress: users.walletAddress })
+            .from(users)
+            .where(eq(users.telegramChatId, chatId));
+
+          if (existingUsers.length > 0) {
+            const u = existingUsers[0];
+            const displayName = u.name || firstName;
+            const walletShort = u.walletAddress
+              ? `${u.walletAddress.slice(0, 6)}...${u.walletAddress.slice(-4)}`
+              : "-";
+            const statusMessages: Record<LangCode, string> = {
+              ko: `✅ <b>연동 상태</b>\n\n이름: ${displayName}\n지갑: <code>${walletShort}</code>\nChat ID: <code>${chatId}</code>\n\n📢 AlphaBag 알림이 이 채팅으로 전송됩니다.`,
+              en: `✅ <b>Connection Status</b>\n\nName: ${displayName}\nWallet: <code>${walletShort}</code>\nChat ID: <code>${chatId}</code>\n\n📢 AlphaBag notifications will be sent here.`,
+              zh: `✅ <b>连接状态</b>\n\n姓名: ${displayName}\n钱包: <code>${walletShort}</code>\nChat ID: <code>${chatId}</code>\n\n📢 AlphaBag 通知将发送到此处。`,
+              ja: `✅ <b>接続状態</b>\n\n名前: ${displayName}\nウォレット: <code>${walletShort}</code>\nChat ID: <code>${chatId}</code>\n\n📢 AlphaBag の通知はここに届きます。`,
+              vi: `✅ <b>Trạng thái kết nối</b>\n\nTên: ${displayName}\nVí: <code>${walletShort}</code>\nChat ID: <code>${chatId}</code>\n\n📢 Thông báo AlphaBag sẽ được gửi tại đây.`,
+              th: `✅ <b>สถานะการเชื่อมต่อ</b>\n\nชื่อ: ${displayName}\nกระเป๋าเงิน: <code>${walletShort}</code>\nChat ID: <code>${chatId}</code>\n\n📢 การแจ้งเตือน AlphaBag จะถูกส่งมาที่นี่`,
+              id: `✅ <b>Status Koneksi</b>\n\nNama: ${displayName}\nDompet: <code>${walletShort}</code>\nChat ID: <code>${chatId}</code>\n\n📢 Notifikasi AlphaBag akan dikirim ke sini.`,
+            };
+            await sendTelegramMessage(chatId, statusMessages[lang]);
+          } else {
+            const notLinkedMessages: Record<LangCode, string> = {
+              ko: `❌ <b>연동되지 않음</b>\n\nChat ID: <code>${chatId}</code>\n\n📌 /start 명령어로 AlphaBag 계정과 연동하세요.`,
+              en: `❌ <b>Not connected</b>\n\nChat ID: <code>${chatId}</code>\n\n📌 Use /start to link your AlphaBag account.`,
+              zh: `❌ <b>未连接</b>\n\nChat ID: <code>${chatId}</code>\n\n📌 使用 /start 命令绑定您的 AlphaBag 账户。`,
+              ja: `❌ <b>未接続</b>\n\nChat ID: <code>${chatId}</code>\n\n📌 /start コマンドで AlphaBag アカウントを連携してください。`,
+              vi: `❌ <b>Chưa kết nối</b>\n\nChat ID: <code>${chatId}</code>\n\n📌 Dùng /start để liên kết tài khoản AlphaBag của bạn.`,
+              th: `❌ <b>ยังไม่ได้เชื่อมต่อ</b>\n\nChat ID: <code>${chatId}</code>\n\n📌 ใช้ /start เพื่อเชื่อมต่อบัญชี AlphaBag ของคุณ`,
+              id: `❌ <b>Belum terhubung</b>\n\nChat ID: <code>${chatId}</code>\n\n📌 Gunakan /start untuk menghubungkan akun AlphaBag Anda.`,
+            };
+            await sendTelegramMessage(chatId, notLinkedMessages[lang]);
+          }
+        }
+        res.json({ ok: true });
+        return;
+      }
+
       if (text.startsWith("/start")) {
         const database = await getDb();
         if (database) {

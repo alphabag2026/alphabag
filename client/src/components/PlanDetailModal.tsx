@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { useWallet } from "@/contexts/WalletContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import {
-  X, Star, Play, FileText, ExternalLink, Share2, ShoppingCart,
-  Eye, Plus, Copy, Check, Globe
+  X, Star, Play, FileText, ExternalLink, Share2,
+  Eye, Plus, Check, Globe, Heart, ChevronLeft, ChevronRight, ZoomIn
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -35,11 +35,25 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
   const [referralCode, setReferralCode] = useState("");
   const [referralSaved, setReferralSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(() => {
+    const favs = JSON.parse(localStorage.getItem("alphabag_favorites") || "[]");
+    return favs.includes(planId);
+  });
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const { isAuthenticated } = useAuth();
   const { isConnected, openModal } = useWallet();
 
   const { data: plan, isLoading } = trpc.public.planDetail.useQuery({ id: planId });
+
+  const toggleFavorite = useCallback(() => {
+    const favs: number[] = JSON.parse(localStorage.getItem("alphabag_favorites") || "[]");
+    const newFavs = isFavorite ? favs.filter((id) => id !== planId) : [...favs, planId];
+    localStorage.setItem("alphabag_favorites", JSON.stringify(newFavs));
+    setIsFavorite(!isFavorite);
+    toast.success(isFavorite ? "즐겨찾기에서 제거되었습니다" : "즐겨찾기에 추가되었습니다");
+  }, [isFavorite, planId]);
 
   const invest = trpc.user.invest.useMutation({
     onSuccess: () => {
@@ -123,6 +137,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
   const infoweb4Url = (plan as any).infoweb4Url;
 
   return (
+    <>
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
@@ -232,12 +247,65 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                 <div className="text-[10px] text-gray-600">Add 확정 전까지 수정 가능 / Add 확정 시 즉시 잠금</div>
               </div>
 
-              {/* 썸네일 이미지 */}
+              {/* 썸네일 갤러리 */}
               {thumbnails.length > 0 && (
-                <div className="flex gap-2 flex-wrap">
-                  {thumbnails.map((img, i) => (
-                    <img key={i} src={img} alt="" className="w-20 h-14 rounded-lg object-cover border border-white/10" />
-                  ))}
+                <div className="space-y-2">
+                  {/* 메인 이미지 */}
+                  <div
+                    className="relative rounded-xl overflow-hidden bg-black/30 cursor-pointer group"
+                    style={{ aspectRatio: "16/9" }}
+                    onClick={() => setLightboxOpen(true)}
+                  >
+                    <img
+                      src={thumbnails[galleryIndex]}
+                      alt={`thumbnail-${galleryIndex}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                      <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    {thumbnails.length > 1 && (
+                      <>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i - 1 + thumbnails.length) % thumbnails.length); }}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i + 1) % thumbnails.length); }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                          {thumbnails.map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={(e) => { e.stopPropagation(); setGalleryIndex(i); }}
+                              className={`h-1 rounded-full transition-all duration-300 ${i === galleryIndex ? "w-4 bg-white" : "w-1 bg-white/50"}`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  {/* 썸네일 스트립 */}
+                  {thumbnails.length > 1 && (
+                    <div className="flex gap-1.5 overflow-x-auto pb-1">
+                      {thumbnails.map((img, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setGalleryIndex(i)}
+                          className={`flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden border-2 transition-all ${
+                            i === galleryIndex ? "border-amber-400" : "border-white/10 hover:border-white/30"
+                          }`}
+                        >
+                          <img src={img} alt="" className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -434,6 +502,19 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
             </a>
           )}
 
+          {/* 즐겨찾기 버튼 */}
+          <button
+            onClick={toggleFavorite}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border transition-all ${
+              isFavorite
+                ? "bg-red-500/20 text-red-400 border-red-500/30"
+                : "text-gray-400 hover:text-red-400 border-white/10 hover:border-red-500/30"
+            }`}
+          >
+            <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-red-400" : ""}`} />
+            {isFavorite ? "저장됨" : "저장"}
+          </button>
+
           {/* 공유 버튼 */}
           <button
             onClick={handleShare}
@@ -474,5 +555,46 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
         </div>
       </div>
     </div>
+
+    {/* 라이트박스 */}
+    {lightboxOpen && thumbnails.length > 0 && (
+      <div
+        className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-sm"
+        onClick={() => setLightboxOpen(false)}
+      >
+        <button
+          onClick={() => setLightboxOpen(false)}
+          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        {thumbnails.length > 1 && (
+          <>
+            <button
+              onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i - 1 + thumbnails.length) % thumbnails.length); }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i + 1) % thumbnails.length); }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </>
+        )}
+        <img
+          src={thumbnails[galleryIndex]}
+          alt=""
+          className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl"
+          onClick={(e) => e.stopPropagation()}
+        />
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-sm">
+          {galleryIndex + 1} / {thumbnails.length}
+        </div>
+      </div>
+    )}
+    </>
   );
 }

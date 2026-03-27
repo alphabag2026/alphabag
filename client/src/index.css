@@ -47,7 +47,7 @@
 
 /* ─── Light Mode Variables ─── */
 :root:not(.dark) {
-  --color-background: oklch(0.97 0.003 240);
+  --color-background: oklch(1 0 0);
   --color-foreground: oklch(0.15 0.01 240);
   --color-card: oklch(1 0 0);
   --color-card-foreground: oklch(0.15 0.01 240);

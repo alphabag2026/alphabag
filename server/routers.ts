@@ -877,9 +877,143 @@ export const appRouter = router({
         };
       }
     }),
+    // 급등 토큰 (시가요액 상위 50개 중 24h +5% 이상)
+    trending: publicProcedure.query(async () => {
+      try {
+        const res = await fetch(
+          "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=gecko_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h",
+          { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(8000) }
+        );
+        if (!res.ok) throw new Error("CoinGecko API error");
+        const data: any[] = await res.json();
+        return data
+          .filter((c: any) => (c.price_change_percentage_24h ?? 0) > 5)
+          .sort((a: any, b: any) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+          .slice(0, 20)
+          .map((c: any) => ({
+            id: c.id,
+            symbol: c.symbol.toUpperCase(),
+            name: c.name,
+            image: c.image,
+            currentPrice: c.current_price,
+            priceChange24h: c.price_change_percentage_24h,
+            marketCap: c.market_cap,
+            volume24h: c.total_volume,
+            exchange: "CoinGecko",
+          }));
+      } catch {
+        return [];
+      }
+    }),
+    // 트렌딩 코인 (CoinGecko trending)
+    trendingCoins: publicProcedure.query(async () => {
+      try {
+        const res = await fetch(
+          "https://api.coingecko.com/api/v3/search/trending",
+          { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(8000) }
+        );
+        if (!res.ok) throw new Error("CoinGecko API error");
+        const data: any = await res.json();
+        return (data.coins || []).slice(0, 10).map((c: any) => ({
+          id: c.item.id,
+          symbol: c.item.symbol.toUpperCase(),
+          name: c.item.name,
+          image: c.item.small,
+          priceChange24h: c.item.data?.price_change_percentage_24h?.usd ?? 0,
+          currentPrice: c.item.data?.price ?? 0,
+          volume24h: c.item.data?.total_volume ?? "",
+          marketCap: c.item.data?.market_cap ?? "",
+          exchange: "Trending",
+        }));
+      } catch {
+        return [];
+      }
+    }),
   }),
 
-  // ─── Public API (no auth required) ───────────────────────────────────────────
+  // ─── User Favorites (즐겨찾기) ────────────────────────────────────────────
+  favorites: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const database = await getDb();
+      if (!database) return [];
+      const { userFavorites } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      return database.select().from(userFavorites).where(eq(userFavorites.userId, ctx.user.id));
+    }),
+    toggle: protectedProcedure.input(z.object({ planId: z.number() })).mutation(async ({ ctx, input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { userFavorites } = await import("../drizzle/schema");
+      const { eq, and } = await import("drizzle-orm");
+      const existing = await database.select().from(userFavorites)
+        .where(and(eq(userFavorites.userId, ctx.user.id), eq(userFavorites.planId, input.planId)))
+        .limit(1);
+      if (existing.length > 0) {
+        await database.delete(userFavorites).where(and(eq(userFavorites.userId, ctx.user.id), eq(userFavorites.planId, input.planId)));
+        return { favorited: false };
+      } else {
+        await database.insert(userFavorites).values({ userId: ctx.user.id, planId: input.planId });
+        return { favorited: true };
+      }
+    }),
+  }),
+
+  // ─── Media Assets (관리자 이미지 업로드) ──────────────────────────────────
+  media: router({
+    list: adminProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return [];
+      const { mediaAssets } = await import("../drizzle/schema");
+      const { desc } = await import("drizzle-orm");
+      return database.select().from(mediaAssets).orderBy(desc(mediaAssets.createdAt));
+    }),
+    upload: adminProcedure.input(z.object({
+      filename: z.string(),
+      base64: z.string(),
+      mimeType: z.string(),
+    })).mutation(async ({ input, ctx }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { storagePut } = await import("../server/storage");
+      const { mediaAssets } = await import("../drizzle/schema");
+      const buf = Buffer.from(input.base64, "base64");
+      const suffix = Date.now().toString(36);
+      const fileKey = `media/${suffix}-${input.filename}`;
+      const { url } = await storagePut(fileKey, buf, input.mimeType);
+      await database.insert(mediaAssets).values({
+        filename: input.filename,
+        url,
+        fileKey,
+        mimeType: input.mimeType,
+        size: buf.length,
+        uploadedBy: ctx.user.id,
+      });
+      return { url, fileKey };
+    }),
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { mediaAssets } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      await database.delete(mediaAssets).where(eq(mediaAssets.id, input.id));
+      return { success: true };
+    }),
+  }),
+
+  // ─── Airdrops (Public 섯션 지원) ──────────────────────────────────────────────────
+  airdropSection: router({
+    list: publicProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return [];
+      const { airdrops } = await import("../drizzle/schema");
+      const { eq, desc } = await import("drizzle-orm");
+      return database.select().from(airdrops)
+        .where(eq(airdrops.status, "active"))
+        .orderBy(desc(airdrops.sortOrder), desc(airdrops.createdAt));
+    }),
+  }),
+
+  // ─── Public API (no auth required)) ───────────────────────────────────────────
   public: router({
     // 공개 투자 플랜 목록
     plans: publicProcedure.input(z.object({

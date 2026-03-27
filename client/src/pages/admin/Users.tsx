@@ -559,22 +559,51 @@ export default function Users() {
               </p>
             </div>
 
-            {/* 메시지 내용 */}
-            <div>
-              <Label className="text-xs text-muted-foreground mb-1.5 block">
-                메시지 내용 <span className="text-red-400">*</span>
-                <span className="text-muted-foreground/60 ml-2">HTML 태그 지원 (&lt;b&gt;, &lt;i&gt;, &lt;a href&gt;)</span>
-              </Label>
-              <Textarea
-                value={telegramMessage}
-                onChange={e => setTelegramMessage(e.target.value)}
-                placeholder="안녕하세요! AlphaBag 투자자 여러분께 중요한 공지사항을 전달드립니다.&#10;&#10;<b>제목</b>&#10;내용을 입력하세요..."
-                className="bg-input min-h-[140px] text-sm font-mono resize-none"
-                maxLength={4096}
-              />
-              <div className="flex justify-between mt-1">
-                <p className="text-xs text-muted-foreground">최대 4096자</p>
-                <p className="text-xs text-muted-foreground">{telegramMessage.length} / 4096</p>
+            {/* 메시지 내용 + 미리보기 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* 입력 */}
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">
+                  메시지 내용 <span className="text-red-400">*</span>
+                  <span className="text-muted-foreground/60 ml-1">(&lt;b&gt;, &lt;i&gt;, &lt;a href&gt;)</span>
+                </Label>
+                <Textarea
+                  value={telegramMessage}
+                  onChange={e => setTelegramMessage(e.target.value)}
+                  placeholder="안녕하세요! AlphaBag 투자자 여러분께 중요한 공지사항을 전달드립니다.&#10;&#10;<b>제목</b>&#10;내용을 입력하세요..."
+                  className="bg-input min-h-[160px] text-sm font-mono resize-none"
+                  maxLength={4096}
+                />
+                <div className="flex justify-between mt-1">
+                  <p className="text-xs text-muted-foreground">최대 4096자</p>
+                  <p className="text-xs text-muted-foreground">{telegramMessage.length} / 4096</p>
+                </div>
+              </div>
+              {/* 미리보기 */}
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">
+                  미리보기
+                  <span className="text-muted-foreground/60 ml-1">(실제 렌더링)</span>
+                </Label>
+                <div
+                  className="min-h-[160px] rounded-lg border border-border/40 bg-[#17212b] p-3 text-sm text-[#e8e8e8] overflow-auto"
+                  style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", lineHeight: 1.6 }}
+                >
+                  {telegramMessage ? (
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: telegramMessage
+                          .replace(/\n/g, "<br/>")
+                          .replace(/<b>(.*?)<\/b>/g, '<strong style="font-weight:700">$1</strong>')
+                          .replace(/<i>(.*?)<\/i>/g, '<em>$1</em>')
+                          .replace(/<code>(.*?)<\/code>/g, '<code style="background:#2b3a4a;padding:1px 4px;border-radius:3px;font-family:monospace">$1</code>')
+                          .replace(/<a href="(.*?)">(.*?)<\/a>/g, '<a href="$1" style="color:#6ab3f3;text-decoration:none">$2</a>')
+                      }}
+                    />
+                  ) : (
+                    <p className="text-muted-foreground/40 text-xs italic">메시지를 입력하면 여기에 미리보기가 표시됩니다</p>
+                  )}
+                </div>
               </div>
             </div>
 

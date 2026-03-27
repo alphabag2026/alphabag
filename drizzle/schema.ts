@@ -243,6 +243,12 @@ export const airdrops = mysqlTable("airdrops", {
   startDate: timestamp("startDate"),
   endDate: timestamp("endDate"),
   requirements: json("requirements"),
+  // 에어드랍 섯션 확장 필드
+  projectName: varchar("projectName", { length: 100 }),
+  imageUrl: varchar("imageUrl", { length: 500 }),
+  participateUrl: varchar("participateUrl", { length: 500 }),
+  isHot: boolean("isHot").default(false).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -338,3 +344,28 @@ export const telegramSchedules = mysqlTable("telegramSchedules", {
 });
 export type TelegramSchedule = typeof telegramSchedules.$inferSelect;
 export type InsertTelegramSchedule = typeof telegramSchedules.$inferInsert;
+
+// ─── User Favorites (즐겨찾기) ────────────────────────────────────────────────
+export const userFavorites = mysqlTable("userFavorites", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  planId: int("planId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type UserFavorite = typeof userFavorites.$inferSelect;
+export type InsertUserFavorite = typeof userFavorites.$inferInsert;
+
+
+// ─── Media Assets (관리자 이미지 업로드) ──────────────────────────────────────
+export const mediaAssets = mysqlTable("mediaAssets", {
+  id: int("id").autoincrement().primaryKey(),
+  filename: varchar("filename", { length: 255 }).notNull(),
+  url: varchar("url", { length: 1000 }).notNull(),
+  fileKey: varchar("fileKey", { length: 500 }).notNull(),
+  mimeType: varchar("mimeType", { length: 100 }),
+  size: int("size"),
+  uploadedBy: int("uploadedBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type MediaAsset = typeof mediaAssets.$inferSelect;
+export type InsertMediaAsset = typeof mediaAssets.$inferInsert;

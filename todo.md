@@ -307,3 +307,21 @@
 - [x] 언어 감지: Telegram from.language_code 기반 자동 선택
 - [x] auditLogs.list 프로시저에 dateRange 파라미터 추가 (today/week/month/all)
 - [x] AuditLogs.tsx 날짜 범위 필터 버튼 UI (오늘/이번 주/이번 달/전체)
+
+## Phase 25 - 급등토큰·에어드랍·화이트테마·이미지업로드·즐겨찾기·텔봇확장 (2026-03-27)
+- [x] DB: userFavorites 테이블 (userId, planId)
+- [x] DB: airdrops 테이블 (title, description, projectName, rewardAmount, endDate, status, imageUrl)
+- [x] DB: mediaAssets 테이블 (filename, url, mimeType, size, uploadedBy)
+- [x] 급등 토큰 감지 섯션 (홈페이지 - CoinGecko API 기반 급등 토큰 표시)
+- [x] 에어드랍 섯션 (홈페이지 - 골든 콜렉션과 같은 별도 섯션)
+- [x] 에어드랍 백오피스 관리 (CRUD)
+- [x] 화이트 라이트 테마 - 완전한 화이트 배경으로 수정 (index.css)
+- [x] 관리자 이미지 업로드 + CDN URL 생성 (백오피스 Media 탭)
+- [x] 플랜 상세 모달 썸네일 갤러리 + 핵심 정보 표시
+- [x] 사용자 즐겨찾기 추가/제거 기능 (플랜 카드 하트 버튼)
+- [x] 즐겨찾기 모아보기 탭 (홈페이지 탭에 추가)
+- [x] 텔레그램 봇 /status 명령어 (투자 현황 조회)
+- [x] 텔레그램 봇 /help 명령어 (안내 메시지)
+- [x] Audit Logs CSV 내보내기 버튼 (필터 조건 적용)
+- [x] 텔레그램 발송 HTML 미리보기 패널
+- [x] 토큰 목록 1줄에 여러 개 그리드 레이아웃 (2~4개/줄 카드형)

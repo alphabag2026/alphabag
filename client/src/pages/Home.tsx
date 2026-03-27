@@ -31,8 +31,10 @@ const SUB_MENUS = [
   { id: "bbag", label: "B bag", icon: "💰" },
   { id: "infoweb4", label: "infoweb4", icon: "🌐" },
   { id: "snn", label: "SNN", icon: "📡" },
+  { id: "trending", label: "급등토큰", icon: "🚀" },
+  { id: "airdrop", label: "에어드랍", icon: "🎁" },
   { id: "news", label: "news", icon: "📰" },
-  { id: "contents", label: "컨텐츠", icon: "🎬" },
+  { id: "contents", label: "콘텐츠", icon: "🎬" },
   { id: "live", label: "Live", icon: "🔴" },
 ];
 
@@ -289,12 +291,14 @@ function MarketWidget({ isDark }: { isDark: boolean }) {
         </button>
       </div>
 
-      {/* 암호화폐 가격 */}
-      <div className="divide-y divide-white/5">
-        {cryptoItems.map((item) => (
-          <div key={item.symbol} className="flex items-center justify-between px-4 py-2.5 hover:bg-white/3 transition-colors">
-            <div className="flex items-center gap-2.5">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${
+      {/* 암호화폐 가격 - 2열 그리드 */}
+      <div className="px-3 pb-2">
+        <div className="grid grid-cols-2 gap-2">
+          {cryptoItems.map((item) => (
+            <div key={item.symbol} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors ${
+              isDark ? "bg-white/4 border border-white/8" : "bg-gray-50 border border-gray-100"
+            }`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 ${
                 item.symbol === "BTC" ? "bg-orange-500/20 text-orange-400" :
                 item.symbol === "ETH" ? "bg-blue-500/20 text-blue-400" :
                 item.symbol === "BNB" ? "bg-yellow-500/20 text-yellow-400" :
@@ -302,19 +306,21 @@ function MarketWidget({ isDark }: { isDark: boolean }) {
               }`}>
                 {item.icon}
               </div>
-              <span className={`text-sm font-semibold ${textPrimary}`}>{item.symbol}</span>
-            </div>
-            <div className="text-right">
-              <div className={`text-sm font-bold ${textPrimary}`}>
-                ${item.price >= 1000 ? item.price.toLocaleString() : item.price.toFixed(2)}
+              <div className="min-w-0">
+                <div className={`text-xs font-bold ${textPrimary}`}>{item.symbol}</div>
+                <div className={`text-xs font-semibold ${textPrimary} truncate`}>
+                  ${item.price >= 1000 ? item.price.toLocaleString() : item.price.toFixed(2)}
+                </div>
+                <div className={`text-[10px] flex items-center gap-0.5 ${
+                  item.change >= 0 ? "text-emerald-400" : "text-red-400"
+                }`}>
+                  {item.change >= 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+                  {Math.abs(item.change).toFixed(2)}%
+                </div>
               </div>
-              <div className={`text-xs flex items-center gap-0.5 justify-end ${item.change >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                {item.change >= 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
-                {Math.abs(item.change).toFixed(2)}%
-              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* 환율 */}
@@ -491,8 +497,11 @@ export default function Home() {
   const { data: notices = [] } = trpc.public.notices.useQuery();
   const { data: banners = [] } = trpc.public.banners.useQuery();
   const { data: allPlans = [] } = trpc.public.plans.useQuery({});
-
-  // 장바구니 (로컬스토리지)
+  // 급등 토큰 + 에어드랍
+  const { data: trendingTokens = [], isLoading: trendingLoading } = trpc.market.trending.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
+  const { data: trendingCoins = [], isLoading: trendingCoinsLoading } = trpc.market.trendingCoins.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
+  const { data: airdropList = [] } = trpc.airdropSection.list.useQuery();
+  // 장바구니 (로칼스토리지))
   const [cartCount, setCartCount] = useState(0);
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem("alphabag-cart") || "[]");
@@ -869,6 +878,135 @@ export default function Home() {
                     <div className={`col-span-2 text-xs ${textSecondary} text-center py-4`}>콘텐츠가 없습니다.</div>
                   )}
                 </div>
+              </div>
+            )}
+            {activeTab === "trending" && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className={`text-xs font-bold ${textPrimary}`}>🚀 급등 토큰 감지</div>
+                  <span className={`text-[10px] ${textSecondary}`}>CoinGecko · 24h +5%이상</span>
+                </div>
+                {trendingLoading ? (
+                  <div className={`text-xs ${textSecondary} text-center py-6`}>데이터 로딩 중...</div>
+                ) : trendingTokens.length === 0 ? (
+                  <div className={`text-xs ${textSecondary} text-center py-6`}>현재 급등 토큰이 없습니다.</div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    {(trendingTokens as any[]).map((token: any) => (
+                      <a key={token.id} href={`https://www.coingecko.com/en/coins/${token.id}`} target="_blank" rel="noopener noreferrer"
+                        className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all hover:scale-[1.02] ${
+                          isDark ? "bg-white/4 border-white/8 hover:border-emerald-500/40" : "bg-gray-50 border-gray-100 hover:border-emerald-400/40"
+                        }`}>
+                        {token.image ? (
+                          <img src={token.image} alt={token.symbol} className="w-8 h-8 rounded-full flex-shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs font-bold text-emerald-400">{token.symbol[0]}</span>
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className={`text-xs font-bold ${textPrimary} truncate`}>{token.symbol}</div>
+                          <div className={`text-[10px] ${textSecondary} truncate`}>{token.name}</div>
+                          <div className="flex items-center gap-1">
+                            <span className={`text-[10px] font-semibold ${textPrimary}`}>
+                              ${token.currentPrice >= 1 ? token.currentPrice.toLocaleString(undefined, { maximumFractionDigits: 2 }) : token.currentPrice.toFixed(6)}
+                            </span>
+                            <span className="text-[10px] font-bold text-emerald-400">
+                              +{token.priceChange24h?.toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                )}
+                {/* 트렌딩 코인 섯션 */}
+                <div className="mt-4">
+                  <div className={`text-xs font-bold mb-2 ${textPrimary}`}>🔥 트렌딩 코인</div>
+                  {trendingCoinsLoading ? (
+                    <div className={`text-xs ${textSecondary} text-center py-3`}>로딩 중...</div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      {(trendingCoins as any[]).map((coin: any) => (
+                        <a key={coin.id} href={`https://www.coingecko.com/en/coins/${coin.id}`} target="_blank" rel="noopener noreferrer"
+                          className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all hover:scale-[1.02] ${
+                            isDark ? "bg-white/4 border-white/8 hover:border-amber-500/40" : "bg-gray-50 border-gray-100 hover:border-amber-400/40"
+                          }`}>
+                          {coin.image ? (
+                            <img src={coin.image} alt={coin.symbol} className="w-8 h-8 rounded-full flex-shrink-0" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-bold text-amber-400">{coin.symbol[0]}</span>
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className={`text-xs font-bold ${textPrimary} truncate`}>{coin.symbol}</div>
+                            <div className={`text-[10px] ${textSecondary} truncate`}>{coin.name}</div>
+                            <div className={`text-[10px] font-bold ${
+                              coin.priceChange24h >= 0 ? "text-emerald-400" : "text-red-400"
+                            }`}>
+                              {coin.priceChange24h >= 0 ? "+" : ""}{coin.priceChange24h?.toFixed(1)}%
+                            </div>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {activeTab === "airdrop" && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className={`text-xs font-bold ${textPrimary}`}>🎁 에어드랍</div>
+                  <span className={`text-[10px] ${textSecondary}`}>활성 에어드랍</span>
+                </div>
+                {airdropList.length === 0 ? (
+                  <div className={`rounded-xl border p-8 text-center ${
+                    isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"
+                  }`}>
+                    <div className="text-3xl mb-2">🎁</div>
+                    <div className={`text-xs font-semibold ${textPrimary} mb-1`}>예정된 에어드랍이 없습니다</div>
+                    <div className={`text-[10px] ${textSecondary}`}>새로운 에어드랍이 등록되면 알림을 드립니다</div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {(airdropList as any[]).map((drop: any) => (
+                      <div key={drop.id} className={`rounded-xl border overflow-hidden ${
+                        isDark ? "bg-white/3 border-white/8" : "bg-white border-gray-200"
+                      }`}>
+                        {drop.imageUrl && (
+                          <img src={drop.imageUrl} alt={drop.name} className="w-full h-24 object-cover" />
+                        )}
+                        <div className="p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                {drop.isHot && (
+                                  <span className="text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded-full">🔥 HOT</span>
+                                )}
+                                <span className={`text-xs font-bold ${textPrimary} truncate`}>{drop.name}</span>
+                              </div>
+                              <div className={`text-[10px] ${textSecondary} mb-2 line-clamp-2`}>{drop.description}</div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                                  {drop.tokenSymbol}
+                                </span>
+                                <span className={`text-[10px] ${textSecondary}`}>{drop.totalAmount} 총지급</span>
+                              </div>
+                            </div>
+                          </div>
+                          {drop.participateUrl && (
+                            <a href={drop.participateUrl} target="_blank" rel="noopener noreferrer"
+                              className="mt-2 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 transition-colors">
+                              🎁 에어드랍 참여하기
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             {activeTab === "live" && (

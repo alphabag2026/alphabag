@@ -9,7 +9,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Loader2, ChevronLeft, ChevronRight, Eye, Send, Shield, User, FileText, Cpu, Calendar } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Eye, Send, Shield, User, FileText, Cpu, Calendar, Download } from "lucide-react";
 
 const ACTION_FILTERS = [
   { label: "All", value: "" },
@@ -67,14 +67,52 @@ export default function AuditLogs() {
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / 50);
 
+  // CSV 내보내기
+  const handleExportCSV = () => {
+    if (!logs.length) return;
+    const headers = ["#", "Action", "Target", "Admin", "Time", "Detail"];
+    const rows = logs.map((log: any, i: number) => [
+      (page - 1) * 50 + i + 1,
+      log.action,
+      log.targetId || "",
+      log.adminUsername || `#${log.adminId}`,
+      new Date(log.createdAt).toLocaleString(),
+      log.detail ? JSON.stringify(log.detail).replace(/"/g, "'") : "",
+    ]);
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `audit-logs-${dateRange}-${actionFilter || "all"}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Audit Logs</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            All admin actions are recorded here. Total: {total.toLocaleString()} entries.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Audit Logs</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                All admin actions are recorded here. Total: {total.toLocaleString()} entries.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCSV}
+              disabled={!logs.length}
+              className="gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5" />
+              CSV 내보내기
+            </Button>
+          </div>
         </div>
 
         {/* Filters Row */}
