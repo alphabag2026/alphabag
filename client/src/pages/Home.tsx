@@ -345,13 +345,15 @@ function AdSlider({ adImages }: { adImages: { src: string; title: string; link: 
   const [current, setCurrent] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const next = useCallback(() => setCurrent(c => (c + 1) % adImages.length), [adImages.length]);
-  const prev = useCallback(() => setCurrent(c => (c - 1 + adImages.length) % adImages.length), [adImages.length]);
+  const length = adImages.length;
+  const next = useCallback(() => setCurrent(c => (c + 1) % length), [length]);
+  const prev = useCallback(() => setCurrent(c => (c - 1 + length) % length), [length]);
 
   useEffect(() => {
-    timerRef.current = setInterval(next, 4000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [next]);
+    if (length === 0) return;
+    const id = setInterval(() => setCurrent(c => (c + 1) % length), 4000);
+    return () => clearInterval(id);
+  }, [length]);
 
   if (adImages.length === 0) return null;
 

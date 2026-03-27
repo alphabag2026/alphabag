@@ -10,13 +10,14 @@ import { Link } from "wouter";
 import { toast } from "sonner";
 import {
   ArrowLeft, Loader2, Wallet, User, Shield, Copy,
-  CheckCircle2, AlertCircle, Clock
+  CheckCircle2, AlertCircle, Clock, Send, ExternalLink
 } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, isAuthenticated, loading } = useAuth({ redirectOnUnauthenticated: true });
   const [walletInput, setWalletInput] = useState("");
   const [referralInput, setReferralInput] = useState("");
+  const [telegramInput, setTelegramInput] = useState("");
 
   const { data: profile, refetch } = trpc.user.profile.useQuery(undefined, { enabled: isAuthenticated });
 
@@ -36,6 +37,15 @@ export default function ProfilePage() {
       refetch();
     },
     onError: (err) => toast.error(err.message),
+  });
+
+  const updateTelegram = trpc.users.updateMyTelegramChatId.useMutation({
+    onSuccess: () => {
+      toast.success("Telegram Chat ID registered!");
+      setTelegramInput("");
+      refetch();
+    },
+    onError: (err: any) => toast.error(err.message),
   });
 
   const generateCode = trpc.user.generateReferralCode.useMutation({
@@ -170,6 +180,62 @@ export default function ProfilePage() {
                 className="flex-shrink-0"
               >
                 {updateWallet.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Update"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Telegram */}
+        <Card className="border-border/40">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Send className="w-4 h-4 text-primary" /> Telegram Notification
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {profile?.telegramChatId ? (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-green-400">Telegram Connected</p>
+                  <p className="text-xs text-muted-foreground font-mono mt-0.5">Chat ID: {profile.telegramChatId}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                <AlertCircle className="w-4 h-4 text-yellow-400 flex-shrink-0" />
+                <p className="text-sm text-yellow-400">Not connected. Register your Telegram Chat ID to receive notifications.</p>
+              </div>
+            )}
+            <div className="p-3 rounded-lg bg-muted/30 border border-border/30 space-y-1">
+              <p className="text-xs font-medium text-foreground">How to get your Chat ID:</p>
+              <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                <li>Open Telegram and search for <span className="font-mono text-primary">@userinfobot</span></li>
+                <li>Send <span className="font-mono">/start</span> — it will reply with your Chat ID</li>
+                <li>Paste the numeric ID below</li>
+              </ol>
+              <a
+                href="https://t.me/userinfobot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+              >
+                Open @userinfobot <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter your Telegram Chat ID (numeric)"
+                value={telegramInput}
+                onChange={(e) => setTelegramInput(e.target.value)}
+                className="font-mono text-sm bg-background/50"
+              />
+              <Button
+                onClick={() => telegramInput && updateTelegram.mutate({ chatId: telegramInput })}
+                disabled={!telegramInput || updateTelegram.isPending}
+                className="flex-shrink-0"
+              >
+                {updateTelegram.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Save"}
               </Button>
             </div>
           </CardContent>

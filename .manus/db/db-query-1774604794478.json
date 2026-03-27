@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `telegramSchedules` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`title` varchar(200) NOT NULL,\n\t`message` text NOT NULL,\n\t`channelChatId` varchar(100),\n\t`filter` json,\n\t`cronExpression` varchar(100) NOT NULL,\n\t`timezone` varchar(50) NOT NULL DEFAULT 'Asia/Seoul',\n\t`isActive` boolean NOT NULL DEFAULT true,\n\t`lastRunAt` timestamp NULL,\n\t`lastResult` json,\n\t`nextRunAt` timestamp NULL,\n\t`createdBy` int NOT NULL,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `telegramSchedules_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute CREATE TABLE `telegramSchedules` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`title` varchar(200) NOT NULL,\n\t`message` text NOT NULL,\n\t`channelChatId` varchar(100),\n\t`filter` json,\n\t`cronExpression` varchar(100) NOT NULL,\n\t`timezone` varchar(50) NOT NULL DEFAULT 'Asia/Seoul',\n\t`isActive` boolean NOT NULL DEFAULT true,\n\t`lastRunAt` timestamp NULL,\n\t`lastResult` json,\n\t`nextRunAt` timestamp NULL,\n\t`createdBy` int NOT NULL,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `telegramSchedules_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1805
+}

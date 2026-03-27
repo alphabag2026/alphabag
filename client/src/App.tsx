@@ -16,6 +16,8 @@ import AdminReferrals from "./pages/admin/Referrals";
 import AdminAnalytics from "./pages/admin/Analytics";
 import AdminSubAdmins from "./pages/admin/SubAdmins";
 import AdminNotifications from "./pages/admin/Notifications";
+import AdminAuditLogs from "./pages/admin/AuditLogs";
+import AdminTelegramSchedules from "./pages/admin/TelegramSchedules";
 import UserDashboard from "./pages/UserDashboard";
 import PlansPage from "./pages/PlansPage";
 import NodesPage from "./pages/NodesPage";
@@ -63,6 +65,8 @@ function Router() {
       <Route path="/admin/analytics" component={AdminAnalytics} />
       <Route path="/admin/sub-admins" component={AdminSubAdmins} />
       <Route path="/admin/notifications" component={AdminNotifications} />
+      <Route path="/admin/audit-logs" component={AdminAuditLogs} />
+      <Route path="/admin/telegram-schedules" component={AdminTelegramSchedules} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

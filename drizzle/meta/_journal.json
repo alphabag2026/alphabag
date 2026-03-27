@@ -64,6 +64,13 @@
       "when": 1774604106369,
       "tag": "0008_rainy_stone_men",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1774604782884,
+      "tag": "0009_curvy_lucky_pierre",
+      "breakpoints": true
     }
   ]
 }

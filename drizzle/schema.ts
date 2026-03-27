@@ -318,3 +318,23 @@ export const notifications = mysqlTable("notifications", {
 });
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+
+// ─── Telegram Schedules (예약 발송) ──────────────────────────────────────────────────────────────────────────────────
+export const telegramSchedules = mysqlTable("telegramSchedules", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 200 }).notNull(),
+  message: text("message").notNull(),
+  channelChatId: varchar("channelChatId", { length: 100 }),
+  filter: json("filter"),                                   // { hasInvestment, hasNode, kycApproved }
+  cronExpression: varchar("cronExpression", { length: 100 }).notNull(), // e.g. "0 9 * * 1" (every Mon 9am)
+  timezone: varchar("timezone", { length: 50 }).default("Asia/Seoul").notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  lastRunAt: timestamp("lastRunAt"),
+  lastResult: json("lastResult"),                           // { successCount, failCount, total }
+  nextRunAt: timestamp("nextRunAt"),
+  createdBy: int("createdBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type TelegramSchedule = typeof telegramSchedules.$inferSelect;
+export type InsertTelegramSchedule = typeof telegramSchedules.$inferInsert;

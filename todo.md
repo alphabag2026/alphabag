@@ -278,3 +278,15 @@
 - [x] 텔레그램 메시지 작성 다이얼로그 (제목/내용/대상 필터 표시)
 - [x] 발송 결과 표시 (성공/실패 건수)
 - [x] bulkUpdateStatus에 createAuditLog 연동
+
+## Phase 22 - 텔레그램 연동 고도화 (2026-03-27)
+- [x] 마이페이지 텔레그램 Chat ID 등록 카드 UI
+- [x] users.updateMyTelegramChatId 프로시저 (본인 Chat ID 등록)
+- [x] 봇 연동 안내 (봇 이름 표시, /start 명령어 안내)
+- [x] Audit Log 탭 BROADCAST_TELEGRAM 액션 필터 버튼 추가
+- [x] Audit Log 상세보기 다이얼로그 (발송 메시지 전문 확인)
+- [x] telegramSchedules DB 테이블 생성 (예약 발송)
+- [x] 예약 발송 백엔드 스케줄러 (cron 기반, 1분 주기 체크)
+- [x] telegram.schedules CRUD 프로시저 (list/create/delete)
+- [x] 예약 발송 관리 UI (백오피스 - 새 탭 또는 텔레그램 발송 다이얼로그 내 탭)
+- [x] 예약 발송 결과 기록 (실행 후 lastRunAt, lastResult 업데이트)

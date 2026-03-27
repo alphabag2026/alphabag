@@ -282,6 +282,17 @@ export const appRouter = router({
     referralTree: adminProcedure.input(z.object({ userId: z.number() })).query(async ({ input }) => {
       return await db.getReferralTree(input.userId);
     }),
+    // 사용자 본인 텔레그램 Chat ID 등록
+    updateMyTelegramChatId: protectedProcedure.input(z.object({
+      chatId: z.string().nullable(),
+    })).mutation(async ({ input, ctx }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { users } = await import("../drizzle/schema");
+      await database.update(users).set({ telegramChatId: input.chatId }).where(eq(users.id, ctx.user.id));
+      return { success: true };
+    }),
+
     updateTelegramChatId: adminProcedure.input(z.object({
       userId: z.number(),
       telegramChatId: z.string().nullable(),
@@ -622,8 +633,96 @@ export const appRouter = router({
     list: superAdminProcedure.input(z.object({
       page: z.number().default(1),
       limit: z.number().default(50),
+      action: z.string().optional(),
     })).query(async ({ input }) => {
-      return await db.getAuditLogs(input.page, input.limit);
+      const database = await getDb();
+      if (!database) return { data: [], total: 0 };
+      const { auditLogs } = await import("../drizzle/schema");
+      const { desc, count, like } = await import("drizzle-orm");
+      const offset = (input.page - 1) * input.limit;
+      const whereClause = input.action ? like(auditLogs.action, `%${input.action}%`) : undefined;
+      const [data, totalResult] = await Promise.all([
+        whereClause
+          ? database.select().from(auditLogs).where(whereClause).orderBy(desc(auditLogs.createdAt)).limit(input.limit).offset(offset)
+          : database.select().from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(input.limit).offset(offset),
+        whereClause
+          ? database.select({ count: count() }).from(auditLogs).where(whereClause)
+          : database.select({ count: count() }).from(auditLogs),
+      ]);
+      return { data, total: totalResult[0]?.count ?? 0 };
+    }),
+  }),
+
+  // ─── Telegram Schedules (예약 발송) ──────────────────────────────────────────────────────────────────────────────
+  telegramSchedules: router({
+    list: adminProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return [];
+      const { telegramSchedules } = await import("../drizzle/schema");
+      const { desc } = await import("drizzle-orm");
+      return database.select().from(telegramSchedules).orderBy(desc(telegramSchedules.createdAt));
+    }),
+    create: adminProcedure.input(z.object({
+      title: z.string().min(1).max(200),
+      message: z.string().min(1).max(4096),
+      channelChatId: z.string().optional(),
+      filter: z.object({
+        hasInvestment: z.boolean().optional(),
+        hasNode: z.boolean().optional(),
+        kycApproved: z.boolean().optional(),
+      }).optional(),
+      cronExpression: z.string().min(1),
+      timezone: z.string().default("Asia/Seoul"),
+    })).mutation(async ({ input, ctx }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { telegramSchedules } = await import("../drizzle/schema");
+      // 첫 실행 시간 계산
+      const { getNextRunAt } = await import("./telegramScheduler");
+      const nextRunAt = getNextRunAt(input.cronExpression);
+      await database.insert(telegramSchedules).values({
+        ...input,
+        filter: input.filter ?? null,
+        channelChatId: input.channelChatId ?? null,
+        createdBy: ctx.user.id,
+        nextRunAt,
+      });
+      await createAuditLog({ adminId: ctx.user.id, action: "CREATE_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", details: { title: input.title, cronExpression: input.cronExpression } });
+      return { success: true };
+    }),
+    update: adminProcedure.input(z.object({
+      id: z.number(),
+      title: z.string().min(1).max(200).optional(),
+      message: z.string().min(1).max(4096).optional(),
+      channelChatId: z.string().nullable().optional(),
+      filter: z.object({
+        hasInvestment: z.boolean().optional(),
+        hasNode: z.boolean().optional(),
+        kycApproved: z.boolean().optional(),
+      }).nullable().optional(),
+      cronExpression: z.string().optional(),
+      isActive: z.boolean().optional(),
+    })).mutation(async ({ input, ctx }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { telegramSchedules } = await import("../drizzle/schema");
+      const { id, ...data } = input;
+      const updateData: any = { ...data };
+      if (data.cronExpression) {
+        const { getNextRunAt } = await import("./telegramScheduler");
+        updateData.nextRunAt = getNextRunAt(data.cronExpression);
+      }
+      await database.update(telegramSchedules).set(updateData).where(eq(telegramSchedules.id, id));
+      await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", targetId: id });
+      return { success: true };
+    }),
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { telegramSchedules } = await import("../drizzle/schema");
+      await database.delete(telegramSchedules).where(eq(telegramSchedules.id, input.id));
+      await createAuditLog({ adminId: ctx.user.id, action: "DELETE_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", targetId: input.id });
+      return { success: true };
     }),
   }),
 
