@@ -582,7 +582,7 @@ export const appRouter = router({
     participants: adminProcedure.input(z.object({ airdropId: z.number() })).query(async ({ input }) => {
       return await db.getAirdropParticipants(input.airdropId);
     }),
-    delete: superAdminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
       await db.deleteAirdrop(input.id);
       await createAuditLog({ adminId: ctx.user.id, action: "DELETE_AIRDROP", targetType: "airdrop", targetId: input.id });
       return { success: true };

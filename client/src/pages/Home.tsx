@@ -175,7 +175,7 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
   const badges: string[] = Array.isArray(plan.badgeLabels) ? plan.badgeLabels : [];
   const rating = Number(plan.rating) || 4.0;
 
-  const colorMap: Record<string, { border: string; glow: string; badge: string; rate: string; btn: string; overlay: string }> = {
+  const colorMapDark: Record<string, { border: string; glow: string; badge: string; rate: string; btn: string; overlay: string }> = {
     golden: { border: "border-amber-500/30", glow: "hover:shadow-amber-500/40", badge: "bg-amber-500/20 text-amber-300 border-amber-500/30", rate: "text-amber-400", btn: "bg-amber-500/20 text-amber-300 border-amber-500/30 hover:bg-amber-500/30", overlay: "from-amber-900/60" },
     self: { border: "border-blue-500/30", glow: "hover:shadow-blue-500/40", badge: "bg-blue-500/20 text-blue-300 border-blue-500/30", rate: "text-blue-400", btn: "bg-blue-500/20 text-blue-300 border-blue-500/30 hover:bg-blue-500/30", overlay: "from-blue-900/60" },
     node: { border: "border-purple-500/30", glow: "hover:shadow-purple-500/40", badge: "bg-purple-500/20 text-purple-300 border-purple-500/30", rate: "text-purple-400", btn: "bg-purple-500/20 text-purple-300 border-purple-500/30 hover:bg-purple-500/30", overlay: "from-purple-900/60" },
@@ -183,11 +183,20 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
     meme: { border: "border-pink-500/30", glow: "hover:shadow-pink-500/40", badge: "bg-pink-500/20 text-pink-300 border-pink-500/30", rate: "text-pink-400", btn: "bg-pink-500/20 text-pink-300 border-pink-500/30 hover:bg-pink-500/30", overlay: "from-pink-900/60" },
     influencer: { border: "border-orange-500/30", glow: "hover:shadow-orange-500/40", badge: "bg-orange-500/20 text-orange-300 border-orange-500/30", rate: "text-orange-400", btn: "bg-orange-500/20 text-orange-300 border-orange-500/30 hover:bg-orange-500/30", overlay: "from-orange-900/60" },
   };
+  const colorMapLight: Record<string, { border: string; glow: string; badge: string; rate: string; btn: string; overlay: string }> = {
+    golden: { border: "border-amber-400/60", glow: "hover:shadow-amber-400/30", badge: "bg-amber-100 text-amber-700 border-amber-300", rate: "text-amber-600", btn: "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100", overlay: "from-amber-100/80" },
+    self: { border: "border-blue-400/60", glow: "hover:shadow-blue-400/30", badge: "bg-blue-100 text-blue-700 border-blue-300", rate: "text-blue-600", btn: "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100", overlay: "from-blue-100/80" },
+    node: { border: "border-purple-400/60", glow: "hover:shadow-purple-400/30", badge: "bg-purple-100 text-purple-700 border-purple-300", rate: "text-purple-600", btn: "bg-purple-50 text-purple-700 border-purple-300 hover:bg-purple-100", overlay: "from-purple-100/80" },
+    leader: { border: "border-emerald-400/60", glow: "hover:shadow-emerald-400/30", badge: "bg-emerald-100 text-emerald-700 border-emerald-300", rate: "text-emerald-600", btn: "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100", overlay: "from-emerald-100/80" },
+    meme: { border: "border-pink-400/60", glow: "hover:shadow-pink-400/30", badge: "bg-pink-100 text-pink-700 border-pink-300", rate: "text-pink-600", btn: "bg-pink-50 text-pink-700 border-pink-300 hover:bg-pink-100", overlay: "from-pink-100/80" },
+    influencer: { border: "border-orange-400/60", glow: "hover:shadow-orange-400/30", badge: "bg-orange-100 text-orange-700 border-orange-300", rate: "text-orange-600", btn: "bg-orange-50 text-orange-700 border-orange-300 hover:bg-orange-100", overlay: "from-orange-100/80" },
+  };
+  const colorMap = isDark ? colorMapDark : colorMapLight;
   const c = colorMap[collectionColor] || colorMap.golden;
 
   return (
     <Link href={`/plan/${plan.id}`}>
-      <div className={`relative border ${c.border} rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${c.glow} group ${isDark ? "bg-[#0d0d0d]" : "bg-white"}`}>
+      <div className={`relative border-2 ${c.border} rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl ${c.glow} group ${isDark ? "bg-[#0d0d0d]" : "bg-white shadow-sm"}`}>
         <div className="relative h-36 overflow-hidden">
           {Array.isArray(plan.thumbnailImages) && plan.thumbnailImages.length > 0 && (
             <img src={plan.thumbnailImages[0]} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 transition-transform duration-500 group-hover:scale-110" />
@@ -218,8 +227,8 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
           )}
           {(plan.ratioInfo || plan.yieldInfo) && (
             <div className="grid grid-cols-2 gap-1 mb-2">
-              {plan.ratioInfo && <div className={`rounded-lg p-2 ${isDark ? "bg-white/5" : "bg-gray-50"}`}><div className="text-[9px] text-gray-500 mb-0.5">Ratio</div><div className={`text-[11px] font-bold ${isDark ? "text-white" : "text-gray-800"}`}>{plan.ratioInfo}</div></div>}
-              {plan.yieldInfo && <div className={`rounded-lg p-2 ${isDark ? "bg-white/5" : "bg-gray-50"}`}><div className="text-[9px] text-gray-500 mb-0.5">Yield</div><div className={`text-[11px] font-bold ${c.rate}`}>{plan.yieldInfo}</div></div>}
+              {plan.ratioInfo && <div className={`rounded-lg p-2 border ${isDark ? "bg-white/5 border-white/5" : "bg-gray-100 border-gray-200"}`}><div className={`text-[9px] mb-0.5 ${isDark ? "text-gray-500" : "text-gray-500"}`}>Ratio</div><div className={`text-[11px] font-bold ${isDark ? "text-white" : "text-gray-800"}`}>{plan.ratioInfo}</div></div>}
+              {plan.yieldInfo && <div className={`rounded-lg p-2 border ${isDark ? "bg-white/5 border-white/5" : "bg-gray-100 border-gray-200"}`}><div className={`text-[9px] mb-0.5 ${isDark ? "text-gray-500" : "text-gray-500"}`}>Yield</div><div className={`text-[11px] font-bold ${c.rate}`}>{plan.yieldInfo}</div></div>}
             </div>
           )}
           <div className="mb-2">
@@ -227,13 +236,13 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
             <div className="text-xs text-gray-500">Daily Return</div>
           </div>
           {plan.recommendedAmount && (
-            <div className="text-xs text-gray-400 mb-2">추천금액: <span className={`font-bold ${c.rate}`}>{Number(plan.recommendedAmount).toLocaleString()} USDT</span></div>
+            <div className={`text-xs mb-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>추천금액: <span className={`font-bold ${c.rate}`}>{Number(plan.recommendedAmount).toLocaleString()} USDT</span></div>
           )}
           <div className="flex items-center gap-1 mb-3">
             {[1, 2, 3, 4, 5].map((s) => (
-              <Star key={s} className={`w-3 h-3 ${s <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-gray-600"}`} />
+              <Star key={s} className={`w-3 h-3 ${s <= Math.round(rating) ? "text-amber-400 fill-amber-400" : isDark ? "text-gray-600" : "text-gray-300"}`} />
             ))}
-            <span className="text-xs text-gray-500 ml-1">{rating.toFixed(1)}</span>
+            <span className={`text-xs ml-1 ${isDark ? "text-gray-500" : "text-gray-500"}`}>{rating.toFixed(1)}</span>
           </div>
           <button className={`w-full py-2 rounded-lg text-xs font-semibold transition-all duration-200 border ${c.btn}`}>View Details →</button>
         </div>
