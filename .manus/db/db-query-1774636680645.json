@@ -1,0 +1,26 @@
+{
+  "query": "SELECT collectionType, COUNT(*) as cnt FROM investmentPlans GROUP BY collectionType ORDER BY collectionType;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute SELECT collectionType, COUNT(*) as cnt FROM investmentPlans GROUP BY collectionType ORDER BY collectionType;",
+  "rows": [
+    {
+      "collectionType": "NULL",
+      "cnt": "20"
+    },
+    {
+      "collectionType": "golden",
+      "cnt": "5"
+    },
+    {
+      "collectionType": "self",
+      "cnt": "3"
+    },
+    {
+      "collectionType": "node",
+      "cnt": "9"
+    }
+  ],
+  "messages": [],
+  "stdout": "collectionType\tcnt\nNULL\t20\ngolden\t5\nself\t3\nnode\t9\n",
+  "stderr": "",
+  "execution_time_ms": 1613
+}

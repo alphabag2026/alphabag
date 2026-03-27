@@ -365,3 +365,10 @@
 - [x] 사이드바: 오늘의 추천 플랜 미니 카드 (TodayRecommendWidget)
 - [x] 사이드바: 환율 접기/펼치기 토글 추가
 - [x] 모바일 금융 위젯 1줄 인라인 표시 (MobileMarketBar 컴포넌트)
+
+## Phase 32 - 컬렉션 페이지 DB 연결 + 파트너 로고 + 리스팅 알림 (2026-03-28)
+- [x] Golden/Self/Leader/Influencer/MemeToken 컬렉션 페이지 DB 데이터 연결 (leaderPlans/influencerPlans/memePlans 라우터 이미 구현, 샘플 데이터 삽입)
+- [x] 파트너 데이터 중복 정리 (8개 고유 파트너 유지, cryptologos.cc CDN URL 적용)
+- [x] 파트너 어드민 이미지 업로드 기능 추가 (파일 업로드 + URL 직접 입력 병행)
+- [x] 리스팅 신청 시 notifyOwner 알림 연동 (카테고리/프로젝트명/담당자/이메일/텔레그램/웹사이트 포함)
+- [x] 테스트 추가 (listing/partners/collection plans 25개 테스트 통과)

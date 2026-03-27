@@ -1,0 +1,150 @@
+{
+  "query": "SELECT id, name, logoUrl, category, isHidden FROM partners ORDER BY sortOrder LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute SELECT id, name, logoUrl, category, isHidden FROM partners ORDER BY sortOrder LIMIT 20;",
+  "rows": [
+    {
+      "id": "9",
+      "name": "Binance",
+      "logoUrl": "https://cryptologos.cc/logos/binance-coin-bnb-logo.png",
+      "category": "exchange",
+      "isHidden": "0"
+    },
+    {
+      "id": "1",
+      "name": "Binance",
+      "logoUrl": "https://cryptologos.cc/logos/binance-coin-bnb-logo.png",
+      "category": "exchange",
+      "isHidden": "0"
+    },
+    {
+      "id": "17",
+      "name": "Binance",
+      "logoUrl": "https://cryptologos.cc/logos/binance-coin-bnb-logo.png",
+      "category": "exchange",
+      "isHidden": "0"
+    },
+    {
+      "id": "2",
+      "name": "OKX",
+      "logoUrl": "https://cryptologos.cc/logos/okb-okb-logo.png",
+      "category": "exchange",
+      "isHidden": "0"
+    },
+    {
+      "id": "10",
+      "name": "OKX",
+      "logoUrl": "https://cryptologos.cc/logos/okb-okb-logo.png",
+      "category": "exchange",
+      "isHidden": "0"
+    },
+    {
+      "id": "18",
+      "name": "OKX",
+      "logoUrl": "https://cryptologos.cc/logos/okb-okb-logo.png",
+      "category": "exchange",
+      "isHidden": "0"
+    },
+    {
+      "id": "11",
+      "name": "Uniswap",
+      "logoUrl": "https://cryptologos.cc/logos/uniswap-uni-logo.png",
+      "category": "defi",
+      "isHidden": "0"
+    },
+    {
+      "id": "3",
+      "name": "Uniswap",
+      "logoUrl": "https://cryptologos.cc/logos/uniswap-uni-logo.png",
+      "category": "defi",
+      "isHidden": "0"
+    },
+    {
+      "id": "19",
+      "name": "Uniswap",
+      "logoUrl": "https://cryptologos.cc/logos/uniswap-uni-logo.png",
+      "category": "defi",
+      "isHidden": "0"
+    },
+    {
+      "id": "12",
+      "name": "Aave",
+      "logoUrl": "https://cryptologos.cc/logos/aave-aave-logo.png",
+      "category": "defi",
+      "isHidden": "0"
+    },
+    {
+      "id": "20",
+      "name": "Aave",
+      "logoUrl": "https://cryptologos.cc/logos/aave-aave-logo.png",
+      "category": "defi",
+      "isHidden": "0"
+    },
+    {
+      "id": "4",
+      "name": "Aave",
+      "logoUrl": "https://cryptologos.cc/logos/aave-aave-logo.png",
+      "category": "defi",
+      "isHidden": "0"
+    },
+    {
+      "id": "13",
+      "name": "Chainlink",
+      "logoUrl": "https://cryptologos.cc/logos/chainlink-link-logo.png",
+      "category": "infrastructure",
+      "isHidden": "0"
+    },
+    {
+      "id": "5",
+      "name": "Chainlink",
+      "logoUrl": "https://cryptologos.cc/logos/chainlink-link-logo.png",
+      "category": "infrastructure",
+      "isHidden": "0"
+    },
+    {
+      "id": "21",
+      "name": "Chainlink",
+      "logoUrl": "https://cryptologos.cc/logos/chainlink-link-logo.png",
+      "category": "infrastructure",
+      "isHidden": "0"
+    },
+    {
+      "id": "22",
+      "name": "Polygon",
+      "logoUrl": "https://cryptologos.cc/logos/polygon-matic-logo.png",
+      "category": "infrastructure",
+      "isHidden": "0"
+    },
+    {
+      "id": "6",
+      "name": "Polygon",
+      "logoUrl": "https://cryptologos.cc/logos/polygon-matic-logo.png",
+      "category": "infrastructure",
+      "isHidden": "0"
+    },
+    {
+      "id": "14",
+      "name": "Polygon",
+      "logoUrl": "https://cryptologos.cc/logos/polygon-matic-logo.png",
+      "category": "infrastructure",
+      "isHidden": "0"
+    },
+    {
+      "id": "7",
+      "name": "OpenSea",
+      "logoUrl": "https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.png",
+      "category": "nft",
+      "isHidden": "0"
+    },
+    {
+      "id": "15",
+      "name": "OpenSea",
+      "logoUrl": "https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.png",
+      "category": "nft",
+      "isHidden": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tlogoUrl\tcategory\tisHidden\n9\tBinance\thttps://cryptologos.cc/logos/binance-coin-bnb-logo.png\texchange\t0\n1\tBinance\thttps://cryptologos.cc/logos/binance-coin-bnb-logo.png\texchange\t0\n17\tBinance\thttps://cryptologos.cc/logos/binance-coin-bnb-logo.png\texchange\t0\n2\tOKX\thttps://cryptologos.cc/logos/okb-okb-logo.png\texchange\t0\n10\tOKX\thttps://cryptologos.cc/logos/okb-okb-logo.png\texchange\t0\n18\tOKX\thttps://cryptologos.cc/logos/okb-okb-logo.png\texchange\t0\n11\tUniswap\thttps://cryptologos.cc/logos/uniswap-uni-logo.png\tdefi\t0\n3\tUniswap\thttps://cryptologos.cc/logos/uniswap-uni-logo.png\tdefi\t0\n19\tUniswap\thttps://cryptologos.cc/logos/uniswap-uni-logo.png\tdefi\t0\n12\tAave\thttps://cryptologos.cc/logos/aave-aave-logo.png\tdefi\t0\n20\tAave\thttps://cryptologos.cc/logos/aave-aave-logo.png\tdefi\t0\n4\tAave\thttps://cryptologos.cc/logos/aave-aave-logo.png\tdefi\t0\n13\tChainlink\thttps://cryptologos.cc/logos/chainlink-link-logo.png\tinfrastructure\t0\n5\tChainlink\thttps://cryptologos.cc/logos/chainlink-link-logo.png\tinfrastructure\t0\n21\tChainlink\thttps://cryptologos.cc/logos/chainlink-link-logo.png\tinfrastructure\t0\n22\tPolygon\thttps://cryptologos.cc/logos/polygon-matic-logo.png\tinfrastructure\t0\n6\tPolygon\thttps://cryptologos.cc/logos/polygon-matic-logo.png\tinfrastructure\t0\n14\tPolygon\thttps://cryptologos.cc/logos/polygon-matic-logo.png\tinfrastructure\t0\n7\tOpenSea\thttps://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.png\tnft\t0\n15\tOpenSea\thttps://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.png\tnft\t0\n",
+  "stderr": "",
+  "execution_time_ms": 1587
+}

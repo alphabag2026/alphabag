@@ -14,6 +14,7 @@ import { createAuditLog } from "./db";
 import { adminAccounts } from "../drizzle/schema";
 import { referralMessages as referralMessagesTable } from "../drizzle/schema.js";
 import { storagePut } from "./storage";
+import { notifyOwner } from "./_core/notification";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -1132,6 +1133,29 @@ export const appRouter = router({
       if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { listingRequests } = await import("../drizzle/schema");
       await drizzleDb.insert(listingRequests).values(input);
+      // 관리자에게 알림 발송 (실패해도 신청은 성공 처리)
+      try {
+        const categoryLabels: Record<string, string> = {
+          golden: "Golden", self: "Self", leader: "Leader",
+          meme: "Meme Token", influencer: "Influencer",
+          cbag: "C-BAG", airdrop: "Airdrop", partner: "Partner",
+        };
+        await notifyOwner({
+          title: `[AlphaBag] 새 리스팅 신청: ${input.projectName}`,
+          content: [
+            `프로젝트명: ${input.projectName}${input.projectSymbol ? ` (${input.projectSymbol})` : ""}`,
+            `카테고리: ${categoryLabels[input.category] || input.category}`,
+            `담당자: ${input.contactName}`,
+            `이메일: ${input.contactEmail}`,
+            input.contactTelegram ? `텔레그램: ${input.contactTelegram}` : "",
+            input.projectWebsite ? `웹사이트: ${input.projectWebsite}` : "",
+            input.projectDescription ? `\n프로젝트 설명:\n${input.projectDescription}` : "",
+            input.additionalInfo ? `\n추가 정보:\n${input.additionalInfo}` : "",
+          ].filter(Boolean).join("\n"),
+        });
+      } catch (err) {
+        console.warn("[Listing] notifyOwner failed:", err);
+      }
       return { success: true };
     }),
     list: adminProcedure.query(async () => {

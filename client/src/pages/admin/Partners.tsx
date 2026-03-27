@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import AdminLayout from "@/components/AdminLayout";
-import { Plus, Eye, EyeOff, Trash2, Globe, X, Save } from "lucide-react";
+import { Plus, Eye, EyeOff, Trash2, Globe, X, Save, Upload, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 const CATEGORIES = ["exchange", "defi", "nft", "infrastructure", "media", "other"];
@@ -16,6 +16,13 @@ export default function AdminPartners() {
     onSuccess: () => { toast.success("파트너가 추가되었습니다"); refetch(); setShowForm(false); resetForm(); },
     onError: (e) => toast.error(e.message),
   });
+  const uploadMedia = trpc.media.upload.useMutation({
+    onSuccess: (data: any) => {
+      setForm(p => ({ ...p, logoUrl: data.url }));
+      toast.success("로고 이미지가 업로드되었습니다");
+    },
+    onError: (e) => toast.error("업로드 실패: " + e.message),
+  });
   const toggleHidden = trpc.partners.toggleHidden.useMutation({
     onSuccess: () => { refetch(); },
     onError: (e) => toast.error(e.message),
@@ -27,8 +34,22 @@ export default function AdminPartners() {
 
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", logoUrl: "", website: "", description: "", category: "other", sortOrder: 0 });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => setForm({ name: "", logoUrl: "", website: "", description: "", category: "other", sortOrder: 0 });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast.error("이미지 파일만 업로드 가능합니다"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("파일 크기는 5MB 이하여야 합니다"); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = (reader.result as string).split(",")[1];
+      uploadMedia.mutate({ filename: file.name, base64, mimeType: file.type });
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,27 +93,56 @@ export default function AdminPartners() {
                   {CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">로고 URL</label>
-                <input value={form.logoUrl} onChange={e => setForm(p => ({ ...p, logoUrl: e.target.value }))}
-                  placeholder="https://cdn.example.com/logo.png" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-400" />
+              {/* 로고 업로드 섹션 */}
+              <div className="col-span-2">
+                <label className="block text-xs font-semibold text-gray-600 mb-1">로고 이미지</label>
+                <div className="flex gap-3 items-start">
+                  {/* 미리보기 */}
+                  <div className="w-16 h-16 rounded-xl border border-gray-200 flex items-center justify-center bg-gray-50 flex-shrink-0 overflow-hidden">
+                    {form.logoUrl ? (
+                      <img src={form.logoUrl} alt="preview" className="w-full h-full object-contain" />
+                    ) : (
+                      <ImageIcon className="w-6 h-6 text-gray-300" />
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    {/* 파일 업로드 버튼 */}
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadMedia.isPending}
+                      className="flex items-center gap-2 px-3 py-2 border border-dashed border-amber-300 rounded-lg text-sm text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-60"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {uploadMedia.isPending ? "업로드 중..." : "이미지 파일 업로드"}
+                    </button>
+                    {/* URL 직접 입력 */}
+                    <input
+                      value={form.logoUrl}
+                      onChange={e => setForm(p => ({ ...p, logoUrl: e.target.value }))}
+                      placeholder="또는 이미지 URL 직접 입력 (https://...)"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">웹사이트</label>
                 <input value={form.website} onChange={e => setForm(p => ({ ...p, website: e.target.value }))}
                   placeholder="https://binance.com" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-400" />
               </div>
-              <div className="col-span-2">
-                <label className="block text-xs font-semibold text-gray-600 mb-1">설명</label>
-                <input value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-                  placeholder="파트너에 대한 간단한 설명" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-400" />
-              </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">정렬 순서</label>
                 <input type="number" value={form.sortOrder} onChange={e => setForm(p => ({ ...p, sortOrder: Number(e.target.value) }))}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-400" />
               </div>
-              <div className="flex items-end">
+              <div className="col-span-2">
+                <label className="block text-xs font-semibold text-gray-600 mb-1">설명</label>
+                <input value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+                  placeholder="파트너에 대한 간단한 설명" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-400" />
+              </div>
+              <div className="col-span-2 flex justify-end">
                 <button type="submit" disabled={createPartner.isPending}
                   className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-400 transition-colors text-sm disabled:opacity-60">
                   <Save className="w-4 h-4" /> {createPartner.isPending ? "저장 중..." : "저장"}
@@ -122,9 +172,9 @@ export default function AdminPartners() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {partner.logoUrl ? (
-                        <img src={partner.logoUrl} alt={partner.name} className="w-8 h-8 rounded-lg object-contain" />
+                        <img src={partner.logoUrl} alt={partner.name} className="w-10 h-10 rounded-lg object-contain border border-gray-100 bg-white p-0.5" />
                       ) : (
-                        <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-sm">
+                        <div className="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-sm">
                           {partner.name[0]}
                         </div>
                       )}

@@ -43,6 +43,10 @@ vi.mock("./db", () => ({
   createAuditLog: vi.fn().mockResolvedValue(undefined),
   upsertUser: vi.fn().mockResolvedValue(undefined),
   getUserByOpenId: vi.fn().mockResolvedValue(undefined),
+  getDb: vi.fn().mockResolvedValue(null),
+  getUserById: vi.fn().mockResolvedValue(undefined),
+  getInvestmentPlanById: vi.fn().mockResolvedValue(undefined),
+  getUserByReferralCode: vi.fn().mockResolvedValue(undefined),
 }));
 
 function createAdminContext(): TrpcContext {
@@ -184,5 +188,93 @@ describe("AlphaBag v2 - Sub-Admins", () => {
     const admins = await caller.subAdmins.list();
     expect(Array.isArray(admins)).toBe(true);
     expect(admins.length).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("AlphaBag v2 - Listing Submit (notifyOwner 연동)", () => {
+  it("listing.submit requires non-empty projectName", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    await expect(
+      caller.listing.submit({
+        projectName: "",
+        contactName: "Test",
+        contactEmail: "test@example.com",
+        category: "golden",
+      })
+    ).rejects.toThrow();
+  });
+
+  it("listing.list is admin-only", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.listing.list()).rejects.toThrow();
+  });
+
+  it("listing.list returns empty array when DB unavailable", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    // DB null 반환 시 빈 배열
+    const result = await caller.listing.list();
+    expect(Array.isArray(result)).toBe(true);
+  });
+});
+
+describe("AlphaBag v2 - Public Collection Plans", () => {
+  it("public.goldenPlans returns array", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    const plans = await caller.public.goldenPlans();
+    expect(Array.isArray(plans)).toBe(true);
+  });
+
+  it("public.selfPlans returns array", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    const plans = await caller.public.selfPlans();
+    expect(Array.isArray(plans)).toBe(true);
+  });
+
+  it("public.leaderPlans returns array", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    const plans = await caller.public.leaderPlans();
+    expect(Array.isArray(plans)).toBe(true);
+  });
+
+  it("public.influencerPlans returns array", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    const plans = await caller.public.influencerPlans();
+    expect(Array.isArray(plans)).toBe(true);
+  });
+
+  it("public.memePlans returns array", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    const plans = await caller.public.memePlans();
+    expect(Array.isArray(plans)).toBe(true);
+  });
+});
+
+describe("AlphaBag v2 - Partners", () => {
+  it("public.partners returns array", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    const partners = await caller.public.partners();
+    expect(Array.isArray(partners)).toBe(true);
+  });
+
+  it("partners.list is admin-only", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.partners.list()).rejects.toThrow();
+  });
+
+  it("partners.list returns empty array when DB unavailable", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const partners = await caller.partners.list();
+    expect(Array.isArray(partners)).toBe(true);
   });
 });

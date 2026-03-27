@@ -1,0 +1,58 @@
+{
+  "query": "\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/binance-coin-bnb-logo.png?v=040' WHERE name = 'Binance';\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/okb-okb-logo.png?v=040' WHERE name = 'OKX';\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/uniswap-uni-logo.png?v=040' WHERE name = 'Uniswap';\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/aave-aave-logo.png?v=040' WHERE name = 'Aave';\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/chainlink-link-logo.png?v=040' WHERE name = 'Chainlink';\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/polygon-matic-logo.png?v=040' WHERE name = 'Polygon';\nUPDATE partners SET logoUrl = 'https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.png' WHERE name = 'OpenSea';\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/the-graph-grt-logo.png?v=040' WHERE name = 'The Graph';\nSELECT id, name, logoUrl, category FROM partners ORDER BY id;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute \nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/binance-coin-bnb-logo.png?v=040' WHERE name = 'Binance';\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/okb-okb-logo.png?v=040' WHERE name = 'OKX';\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/uniswap-uni-logo.png?v=040' WHERE name = 'Uniswap';\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/aave-aave-logo.png?v=040' WHERE name = 'Aave';\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/chainlink-link-logo.png?v=040' WHERE name = 'Chainlink';\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/polygon-matic-logo.png?v=040' WHERE name = 'Polygon';\nUPDATE partners SET logoUrl = 'https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.png' WHERE name = 'OpenSea';\nUPDATE partners SET logoUrl = 'https://cryptologos.cc/logos/the-graph-grt-logo.png?v=040' WHERE name = 'The Graph';\nSELECT id, name, logoUrl, category FROM partners ORDER BY id;\n",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Binance",
+      "logoUrl": "https://cryptologos.cc/logos/binance-coin-bnb-logo.png?v=040",
+      "category": "exchange"
+    },
+    {
+      "id": "2",
+      "name": "OKX",
+      "logoUrl": "https://cryptologos.cc/logos/okb-okb-logo.png?v=040",
+      "category": "exchange"
+    },
+    {
+      "id": "3",
+      "name": "Uniswap",
+      "logoUrl": "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=040",
+      "category": "defi"
+    },
+    {
+      "id": "4",
+      "name": "Aave",
+      "logoUrl": "https://cryptologos.cc/logos/aave-aave-logo.png?v=040",
+      "category": "defi"
+    },
+    {
+      "id": "5",
+      "name": "Chainlink",
+      "logoUrl": "https://cryptologos.cc/logos/chainlink-link-logo.png?v=040",
+      "category": "infrastructure"
+    },
+    {
+      "id": "6",
+      "name": "Polygon",
+      "logoUrl": "https://cryptologos.cc/logos/polygon-matic-logo.png?v=040",
+      "category": "infrastructure"
+    },
+    {
+      "id": "7",
+      "name": "OpenSea",
+      "logoUrl": "https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.png",
+      "category": "nft"
+    },
+    {
+      "id": "8",
+      "name": "CoinGecko",
+      "logoUrl": "https://static.coingecko.com/s/coingecko-logo-8903d34ce19ca4be1c81f0db30e924154750d2fad96fefc8ca75651e4b8a0b3.png",
+      "category": "media"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tlogoUrl\tcategory\n1\tBinance\thttps://cryptologos.cc/logos/binance-coin-bnb-logo.png?v=040\texchange\n2\tOKX\thttps://cryptologos.cc/logos/okb-okb-logo.png?v=040\texchange\n3\tUniswap\thttps://cryptologos.cc/logos/uniswap-uni-logo.png?v=040\tdefi\n4\tAave\thttps://cryptologos.cc/logos/aave-aave-logo.png?v=040\tdefi\n5\tChainlink\thttps://cryptologos.cc/logos/chainlink-link-logo.png?v=040\tinfrastructure\n6\tPolygon\thttps://cryptologos.cc/logos/polygon-matic-logo.png?v=040\tinfrastructure\n7\tOpenSea\thttps://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.png\tnft\n8\tCoinGecko\thttps://static.coingecko.com/s/coingecko-logo-8903d34ce19ca4be1c81f0db30e924154750d2fad96fefc8ca75651e4b8a0b3.png\tmedia\n",
+  "stderr": "",
+  "execution_time_ms": 3338
+}
