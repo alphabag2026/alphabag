@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE users ADD COLUMN telegramChatId VARCHAR(64) NULL DEFAULT NULL AFTER kycData;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute ALTER TABLE users ADD COLUMN telegramChatId VARCHAR(64) NULL DEFAULT NULL AFTER kycData;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1837
+}

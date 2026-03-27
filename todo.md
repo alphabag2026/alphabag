@@ -260,3 +260,21 @@
 - [x] SubAdmins 탭 관리자 계정 추가/수정/비활성화 UI (비밀번호 변경, 권한 설정, 삭제)
 - [x] 노드 구매자 Sheet에 pending → confirmed 일괄 업데이트 버튼 추가 (체크박스 선택 방식)
 - [x] nodes.bulkUpdateStatus 백엔드 프로시저 (inArray로 일괄 UPDATE, confirmed/cancelled 지원)
+
+## Phase 21 - BSCScan TxHash 검증, Audit Log, 대량 발송 (2026-03-27)
+- [ ] BSCScan API 연동 (nodes.verifyTxHash 프로시저 - TxHash 상태 조회)
+- [ ] pending nodeOrders 일괄 검증 버튼 (Nodes 구매자 Sheet)
+- [x] bulkUpdateStatus에 createAuditLog 연동
+- [ ] adminAuth CRUD에 createAuditLog 연동
+- [ ] Users 탭 선택된 사용자에게 텔레그램 메시지 발송 UI
+- [ ] users.sendMessage 백엔드 프로시저 (텔레그램 봇 연동)
+
+## Phase 21 (확장) - 텔레그램 대량 발송 시스템 (2026-03-27)
+- [x] users 테이블에 telegramChatId 컬럼 추가 (DB 마이그레이션)
+- [x] drizzle/schema.ts 업데이트 (telegramChatId 필드 추가)
+- [x] users.broadcastTelegram 백엔드 프로시저 (필터 조건 + 채널 발송 + 개별 DM)
+- [x] TELEGRAM_BOT_TOKEN 환경변수 설정
+- [x] Users 탭 "텔레그램 발송" 버튼 추가 (필터 버튼 옆)
+- [x] 텔레그램 메시지 작성 다이얼로그 (제목/내용/대상 필터 표시)
+- [x] 발송 결과 표시 (성공/실패 건수)
+- [x] bulkUpdateStatus에 createAuditLog 연동

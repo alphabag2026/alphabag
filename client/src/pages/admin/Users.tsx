@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import {
   Search, Download, UserCheck, Shield,
   ChevronLeft, ChevronRight, Wallet, Users2,
-  TrendingUp, Package, Copy, CheckCheck, GitBranch, ChevronDown, ChevronRight as ChevronRightIcon, Network
+  TrendingUp, Package, Copy, CheckCheck, GitBranch, Network,
+  Send, MessageSquare, X, Info
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 const kycBadge = (status: string) => {
   const map: Record<string, string> = {
@@ -25,7 +27,6 @@ const kycBadge = (status: string) => {
   };
   return map[status] ?? "badge-inactive";
 };
-
 const roleBadge = (role: string) => {
   const map: Record<string, string> = {
     admin: "bg-primary/15 text-primary border border-primary/30",
@@ -34,7 +35,6 @@ const roleBadge = (role: string) => {
   };
   return map[role] ?? "badge-inactive";
 };
-
 function WalletCell({ address }: { address?: string | null }) {
   const [copied, setCopied] = useState(false);
   if (!address) return <span className="text-muted-foreground text-xs">—</span>;
@@ -61,18 +61,22 @@ export default function Users() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [kycDialogOpen, setKycDialogOpen] = useState(false);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
   const [newKycStatus, setNewKycStatus] = useState<"pending" | "approved" | "rejected" | "none">("none");
   const [newRole, setNewRole] = useState<"user" | "admin" | "sub_admin">("user");
-  const [treeUser, setTreeUser] = useState<any>(null); // 레퍼럴 트리 Sheet
+  const [treeUser, setTreeUser] = useState<any>(null);
   const [filter, setFilter] = useState<{ hasInvestment?: boolean; hasNode?: boolean; kycApproved?: boolean }>({});
+
+  // 텔레그램 발송 다이얼로그 상태
+  const [telegramDialogOpen, setTelegramDialogOpen] = useState(false);
+  const [telegramMessage, setTelegramMessage] = useState("");
+  const [telegramChannelId, setTelegramChannelId] = useState("");
+  const [broadcastResult, setBroadcastResult] = useState<{ successCount: number; failCount: number; total: number } | null>(null);
 
   // 레퍼럴 트리 쿼리
   const { data: treeData, isLoading: treeLoading } = trpc.referrals.tree.useQuery(
     { userId: treeUser?.id ?? 0 },
     { enabled: treeUser !== null }
   );
-
   const treeNodes = useMemo(() => {
     if (!treeData || !Array.isArray(treeData)) return [];
     return treeData.map((r: any) => ({
@@ -100,6 +104,17 @@ export default function Users() {
     onError: (e) => toast.error(e.message),
   });
 
+  // 텔레그램 대량 발송 뮤테이션
+  const broadcastMutation = trpc.users.broadcastTelegram.useMutation({
+    onSuccess: (result) => {
+      setBroadcastResult({ successCount: result.successCount, failCount: result.failCount, total: result.total });
+      toast.success(`텔레그램 발송 완료: ${result.successCount}건 성공, ${result.failCount}건 실패`);
+    },
+    onError: (e) => {
+      toast.error(`발송 실패: ${e.message}`);
+    },
+  });
+
   const handleSearch = useCallback((v: string) => {
     setSearch(v);
     clearTimeout((window as any)._searchTimer);
@@ -125,11 +140,29 @@ export default function Users() {
     toast.success("CSV downloaded");
   };
 
+  const handleBroadcast = () => {
+    if (!telegramMessage.trim()) {
+      toast.error("메시지를 입력해주세요");
+      return;
+    }
+    setBroadcastResult(null);
+    broadcastMutation.mutate({
+      message: telegramMessage,
+      filter: Object.keys(filter).length > 0 ? filter : undefined,
+      channelChatId: telegramChannelId.trim() || undefined,
+    });
+  };
+
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
-
-  // 지갑 주소 기반 사용자 수 (마이그레이션된 사용자)
   const walletUsers = data?.data?.filter((u: any) => u.walletAddress && !u.email)?.length ?? 0;
+
+  // 현재 필터 설명
+  const filterDesc = [
+    filter.hasInvestment && "투자 있음",
+    filter.hasNode && "노드 구매 있음",
+    filter.kycApproved && "KYC 완료",
+  ].filter(Boolean).join(", ") || "전체 사용자";
 
   return (
     <AdminLayout title="Users & Organization">
@@ -181,8 +214,8 @@ export default function Users() {
 
         {/* 검색 및 내보내기 */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between gap-4">
-            <div className="relative flex-1 max-w-md">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="relative flex-1 min-w-[200px] max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 value={search}
@@ -191,10 +224,21 @@ export default function Users() {
                 className="pl-9 bg-input"
               />
             </div>
-            <Button variant="outline" onClick={downloadCSV} className="gap-2 flex-shrink-0">
-              <Download className="w-4 h-4" />
-              CSV 내보내기
-            </Button>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* 텔레그램 발송 버튼 */}
+              <Button
+                variant="outline"
+                onClick={() => { setTelegramDialogOpen(true); setBroadcastResult(null); }}
+                className="gap-2 border-blue-500/40 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300"
+              >
+                <Send className="w-4 h-4" />
+                텔레그램 발송
+              </Button>
+              <Button variant="outline" onClick={downloadCSV} className="gap-2">
+                <Download className="w-4 h-4" />
+                CSV 내보내기
+              </Button>
+            </div>
           </div>
           {/* 필터 버튼 */}
           <div className="flex items-center gap-2 flex-wrap">
@@ -385,7 +429,6 @@ export default function Users() {
                   <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
-                  {/* 페이지 번호 버튼 */}
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     const pageNum = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
                     return (
@@ -410,7 +453,7 @@ export default function Users() {
         </Card>
       </div>
 
-      {/* KYC 다이얼로그 */}
+      {/* ─── KYC 다이얼로그 ─── */}
       <Dialog open={kycDialogOpen} onOpenChange={setKycDialogOpen}>
         <DialogContent className="bg-card border-border max-w-sm">
           <DialogHeader>
@@ -443,7 +486,7 @@ export default function Users() {
         </DialogContent>
       </Dialog>
 
-      {/* 권한 변경 다이얼로그 */}
+      {/* ─── 권한 변경 다이얼로그 ─── */}
       <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
         <DialogContent className="bg-card border-border max-w-sm">
           <DialogHeader>
@@ -474,7 +517,120 @@ export default function Users() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* 레퍼럴 트리 Sheet */}
+
+      {/* ─── 텔레그램 대량 발송 다이얼로그 ─── */}
+      <Dialog open={telegramDialogOpen} onOpenChange={open => { if (!broadcastMutation.isPending) setTelegramDialogOpen(open); }}>
+        <DialogContent className="bg-card border-border max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="w-4 h-4 text-blue-400" />
+              텔레그램 메시지 발송
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* 발송 대상 안내 */}
+            <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <p className="text-blue-300 font-medium mb-1">발송 대상</p>
+                  <p className="text-muted-foreground text-xs">현재 필터: <span className="text-foreground font-medium">{filterDesc}</span></p>
+                  <p className="text-muted-foreground text-xs mt-1">
+                    채널 Chat ID 입력 시 채널에 공지 발송, telegramChatId가 등록된 사용자에게 개별 DM 발송
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 채널 Chat ID */}
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1.5 block">
+                채널/그룹 Chat ID <span className="text-muted-foreground/60">(선택사항)</span>
+              </Label>
+              <Input
+                value={telegramChannelId}
+                onChange={e => setTelegramChannelId(e.target.value)}
+                placeholder="-1001234567890 (채널 또는 그룹 ID)"
+                className="bg-input font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                채널에 봇을 추가하고 관리자 권한을 부여한 후 Chat ID를 입력하세요
+              </p>
+            </div>
+
+            {/* 메시지 내용 */}
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1.5 block">
+                메시지 내용 <span className="text-red-400">*</span>
+                <span className="text-muted-foreground/60 ml-2">HTML 태그 지원 (&lt;b&gt;, &lt;i&gt;, &lt;a href&gt;)</span>
+              </Label>
+              <Textarea
+                value={telegramMessage}
+                onChange={e => setTelegramMessage(e.target.value)}
+                placeholder="안녕하세요! AlphaBag 투자자 여러분께 중요한 공지사항을 전달드립니다.&#10;&#10;<b>제목</b>&#10;내용을 입력하세요..."
+                className="bg-input min-h-[140px] text-sm font-mono resize-none"
+                maxLength={4096}
+              />
+              <div className="flex justify-between mt-1">
+                <p className="text-xs text-muted-foreground">최대 4096자</p>
+                <p className="text-xs text-muted-foreground">{telegramMessage.length} / 4096</p>
+              </div>
+            </div>
+
+            {/* 발송 결과 */}
+            {broadcastResult && (
+              <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3">
+                <p className="text-sm font-medium text-emerald-400 mb-2">발송 완료</p>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <p className="text-lg font-bold text-foreground">{broadcastResult.total}</p>
+                    <p className="text-xs text-muted-foreground">총 시도</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-emerald-400">{broadcastResult.successCount}</p>
+                    <p className="text-xs text-muted-foreground">성공</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-red-400">{broadcastResult.failCount}</p>
+                    <p className="text-xs text-muted-foreground">실패</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setTelegramDialogOpen(false)}
+              disabled={broadcastMutation.isPending}
+            >
+              <X className="w-4 h-4 mr-1" />
+              닫기
+            </Button>
+            <Button
+              onClick={handleBroadcast}
+              disabled={broadcastMutation.isPending || !telegramMessage.trim()}
+              className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {broadcastMutation.isPending ? (
+                <>
+                  <MessageSquare className="w-4 h-4 animate-pulse" />
+                  발송 중...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  발송하기
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── 레퍼럴 트리 Sheet ─── */}
       <Sheet open={treeUser !== null} onOpenChange={open => !open && setTreeUser(null)}>
         <SheetContent side="right" className="w-full sm:max-w-xl bg-card border-border overflow-y-auto">
           <SheetHeader className="mb-4">

@@ -57,6 +57,13 @@
       "when": 1774517718195,
       "tag": "0007_mean_wallop",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1774604106369,
+      "tag": "0008_rainy_stone_men",
+      "breakpoints": true
     }
   ]
 }

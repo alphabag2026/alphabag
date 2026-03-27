@@ -2,7 +2,7 @@ import { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Cpu, ToggleLeft, ToggleRight, Users, Copy, CheckCheck, ExternalLink, Download, CheckSquare, Square, RefreshCw } from "lucide-react";
+import { Plus, Pencil, Trash2, Cpu, ToggleLeft, ToggleRight, Users, Copy, CheckCheck, ExternalLink, Download, CheckSquare, Square, RefreshCw, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +72,11 @@ export default function Nodes() {
     { nodeId: buyersNode?.id ?? 0 },
     { enabled: buyersNode !== null }
   );
+  const verifyTxMutation = trpc.nodes.verifyTxHashes.useMutation({
+    onSuccess: () => {
+      utils.nodes.purchasers.invalidate({ nodeId: buyersNode?.id ?? 0 });
+    },
+  });
   const bulkUpdateMutation = trpc.nodes.bulkUpdateStatus.useMutation({
     onSuccess: (res) => {
       toast.success(`${res.updated}건 상태가 업데이트되었습니다`);
@@ -344,7 +349,25 @@ export default function Nodes() {
                 <Users className="w-4 h-4 text-blue-400" />
                 {buyersNode?.name} 구매자 목록
               </SheetTitle>
-              {purchasers && purchasers.length > 0 && (
+              <div className="flex items-center gap-2">
+                {purchasers && purchasers.some((p: any) => p.txHash && p.status !== "confirmed") && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        const result = await verifyTxMutation.mutateAsync({ nodeId: buyersNode?.id });
+                        toast.success(`검증 완료: ${result.confirmed}건 confirmed, ${result.failed}건 failed`);
+                      } catch {
+                        toast.error("TxHash 검증 실패");
+                      }
+                    }}
+                    disabled={verifyTxMutation.isPending}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-green-500/40 text-green-400 hover:text-green-300 hover:bg-green-500/10 transition-colors disabled:opacity-50"
+                  >
+                    {verifyTxMutation.isPending ? <RefreshCw className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
+                    TxHash 검증
+                  </button>
+                )}
+                {purchasers && purchasers.length > 0 && (
                 <button
                   onClick={() => {
                     const headers = ["순번", "지갑주소", "이름", "이메일", "금액(USDT)", "상태", "구매일", "TxHash"];
@@ -374,6 +397,7 @@ export default function Nodes() {
                   CSV
                 </button>
               )}
+              </div>
             </div>
             {buyersNode && (
               <div className="flex items-center gap-3 text-sm text-muted-foreground">

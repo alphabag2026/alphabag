@@ -23,6 +23,7 @@ export const users = mysqlTable("users", {
   referredBy: varchar("referredBy", { length: 20 }),
   kycStatus: mysqlEnum("kycStatus", ["pending", "approved", "rejected", "none"]).default("none").notNull(),
   kycData: json("kycData"),
+  telegramChatId: varchar("telegramChatId", { length: 64 }),
   totalInvested: decimal("totalInvested", { precision: 18, scale: 2 }).default("0"),
   totalNodes: decimal("totalNodes", { precision: 18, scale: 2 }).default("0"),
   isActive: boolean("isActive").default(true).notNull(),

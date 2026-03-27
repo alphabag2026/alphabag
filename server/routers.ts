@@ -175,7 +175,7 @@ export const appRouter = router({
     bulkUpdateStatus: adminProcedure.input(z.object({
       orderIds: z.array(z.number()),
       status: z.enum(["pending", "confirmed", "cancelled"]),
-    })).mutation(async ({ input }) => {
+    })).mutation(async ({ input, ctx }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { nodeOrders } = await import("../drizzle/schema");
@@ -183,7 +183,68 @@ export const appRouter = router({
       await database.update(nodeOrders)
         .set({ status: input.status })
         .where(inArray(nodeOrders.id, input.orderIds));
+      // Audit Log 기록
+      await createAuditLog({
+        adminId: ctx.user.id,
+        action: `BULK_UPDATE_NODE_ORDERS_${input.status.toUpperCase()}`,
+        targetType: "nodeOrder",
+        targetId: input.orderIds[0] ?? 0,
+        details: `${input.orderIds.length}건 주문 상태 변경: ${input.status} (IDs: ${input.orderIds.slice(0, 5).join(",")}${input.orderIds.length > 5 ? "..." : ""})`
+      });
       return { success: true, updated: input.orderIds.length };
+    }),
+    // BSCScan TxHash 자동 검증
+    verifyTxHashes: adminProcedure.input(z.object({
+      nodeId: z.number().optional(),
+    })).mutation(async ({ input, ctx }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { nodeOrders } = await import("../drizzle/schema");
+      const { and, isNotNull, ne, inArray } = await import("drizzle-orm");
+      // pending 상태이고 txHash가 있는 주문 조회
+      const conditions = [ne(nodeOrders.status, "confirmed"), isNotNull(nodeOrders.txHash)];
+      if (input.nodeId) conditions.push(ne(nodeOrders.nodeId, -1)); // placeholder
+      const pendingOrders = await database.select().from(nodeOrders)
+        .where(and(...conditions))
+        .limit(50);
+      if (pendingOrders.length === 0) return { verified: 0, confirmed: 0, failed: 0, results: [] };
+      const results: Array<{ orderId: number; txHash: string; status: string; bscStatus: string }> = [];
+      let confirmedCount = 0;
+      let failedCount = 0;
+      for (const order of pendingOrders) {
+        if (!order.txHash) continue;
+        try {
+          const resp = await fetch(
+            `https://api.bscscan.com/api?module=transaction&action=gettxreceiptstatus&txhash=${order.txHash}${process.env.BSCSCAN_API_KEY ? `&apikey=${process.env.BSCSCAN_API_KEY}` : ""}`
+          );
+          const data = await resp.json() as { status: string; result?: { status: string } };
+          const bscStatus = data.result?.status; // "1" = success, "0" = fail
+          if (bscStatus === "1") {
+            await database.update(nodeOrders)
+              .set({ status: "confirmed" })
+              .where(inArray(nodeOrders.id, [order.id]));
+            confirmedCount++;
+            results.push({ orderId: order.id, txHash: order.txHash, status: "confirmed", bscStatus: "success" });
+          } else if (bscStatus === "0") {
+            failedCount++;
+            results.push({ orderId: order.id, txHash: order.txHash, status: "pending", bscStatus: "failed" });
+          } else {
+            results.push({ orderId: order.id, txHash: order.txHash, status: "pending", bscStatus: "pending" });
+          }
+        } catch {
+          results.push({ orderId: order.id, txHash: order.txHash ?? "", status: "pending", bscStatus: "error" });
+        }
+      }
+      if (confirmedCount > 0) {
+        await createAuditLog({
+          adminId: ctx.user.id,
+          action: "AUTO_VERIFY_TXHASH",
+          targetType: "nodeOrder",
+          targetId: 0,
+          details: `BSCScan 자동 검증: ${confirmedCount}건 confirmed, ${failedCount}건 failed`
+        });
+      }
+      return { verified: pendingOrders.length, confirmed: confirmedCount, failed: failedCount, results };
     }),
   }),
 
@@ -220,6 +281,95 @@ export const appRouter = router({
     }),
     referralTree: adminProcedure.input(z.object({ userId: z.number() })).query(async ({ input }) => {
       return await db.getReferralTree(input.userId);
+    }),
+    updateTelegramChatId: adminProcedure.input(z.object({
+      userId: z.number(),
+      telegramChatId: z.string().nullable(),
+    })).mutation(async ({ input, ctx }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { users } = await import("../drizzle/schema");
+      await database.update(users).set({ telegramChatId: input.telegramChatId }).where(eq(users.id, input.userId));
+      await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_TELEGRAM_CHAT_ID", targetType: "user", targetId: input.userId, details: { telegramChatId: input.telegramChatId } });
+      return { success: true };
+    }),
+    broadcastTelegram: adminProcedure.input(z.object({
+      message: z.string().min(1).max(4096),
+      filter: z.object({
+        hasInvestment: z.boolean().optional(),
+        hasNode: z.boolean().optional(),
+        kycApproved: z.boolean().optional(),
+      }).optional(),
+      channelChatId: z.string().optional(), // 채널/그룹 Chat ID (예: -1001234567890)
+    })).mutation(async ({ input, ctx }) => {
+      const botToken = process.env.TELEGRAM_BOT_TOKEN;
+      if (!botToken) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "TELEGRAM_BOT_TOKEN이 설정되지 않았습니다" });
+
+      const results: Array<{ type: string; chatId: string; success: boolean; error?: string }> = [];
+      let successCount = 0;
+      let failCount = 0;
+
+      const sendTelegramMessage = async (chatId: string): Promise<boolean> => {
+        try {
+          const resp = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: chatId, text: input.message, parse_mode: "HTML" }),
+          });
+          const data = await resp.json() as { ok: boolean; description?: string };
+          return data.ok;
+        } catch {
+          return false;
+        }
+      };
+
+      // 1. 채널/그룹 발송
+      if (input.channelChatId) {
+        const ok = await sendTelegramMessage(input.channelChatId);
+        results.push({ type: "channel", chatId: input.channelChatId, success: ok });
+        if (ok) successCount++; else failCount++;
+      }
+
+      // 2. 개별 DM 발송 (telegramChatId가 있는 사용자)
+      const database = await getDb();
+      if (database) {
+        const { users, investments, nodeOrders } = await import("../drizzle/schema");
+        const { and, isNotNull, inArray } = await import("drizzle-orm");
+        const conditions: any[] = [isNotNull(users.telegramChatId)];
+        if (input.filter?.hasInvestment) {
+          const investedUserIds = await database.selectDistinct({ userId: investments.userId }).from(investments);
+          const ids = investedUserIds.map((r: any) => r.userId);
+          if (ids.length > 0) conditions.push(inArray(users.id, ids));
+        }
+        if (input.filter?.hasNode) {
+          const nodeUserIds = await database.selectDistinct({ userId: nodeOrders.userId }).from(nodeOrders);
+          const ids = nodeUserIds.map((r: any) => r.userId);
+          if (ids.length > 0) conditions.push(inArray(users.id, ids));
+        }
+        if (input.filter?.kycApproved) {
+          const { eq: eqOp } = await import("drizzle-orm");
+          conditions.push(eqOp(users.kycStatus, "approved"));
+        }
+        const targetUsers = await database.select({ id: users.id, telegramChatId: users.telegramChatId }).from(users)
+          .where(and(...conditions));
+        for (const u of targetUsers) {
+          if (!u.telegramChatId) continue;
+          const ok = await sendTelegramMessage(u.telegramChatId);
+          results.push({ type: "dm", chatId: u.telegramChatId, success: ok });
+          if (ok) successCount++; else failCount++;
+          // Rate limit 방지 (30 msg/sec)
+          await new Promise(r => setTimeout(r, 35));
+        }
+      }
+
+      await createAuditLog({
+        adminId: ctx.user.id,
+        action: "BROADCAST_TELEGRAM",
+        targetType: "user",
+        details: { message: input.message.slice(0, 100), filter: input.filter, successCount, failCount },
+      });
+
+      return { success: true, successCount, failCount, total: results.length, results };
     }),
   }),
 
