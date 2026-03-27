@@ -198,3 +198,14 @@
 - [ ] DB thumbnailUrl 컬럼 추가 및 마이그레이션
 - [ ] 카드 UI에 thumbnailUrl 배경 이미지 지원
 - [ ] DB logoUrl 및 thumbnailUrl 업데이트
+
+## Phase 12 - 네이버 모바일 스타일 홈페이지 개편 (2026-03-27)
+- [x] 홈페이지 상단 검색바 추가 (네이버 스타일, AlphaBag 플랜 검색)
+- [x] 광고 배너 자동 슬라이더 구현
+- [x] 소메뉴 탭 구현: 추천 / B bag / infoweb4 / SNN / news / 컨텐츠 / Live
+- [x] 금융시장 위젯: BTC/ETH/BNB 가격 + 주요 환율 (USD/KRW 등) 실시간 표시
+- [x] 3가지 카드 뷰 타입: A(손글씨B 스타일) / B(게시판 한줄형) / C(현재 카드형)
+- [x] 라이트/다크 테마 토글 버튼 추가
+- [x] App.tsx ThemeProvider switchable=true 설정
+- [x] 금융 데이터 백엔드 라우터 추가 (CoinGecko 공개 API)
+- [x] 소메뉴 탭별 콘텐츠 섹션 연동

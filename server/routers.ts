@@ -433,6 +433,78 @@ export const appRouter = router({
     }),
   }),
 
+  // ─── Market Data (금융 데이터) ─────────────────────────────────────────────────
+  market: router({
+    // 암호화폐 가격 및 환율 데이터
+    prices: publicProcedure.query(async () => {
+      try {
+        const cryptoRes = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,tether,solana&vs_currencies=usd,krw&include_24hr_change=true",
+          { signal: AbortSignal.timeout(5000) }
+        );
+        const cryptoData = cryptoRes.ok ? await cryptoRes.json() : null;
+
+        // 환율 데이터 (USD 기준)
+        const fxRes = await fetch(
+          "https://api.exchangerate-api.com/v4/latest/USD",
+          { signal: AbortSignal.timeout(5000) }
+        );
+        const fxData = fxRes.ok ? await fxRes.json() : null;
+
+        return {
+          crypto: {
+            BTC: {
+              usd: cryptoData?.bitcoin?.usd ?? 0,
+              krw: cryptoData?.bitcoin?.krw ?? 0,
+              change24h: cryptoData?.bitcoin?.usd_24h_change ?? 0,
+            },
+            ETH: {
+              usd: cryptoData?.ethereum?.usd ?? 0,
+              krw: cryptoData?.ethereum?.krw ?? 0,
+              change24h: cryptoData?.ethereum?.usd_24h_change ?? 0,
+            },
+            BNB: {
+              usd: cryptoData?.binancecoin?.usd ?? 0,
+              krw: cryptoData?.binancecoin?.krw ?? 0,
+              change24h: cryptoData?.binancecoin?.usd_24h_change ?? 0,
+            },
+            USDT: {
+              usd: cryptoData?.tether?.usd ?? 1,
+              krw: cryptoData?.tether?.krw ?? 1380,
+              change24h: cryptoData?.tether?.usd_24h_change ?? 0,
+            },
+            SOL: {
+              usd: cryptoData?.solana?.usd ?? 0,
+              krw: cryptoData?.solana?.krw ?? 0,
+              change24h: cryptoData?.solana?.usd_24h_change ?? 0,
+            },
+          },
+          fx: {
+            KRW: fxData?.rates?.KRW ?? 1380,
+            JPY: fxData?.rates?.JPY ?? 150,
+            EUR: fxData?.rates?.EUR ?? 0.92,
+            CNY: fxData?.rates?.CNY ?? 7.2,
+            GBP: fxData?.rates?.GBP ?? 0.79,
+          },
+          updatedAt: new Date().toISOString(),
+        };
+      } catch {
+        // 폴백 데이터
+        return {
+          crypto: {
+            BTC: { usd: 87000, krw: 120000000, change24h: 1.2 },
+            ETH: { usd: 3200, krw: 4416000, change24h: 0.8 },
+            BNB: { usd: 580, krw: 800400, change24h: -0.5 },
+            USDT: { usd: 1, krw: 1380, change24h: 0 },
+            SOL: { usd: 145, krw: 200100, change24h: 2.1 },
+          },
+          fx: { KRW: 1380, JPY: 150, EUR: 0.92, CNY: 7.2, GBP: 0.79 },
+          updatedAt: new Date().toISOString(),
+        };
+      }
+    }),
+  }),
+
   // ─── Public API (no auth required) ───────────────────────────────────────────
   public: router({
     // 공개 투자 플랜 목록

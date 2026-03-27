@@ -45,6 +45,29 @@
   ::-webkit-scrollbar-thumb:hover { background: oklch(0.72 0.18 55 / 0.6); }
 }
 
+/* ─── Light Mode Variables ─── */
+:root:not(.dark) {
+  --color-background: oklch(0.97 0.003 240);
+  --color-foreground: oklch(0.15 0.01 240);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.15 0.01 240);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.15 0.01 240);
+  --color-primary: oklch(0.72 0.18 55);
+  --color-primary-foreground: oklch(0.08 0.005 240);
+  --color-secondary: oklch(0.93 0.005 240);
+  --color-secondary-foreground: oklch(0.25 0.01 240);
+  --color-muted: oklch(0.94 0.005 240);
+  --color-muted-foreground: oklch(0.50 0.01 240);
+  --color-accent: oklch(0.65 0.20 45);
+  --color-accent-foreground: oklch(0.08 0.005 240);
+  --color-destructive: oklch(0.55 0.22 25);
+  --color-destructive-foreground: oklch(0.98 0.005 0);
+  --color-border: oklch(0.88 0.005 240);
+  --color-input: oklch(0.93 0.005 240);
+  --color-ring: oklch(0.72 0.18 55);
+}
+
 @layer components {
   /* ── Sidebar ── */
   .ab-sidebar { background: oklch(0.09 0.006 240); border-right: 1px solid oklch(0.22 0.012 240); width: 160px; min-height: 100vh; position: fixed; left: 0; top: 0; z-index: 40; display: flex; flex-direction: column; }
@@ -134,6 +157,9 @@
   .plan-status-low { background: oklch(0.55 0.18 145 / 0.15); color: oklch(0.65 0.18 145); border: 1px solid oklch(0.55 0.18 145 / 0.3); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.68rem; font-weight: 600; }
   .plan-status-medium { background: oklch(0.65 0.20 45 / 0.15); color: oklch(0.65 0.20 45); border: 1px solid oklch(0.65 0.20 45 / 0.3); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.68rem; font-weight: 600; }
   .plan-status-high { background: oklch(0.55 0.22 25 / 0.15); color: oklch(0.65 0.22 25); border: 1px solid oklch(0.55 0.22 25 / 0.3); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.68rem; font-weight: 600; }
+  /* ── Scrollbar Hide ── */
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
   /* ── Animations ── */
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   .ab-fade-in { animation: fadeIn 0.2s ease-out; }

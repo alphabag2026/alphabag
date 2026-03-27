@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -8,205 +8,394 @@ import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { Star, ChevronRight, Bell, Shield, Zap, Globe,
+import {
+  Star, ChevronRight, Bell, Shield, Zap, Globe,
   Users, BarChart3, Menu, X, ShoppingCart, LogOut,
-  Wallet, ExternalLink, Video, MessageSquare
+  Wallet, ExternalLink, Video, MessageSquare, Search,
+  Sun, Moon, TrendingUp, TrendingDown, RefreshCw,
+  ChevronLeft, Play, Newspaper, Tv, Rss
 } from "lucide-react";
 import { PlanDetailModal } from "@/components/PlanDetailModal";
 import { ReferralMessageModal } from "@/components/ReferralMessageModal";
 import { MeetingNoticeModal } from "@/components/MeetingNoticeModal";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // CDN URLs
 const ALPHABAG_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/alphabag-logo_df90878d.png";
 const AD_DOLLARS = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/ad-dollars_88f0319b.jpg";
 const AD_TRADING = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/ad-trading_0ad7d05d.jpg";
 
-// ─── 플랜 카드 컴포넌트 ────────────────────────────────────────────────────────
-function PlanCard({ plan, collectionColor }: { plan: any; collectionColor: string }) {
-  const badges: string[] = Array.isArray(plan.badgeLabels) ? plan.badgeLabels : [];
-  const rating = Number(plan.rating) || 4.0;
+// ─── 소메뉴 탭 정의 ──────────────────────────────────────────────────────────
+const SUB_MENUS = [
+  { id: "recommend", label: "추천", icon: "⭐" },
+  { id: "bbag", label: "B bag", icon: "💰" },
+  { id: "infoweb4", label: "infoweb4", icon: "🌐" },
+  { id: "snn", label: "SNN", icon: "📡" },
+  { id: "news", label: "news", icon: "📰" },
+  { id: "contents", label: "컨텐츠", icon: "🎬" },
+  { id: "live", label: "Live", icon: "🔴" },
+];
 
-  const colorMap: Record<string, { border: string; glow: string; badge: string; rate: string; btn: string; overlay: string }> = {
-    golden: {
-      border: "border-amber-500/30",
-      glow: "hover:shadow-amber-500/40",
-      badge: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-      rate: "text-amber-400",
-      btn: "bg-amber-500/20 text-amber-300 border-amber-500/30 hover:bg-amber-500/30",
-      overlay: "from-amber-900/60",
-    },
-    self: {
-      border: "border-blue-500/30",
-      glow: "hover:shadow-blue-500/40",
-      badge: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-      rate: "text-blue-400",
-      btn: "bg-blue-500/20 text-blue-300 border-blue-500/30 hover:bg-blue-500/30",
-      overlay: "from-blue-900/60",
-    },
-    node: {
-      border: "border-purple-500/30",
-      glow: "hover:shadow-purple-500/40",
-      badge: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-      rate: "text-purple-400",
-      btn: "bg-purple-500/20 text-purple-300 border-purple-500/30 hover:bg-purple-500/30",
-      overlay: "from-purple-900/60",
-    },
-    leader: {
-      border: "border-emerald-500/30",
-      glow: "hover:shadow-emerald-500/40",
-      badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-      rate: "text-emerald-400",
-      btn: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30",
-      overlay: "from-emerald-900/60",
-    },
-    meme: {
-      border: "border-pink-500/30",
-      glow: "hover:shadow-pink-500/40",
-      badge: "bg-pink-500/20 text-pink-300 border-pink-500/30",
-      rate: "text-pink-400",
-      btn: "bg-pink-500/20 text-pink-300 border-pink-500/30 hover:bg-pink-500/30",
-      overlay: "from-pink-900/60",
-    },
-    influencer: {
-      border: "border-orange-500/30",
-      glow: "hover:shadow-orange-500/40",
-      badge: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-      rate: "text-orange-400",
-      btn: "bg-orange-500/20 text-orange-300 border-orange-500/30 hover:bg-orange-500/30",
-      overlay: "from-orange-900/60",
-    },
+// ─── 뷰 타입 ──────────────────────────────────────────────────────────────────
+type ViewType = "A" | "B" | "C";
+
+// ─── 카드 타입 A: 손글씨 B 스타일 ────────────────────────────────────────────
+function PlanCardA({ plan, collectionColor }: { plan: any; collectionColor: string }) {
+  const colorMap: Record<string, { accent: string; bg: string; border: string }> = {
+    golden: { accent: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.3)" },
+    self: { accent: "#3b82f6", bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.3)" },
+    node: { accent: "#8b5cf6", bg: "rgba(139,92,246,0.08)", border: "rgba(139,92,246,0.3)" },
+    leader: { accent: "#10b981", bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.3)" },
+    meme: { accent: "#ec4899", bg: "rgba(236,72,153,0.08)", border: "rgba(236,72,153,0.3)" },
+    influencer: { accent: "#f97316", bg: "rgba(249,115,22,0.08)", border: "rgba(249,115,22,0.3)" },
   };
-
   const c = colorMap[collectionColor] || colorMap.golden;
 
   return (
     <Link href={`/plan/${plan.id}`}>
       <div
-        className={`relative bg-[#0d0d0d] border ${c.border} rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${c.glow} group`}
+        className="relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group"
+        style={{ background: c.bg, border: `1.5px solid ${c.border}` }}
       >
-        {/* 카드 이미지 영역 - 호버 시 확대 */}
-        <div className="relative h-36 overflow-hidden">
-          {/* 썸네일 배경 이미지 */}
-          {Array.isArray((plan as any).thumbnailImages) && (plan as any).thumbnailImages.length > 0 && (
-            <img
-              src={(plan as any).thumbnailImages[0]}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover opacity-30 transition-transform duration-500 group-hover:scale-110"
-            />
-          )}
-          {plan.logoUrl ? (
-            <img
-              src={plan.logoUrl}
-              alt={plan.name}
-              className="relative z-10 w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110"
-            />
-          ) : (
-            <div className={`w-full h-full flex items-center justify-center transition-transform duration-500 group-hover:scale-110 ${
-              collectionColor === "golden" ? "bg-gradient-to-br from-amber-900/40 to-amber-600/20" :
-              collectionColor === "self" ? "bg-gradient-to-br from-blue-900/40 to-blue-600/20" :
-              "bg-gradient-to-br from-purple-900/40 to-purple-600/20"
-            }`}>
-              <span className={`text-5xl font-black opacity-30 ${c.rate}`}>
-                {plan.name.charAt(0)}
-              </span>
-            </div>
-          )}
-          {/* 오버레이 그라디언트 */}
-          <div className={`absolute inset-0 bg-gradient-to-t ${c.overlay} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-          {/* 하이라이트 배지 */}
-          {plan.isHighlight && (
-            <div className="absolute top-2 right-2">
-              <Badge className="text-[10px] px-1.5 py-0.5 bg-amber-500/90 text-black border-0 font-bold">HOT</Badge>
-            </div>
-          )}
-        </div>
+        {/* 썸네일 배경 */}
+        {Array.isArray(plan.thumbnailImages) && plan.thumbnailImages.length > 0 && (
+          <img
+            src={plan.thumbnailImages[0]}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover opacity-10 group-hover:opacity-20 transition-opacity duration-300"
+          />
+        )}
+        {plan.isHighlight && (
+          <div className="absolute top-2 right-2 z-10">
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold text-black" style={{ background: c.accent }}>HOT</span>
+          </div>
+        )}
 
-        {/* 카드 내용 */}
-        <div className="p-4">
-          {/* 상단 라인 (하이라이트) */}
-          {plan.isHighlight && (
-            <div className={`absolute top-0 left-0 right-0 h-[2px] ${
-              collectionColor === "golden" ? "bg-gradient-to-r from-transparent via-amber-400 to-transparent" :
-              collectionColor === "self" ? "bg-gradient-to-r from-transparent via-blue-400 to-transparent" :
-              "bg-gradient-to-r from-transparent via-purple-400 to-transparent"
-            }`} />
-          )}
-
-          {/* 이름 */}
-          <div className="font-bold text-white text-sm truncate mb-1">{plan.name}</div>
-          {plan.strategy && (
-            <div className="text-xs text-gray-500 truncate mb-2">{plan.strategy}</div>
-          )}
-
-          {/* 배지 태그 */}
-          {badges.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
-              {badges.slice(0, 3).map((b: string, idx: number) => (
-                <span key={idx} className={`text-[10px] px-2 py-0.5 rounded-full border ${c.badge}`}>
-                  {b}
+        <div className="relative z-10 p-4">
+          {/* 손글씨 스타일 이니셜 */}
+          <div className="flex items-center gap-3 mb-3">
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden"
+              style={{ background: `linear-gradient(135deg, ${c.accent}33, ${c.accent}11)`, border: `2px solid ${c.accent}44` }}
+            >
+              {plan.logoUrl ? (
+                <img src={plan.logoUrl} alt={plan.name} className="w-full h-full object-contain p-1" />
+              ) : (
+                <span
+                  className="font-black text-3xl"
+                  style={{
+                    color: c.accent,
+                    fontFamily: "'Dancing Script', 'Caveat', cursive",
+                    textShadow: `0 0 20px ${c.accent}66`,
+                    filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
+                  }}
+                >
+                  {plan.name.charAt(0)}
                 </span>
-              ))}
+              )}
             </div>
-          )}
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-sm truncate" style={{ color: c.accent }}>{plan.name}</div>
+              {plan.strategy && <div className="text-xs text-gray-500 truncate">{plan.strategy}</div>}
+            </div>
+          </div>
 
-          {/* Ratio / Yield 정보 */}
-          {((plan as any).ratioInfo || (plan as any).yieldInfo) && (
-            <div className="grid grid-cols-2 gap-1 mb-2">
-              {(plan as any).ratioInfo && (
-                <div className="bg-white/5 rounded-lg p-2">
-                  <div className="text-[9px] text-gray-500 mb-0.5">Ratio</div>
-                  <div className="text-[11px] font-bold text-white">{(plan as any).ratioInfo}</div>
-                </div>
-              )}
-              {(plan as any).yieldInfo && (
-                <div className="bg-white/5 rounded-lg p-2">
-                  <div className="text-[9px] text-gray-500 mb-0.5">Yield</div>
-                  <div className={`text-[11px] font-bold ${c.rate}`}>{(plan as any).yieldInfo}</div>
-                </div>
-              )}
-            </div>
-          )}
-          {/* 수익률 */}
-          <div className="mb-2">
-            <div className={`text-2xl font-bold ${c.rate}`}>
+          {/* 수익률 크게 표시 */}
+          <div className="text-center py-2">
+            <div className="text-3xl font-black" style={{ color: c.accent, fontFamily: "'Dancing Script', cursive" }}>
               {Number(plan.dailyRate).toFixed(2)}%
             </div>
             <div className="text-xs text-gray-500">Daily Return</div>
           </div>
+
           {/* 추천금액 */}
-          {(plan as any).recommendedAmount && (
-            <div className="text-xs text-gray-400 mb-2">
-              추천금액: <span className={`font-bold ${c.rate}`}>{Number((plan as any).recommendedAmount).toLocaleString()} USDT</span>
+          {plan.recommendedAmount && (
+            <div className="text-center text-xs text-gray-400 mt-1">
+              추천: <span className="font-bold" style={{ color: c.accent }}>{Number(plan.recommendedAmount).toLocaleString()} USDT</span>
             </div>
           )}
-
-          {/* 별점 */}
-          <div className="flex items-center gap-1 mb-3">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <Star
-                key={s}
-                className={`w-3 h-3 ${s <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-gray-600"}`}
-              />
-            ))}
-            <span className="text-xs text-gray-500 ml-1">{rating.toFixed(1)}</span>
-          </div>
-
-          {/* 버튼 */}
-          <button className={`w-full py-2 rounded-lg text-xs font-semibold transition-all duration-200 border ${c.btn}`}>
-            View Details →
-          </button>
         </div>
       </div>
     </Link>
   );
 }
 
+// ─── 카드 타입 B: 게시판 한줄형 ──────────────────────────────────────────────
+function PlanCardB({ plan, collectionColor }: { plan: any; collectionColor: string }) {
+  const colorMap: Record<string, { accent: string; dot: string }> = {
+    golden: { accent: "text-amber-400", dot: "bg-amber-400" },
+    self: { accent: "text-blue-400", dot: "bg-blue-400" },
+    node: { accent: "text-purple-400", dot: "bg-purple-400" },
+    leader: { accent: "text-emerald-400", dot: "bg-emerald-400" },
+    meme: { accent: "text-pink-400", dot: "bg-pink-400" },
+    influencer: { accent: "text-orange-400", dot: "bg-orange-400" },
+  };
+  const c = colorMap[collectionColor] || colorMap.golden;
+
+  return (
+    <Link href={`/plan/${plan.id}`}>
+      <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 dark:hover:bg-white/5 hover:bg-black/5 transition-colors cursor-pointer border-b border-white/5 dark:border-white/5 border-black/5 group">
+        {/* 로고 */}
+        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-white/5">
+          {plan.logoUrl ? (
+            <img src={plan.logoUrl} alt={plan.name} className="w-full h-full object-contain p-0.5" />
+          ) : (
+            <div className={`w-full h-full flex items-center justify-center text-sm font-bold ${c.accent}`}>
+              {plan.name.charAt(0)}
+            </div>
+          )}
+        </div>
+
+        {/* 이름 + 전략 */}
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold truncate dark:text-white text-gray-900">{plan.name}</div>
+          {plan.strategy && <div className="text-xs text-gray-500 truncate">{plan.strategy}</div>}
+        </div>
+
+        {/* 수익률 */}
+        <div className="text-right flex-shrink-0">
+          <div className={`text-sm font-bold ${c.accent}`}>{Number(plan.dailyRate).toFixed(2)}%</div>
+          <div className="text-[10px] text-gray-500">Daily</div>
+        </div>
+
+        {/* HOT 배지 */}
+        {plan.isHighlight && (
+          <span className="text-[9px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold flex-shrink-0">HOT</span>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+// ─── 카드 타입 C: 현재 방식 (기존 PlanCard) ──────────────────────────────────
+function PlanCardC({ plan, collectionColor }: { plan: any; collectionColor: string }) {
+  const badges: string[] = Array.isArray(plan.badgeLabels) ? plan.badgeLabels : [];
+  const rating = Number(plan.rating) || 4.0;
+
+  const colorMap: Record<string, { border: string; glow: string; badge: string; rate: string; btn: string; overlay: string }> = {
+    golden: { border: "border-amber-500/30", glow: "hover:shadow-amber-500/40", badge: "bg-amber-500/20 text-amber-300 border-amber-500/30", rate: "text-amber-400", btn: "bg-amber-500/20 text-amber-300 border-amber-500/30 hover:bg-amber-500/30", overlay: "from-amber-900/60" },
+    self: { border: "border-blue-500/30", glow: "hover:shadow-blue-500/40", badge: "bg-blue-500/20 text-blue-300 border-blue-500/30", rate: "text-blue-400", btn: "bg-blue-500/20 text-blue-300 border-blue-500/30 hover:bg-blue-500/30", overlay: "from-blue-900/60" },
+    node: { border: "border-purple-500/30", glow: "hover:shadow-purple-500/40", badge: "bg-purple-500/20 text-purple-300 border-purple-500/30", rate: "text-purple-400", btn: "bg-purple-500/20 text-purple-300 border-purple-500/30 hover:bg-purple-500/30", overlay: "from-purple-900/60" },
+    leader: { border: "border-emerald-500/30", glow: "hover:shadow-emerald-500/40", badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30", rate: "text-emerald-400", btn: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30", overlay: "from-emerald-900/60" },
+    meme: { border: "border-pink-500/30", glow: "hover:shadow-pink-500/40", badge: "bg-pink-500/20 text-pink-300 border-pink-500/30", rate: "text-pink-400", btn: "bg-pink-500/20 text-pink-300 border-pink-500/30 hover:bg-pink-500/30", overlay: "from-pink-900/60" },
+    influencer: { border: "border-orange-500/30", glow: "hover:shadow-orange-500/40", badge: "bg-orange-500/20 text-orange-300 border-orange-500/30", rate: "text-orange-400", btn: "bg-orange-500/20 text-orange-300 border-orange-500/30 hover:bg-orange-500/30", overlay: "from-orange-900/60" },
+  };
+  const c = colorMap[collectionColor] || colorMap.golden;
+
+  return (
+    <Link href={`/plan/${plan.id}`}>
+      <div className={`relative bg-[#0d0d0d] dark:bg-[#0d0d0d] border ${c.border} rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${c.glow} group`}>
+        <div className="relative h-36 overflow-hidden">
+          {Array.isArray(plan.thumbnailImages) && plan.thumbnailImages.length > 0 && (
+            <img src={plan.thumbnailImages[0]} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 transition-transform duration-500 group-hover:scale-110" />
+          )}
+          {plan.logoUrl ? (
+            <img src={plan.logoUrl} alt={plan.name} className="relative z-10 w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110" />
+          ) : (
+            <div className={`w-full h-full flex items-center justify-center`}>
+              <span className={`text-5xl font-black opacity-30 ${c.rate}`}>{plan.name.charAt(0)}</span>
+            </div>
+          )}
+          <div className={`absolute inset-0 bg-gradient-to-t ${c.overlay} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+          {plan.isHighlight && (
+            <div className="absolute top-2 right-2">
+              <Badge className="text-[10px] px-1.5 py-0.5 bg-amber-500/90 text-black border-0 font-bold">HOT</Badge>
+            </div>
+          )}
+        </div>
+        <div className="p-4">
+          <div className="font-bold text-white text-sm truncate mb-1">{plan.name}</div>
+          {plan.strategy && <div className="text-xs text-gray-500 truncate mb-2">{plan.strategy}</div>}
+          {badges.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-3">
+              {badges.slice(0, 3).map((b: string, idx: number) => (
+                <span key={idx} className={`text-[10px] px-2 py-0.5 rounded-full border ${c.badge}`}>{b}</span>
+              ))}
+            </div>
+          )}
+          {(plan.ratioInfo || plan.yieldInfo) && (
+            <div className="grid grid-cols-2 gap-1 mb-2">
+              {plan.ratioInfo && <div className="bg-white/5 rounded-lg p-2"><div className="text-[9px] text-gray-500 mb-0.5">Ratio</div><div className="text-[11px] font-bold text-white">{plan.ratioInfo}</div></div>}
+              {plan.yieldInfo && <div className="bg-white/5 rounded-lg p-2"><div className="text-[9px] text-gray-500 mb-0.5">Yield</div><div className={`text-[11px] font-bold ${c.rate}`}>{plan.yieldInfo}</div></div>}
+            </div>
+          )}
+          <div className="mb-2">
+            <div className={`text-2xl font-bold ${c.rate}`}>{Number(plan.dailyRate).toFixed(2)}%</div>
+            <div className="text-xs text-gray-500">Daily Return</div>
+          </div>
+          {plan.recommendedAmount && (
+            <div className="text-xs text-gray-400 mb-2">추천금액: <span className={`font-bold ${c.rate}`}>{Number(plan.recommendedAmount).toLocaleString()} USDT</span></div>
+          )}
+          <div className="flex items-center gap-1 mb-3">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star key={s} className={`w-3 h-3 ${s <= Math.round(rating) ? "text-amber-400 fill-amber-400" : "text-gray-600"}`} />
+            ))}
+            <span className="text-xs text-gray-500 ml-1">{rating.toFixed(1)}</span>
+          </div>
+          <button className={`w-full py-2 rounded-lg text-xs font-semibold transition-all duration-200 border ${c.btn}`}>View Details →</button>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// ─── 금융 위젯 ────────────────────────────────────────────────────────────────
+function MarketWidget({ isDark }: { isDark: boolean }) {
+  const { data: marketData, isLoading, refetch } = trpc.market.prices.useQuery(undefined, {
+    refetchInterval: 60000, // 1분마다 갱신
+    staleTime: 30000,
+  });
+
+  const bgCard = isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200 shadow-sm";
+  const textPrimary = isDark ? "text-white" : "text-gray-900";
+  const textSecondary = isDark ? "text-gray-400" : "text-gray-500";
+
+  if (isLoading) {
+    return (
+      <div className={`rounded-xl p-4 border ${bgCard} mb-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <TrendingUp className="w-4 h-4 text-amber-400" />
+          <span className={`text-sm font-bold ${textPrimary}`}>금융 시장</span>
+        </div>
+        <div className="animate-pulse space-y-2">
+          {[1, 2, 3].map(i => <div key={i} className="h-8 bg-white/5 rounded-lg" />)}
+        </div>
+      </div>
+    );
+  }
+
+  const crypto = marketData?.crypto;
+  const fx = marketData?.fx;
+
+  const cryptoItems = crypto ? [
+    { symbol: "BTC", price: crypto.BTC.usd, change: crypto.BTC.change24h, icon: "₿" },
+    { symbol: "ETH", price: crypto.ETH.usd, change: crypto.ETH.change24h, icon: "Ξ" },
+    { symbol: "BNB", price: crypto.BNB.usd, change: crypto.BNB.change24h, icon: "B" },
+    { symbol: "SOL", price: crypto.SOL.usd, change: crypto.SOL.change24h, icon: "◎" },
+  ] : [];
+
+  return (
+    <div className={`rounded-xl border ${bgCard} mb-4 overflow-hidden`}>
+      <div className="px-4 py-3 flex items-center justify-between border-b border-white/5">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-amber-400" />
+          <span className={`text-sm font-bold ${textPrimary}`}>금융 시장</span>
+          {fx && (
+            <span className={`text-xs ${textSecondary}`}>USD/KRW ₩{fx.KRW?.toLocaleString()}</span>
+          )}
+        </div>
+        <button onClick={() => refetch()} className="text-gray-500 hover:text-amber-400 transition-colors">
+          <RefreshCw className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* 암호화폐 가격 */}
+      <div className="divide-y divide-white/5">
+        {cryptoItems.map((item) => (
+          <div key={item.symbol} className="flex items-center justify-between px-4 py-2.5 hover:bg-white/3 transition-colors">
+            <div className="flex items-center gap-2.5">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${
+                item.symbol === "BTC" ? "bg-orange-500/20 text-orange-400" :
+                item.symbol === "ETH" ? "bg-blue-500/20 text-blue-400" :
+                item.symbol === "BNB" ? "bg-yellow-500/20 text-yellow-400" :
+                "bg-purple-500/20 text-purple-400"
+              }`}>
+                {item.icon}
+              </div>
+              <span className={`text-sm font-semibold ${textPrimary}`}>{item.symbol}</span>
+            </div>
+            <div className="text-right">
+              <div className={`text-sm font-bold ${textPrimary}`}>
+                ${item.price >= 1000 ? item.price.toLocaleString() : item.price.toFixed(2)}
+              </div>
+              <div className={`text-xs flex items-center gap-0.5 justify-end ${item.change >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                {item.change >= 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+                {Math.abs(item.change).toFixed(2)}%
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 환율 */}
+      {fx && (
+        <div className="px-4 py-2.5 border-t border-white/5">
+          <div className={`text-[10px] ${textSecondary} mb-2`}>주요 환율 (1 USD 기준)</div>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: "KRW", value: `₩${fx.KRW?.toLocaleString()}` },
+              { label: "JPY", value: `¥${fx.JPY?.toFixed(0)}` },
+              { label: "EUR", value: `€${fx.EUR?.toFixed(3)}` },
+              { label: "CNY", value: `¥${fx.CNY?.toFixed(2)}` },
+            ].map((item) => (
+              <div key={item.label} className={`text-center p-1.5 rounded-lg ${isDark ? "bg-white/5" : "bg-gray-50"}`}>
+                <div className={`text-[9px] ${textSecondary}`}>{item.label}</div>
+                <div className={`text-[10px] font-bold ${textPrimary}`}>{item.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── 광고 슬라이더 ────────────────────────────────────────────────────────────
+function AdSlider({ adImages }: { adImages: { src: string; title: string; link: string }[] }) {
+  const [current, setCurrent] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const next = useCallback(() => setCurrent(c => (c + 1) % adImages.length), [adImages.length]);
+  const prev = useCallback(() => setCurrent(c => (c - 1 + adImages.length) % adImages.length), [adImages.length]);
+
+  useEffect(() => {
+    timerRef.current = setInterval(next, 4000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [next]);
+
+  if (adImages.length === 0) return null;
+
+  return (
+    <div className="relative overflow-hidden rounded-xl mb-4" style={{ aspectRatio: "16/6" }}>
+      {adImages.map((ad, i) => (
+        <div
+          key={i}
+          className={`absolute inset-0 transition-opacity duration-700 ${i === current ? "opacity-100" : "opacity-0"}`}
+        >
+          <img src={ad.src} alt={ad.title} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        </div>
+      ))}
+
+      {/* 이전/다음 버튼 */}
+      <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 flex items-center justify-center text-white hover:bg-black/60 transition-colors">
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+      <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 flex items-center justify-center text-white hover:bg-black/60 transition-colors">
+        <ChevronRight className="w-4 h-4" />
+      </button>
+
+      {/* 인디케이터 */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+        {adImages.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`h-1 rounded-full transition-all duration-300 ${i === current ? "w-4 bg-white" : "w-1 bg-white/50"}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── 컬렉션 섹션 ──────────────────────────────────────────────────────────────
 function CollectionSection({
-  title, subtitle, plans, color, href, icon,
+  title, subtitle, plans, color, href, icon, viewType, isDark,
 }: {
   title: string; subtitle: string; plans: any[];
   color: string; href: string; icon: React.ReactNode;
+  viewType: ViewType; isDark: boolean;
 }) {
   const colorMap: Record<string, { title: string; dot: string; btn: string }> = {
     golden: { title: "text-amber-400", dot: "bg-amber-400", btn: "text-amber-400 border-amber-400/30 hover:bg-amber-400/10" },
@@ -218,39 +407,52 @@ function CollectionSection({
   };
   const c = colorMap[color] || colorMap.golden;
 
+  if (plans.length === 0) {
+    return (
+      <section className="mb-10">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${c.dot}`} />
+            <h2 className={`text-base font-bold ${c.title} flex items-center gap-1.5`}>{icon} {title}</h2>
+          </div>
+        </div>
+        <div className={`rounded-xl p-6 text-center border ${isDark ? "bg-[#111111] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+          <div className="text-gray-500 text-sm">Coming Soon</div>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="mb-14">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
+    <section className="mb-10">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${c.dot} animate-pulse`} />
           <div>
-            <h2 className={`text-xl font-bold ${c.title} flex items-center gap-2`}>
-              {icon} {title}
-            </h2>
-            <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
+            <h2 className={`text-base font-bold ${c.title} flex items-center gap-1.5`}>{icon} {title}</h2>
+            <p className="text-[10px] text-gray-500">{subtitle}</p>
           </div>
         </div>
         <Link href={href}>
-          <button className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${c.btn}`}>
-            View All <ChevronRight className="w-3 h-3 inline" />
+          <button className={`flex items-center gap-1 text-xs border rounded-lg px-2.5 py-1 transition-colors ${c.btn}`}>
+            전체보기 <ChevronRight className="w-3 h-3" />
           </button>
         </Link>
       </div>
-      {plans.length === 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="rounded-2xl border border-white/5 bg-white/2 p-6 flex flex-col items-center justify-center gap-3 min-h-[200px]">
-              <div className={`w-12 h-12 rounded-full ${c.dot.replace('bg-', 'bg-').replace('-400', '-400/20')} flex items-center justify-center`}>
-                <span className="text-2xl opacity-30">{icon}</span>
-              </div>
-              <p className="text-xs text-gray-600 text-center">Coming Soon</p>
-            </div>
+
+      {/* 뷰 타입에 따른 렌더링 */}
+      {viewType === "B" ? (
+        <div className={`rounded-xl border overflow-hidden ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-white border-gray-200"}`}>
+          {plans.slice(0, 6).map((plan) => (
+            <PlanCardB key={plan.id} plan={plan} collectionColor={color} />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {plans.slice(0, 4).map((plan: any) => (
-            <PlanCard key={plan.id} plan={plan} collectionColor={color} />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {plans.slice(0, 4).map((plan) => (
+            viewType === "A"
+              ? <PlanCardA key={plan.id} plan={plan} collectionColor={color} />
+              : <PlanCardC key={plan.id} plan={plan} collectionColor={color} />
           ))}
         </div>
       )}
@@ -258,15 +460,26 @@ function CollectionSection({
   );
 }
 
-// ─── 메인 홈 페이지 ───────────────────────────────────────────────────────────
+// ─── 메인 홈 컴포넌트 ─────────────────────────────────────────────────────────
 export default function Home() {
   const { t } = useTranslation();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user: authUser, isAuthenticated } = useAuth();
   const { isConnected, address, openModal, disconnectWallet } = useWallet();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [noticeIndex, setNoticeIndex] = useState(0);
-  const [cartCount] = useState(0);
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const [showReferralModal, setShowReferralModal] = useState(false);
+  const [meetingNotice, setMeetingNotice] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("recommend");
+  const [viewType, setViewType] = useState<ViewType>("C");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  // 데이터 로드
   const { data: goldenPlans = [] } = trpc.public.goldenPlans.useQuery();
   const { data: selfPlans = [] } = trpc.public.selfPlans.useQuery();
   const { data: nodePlans = [] } = trpc.public.nodePlans.useQuery();
@@ -275,54 +488,74 @@ export default function Home() {
   const { data: influencerPlans = [] } = trpc.public.influencerPlans.useQuery();
   const { data: notices = [] } = trpc.public.notices.useQuery();
   const { data: banners = [] } = trpc.public.banners.useQuery();
-  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
-  const [showReferralModal, setShowReferralModal] = useState(false);
-  const [meetingNotice, setMeetingNotice] = useState<any | null>(null);
+  const { data: allPlans = [] } = trpc.public.plans.useQuery({});
 
-  // 공지 롤링
+  // 장바구니 (로컬스토리지)
+  const [cartCount, setCartCount] = useState(0);
   useEffect(() => {
-    if (notices.length <= 1) return;
-    const timer = setInterval(() => {
-      setNoticeIndex((i) => (i + 1) % notices.length);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [notices.length]);
+    const cart = JSON.parse(localStorage.getItem("alphabag-cart") || "[]");
+    setCartCount(cart.length);
+  }, []);
 
-  const currentNotice = notices[noticeIndex];
-
-  // 미팅 공지 자동 표시 (type === 'meeting'인 최신 공지)
+  // 검색 기능
   useEffect(() => {
-    const meetingNotices = (notices as any[]).filter((n: any) => n.type === 'meeting' && n.isActive);
-    if (meetingNotices.length > 0 && !meetingNotice) {
-      // 자동 팝업은 하지 않고 버튼으로만 표시
+    if (searchQuery.trim().length < 1) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
     }
-  }, [notices]);
+    const q = searchQuery.toLowerCase();
+    const results = (allPlans as any[]).filter((p: any) =>
+      p.name?.toLowerCase().includes(q) ||
+      p.strategy?.toLowerCase().includes(q) ||
+      (Array.isArray(p.badgeLabels) && p.badgeLabels.some((b: string) => b.toLowerCase().includes(q)))
+    );
+    setSearchResults(results.slice(0, 8));
+    setShowSearchResults(true);
+  }, [searchQuery, allPlans]);
 
-  // 광고 배너 이미지 (DB 배너 없으면 기본 이미지 사용)
+  // 외부 클릭 시 검색 결과 닫기
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSearchResults(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // 광고 이미지
   const adImages = (banners as any[]).length > 0
-    ? (banners as any[]).slice(0, 2).map((b: any) => ({ src: b.imageUrl || AD_DOLLARS, link: b.linkUrl || "#", title: b.title }))
+    ? (banners as any[]).slice(0, 3).map((b: any) => ({ src: b.imageUrl || AD_DOLLARS, link: b.linkUrl || "#", title: b.title }))
     : [
         { src: AD_DOLLARS, link: "#", title: "Investment Opportunities" },
         { src: AD_TRADING, link: "#", title: "Crypto Trading" },
       ];
 
+  // 테마 색상
+  const bg = isDark ? "bg-[#0a0a0a]" : "bg-gray-50";
+  const navBg = isDark ? "bg-[#0a0a0a]/95 border-white/5" : "bg-white/95 border-gray-200";
+  const textPrimary = isDark ? "text-white" : "text-gray-900";
+  const textSecondary = isDark ? "text-gray-400" : "text-gray-500";
+  const cardBg = isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200 shadow-sm";
+  const searchBg = isDark ? "bg-[#1a1a1a] border-white/10 text-white placeholder-gray-500" : "bg-white border-gray-300 text-gray-900 placeholder-gray-400";
+  const tabActiveBg = isDark ? "bg-[#1a1a1a] text-white" : "bg-white text-gray-900 shadow-sm";
+  const tabInactiveBg = isDark ? "text-gray-500 hover:text-gray-300" : "text-gray-500 hover:text-gray-700";
+
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className={`min-h-screen ${bg} ${textPrimary} transition-colors duration-300`}>
       {/* ─── 상단 네비게이션 ─── */}
-      <nav className="sticky top-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="h-16 flex items-center justify-between gap-4">
+      <nav className={`sticky top-0 z-50 backdrop-blur-xl border-b ${navBg}`}>
+        <div className="max-w-7xl mx-auto px-3">
+          <div className="h-14 flex items-center justify-between gap-3">
             {/* 로고 */}
             <Link href="/">
-              <div className="flex items-center gap-2.5 cursor-pointer flex-shrink-0">
-                <img
-                  src={ALPHABAG_LOGO}
-                  alt="AlphaBag"
-                  className="w-9 h-9 rounded-lg object-contain bg-black"
-                />
-                <div>
-                  <div className="font-black text-white text-base leading-tight">AlphaBag</div>
-                  <div className="text-[10px] text-amber-400/70 leading-tight">Multi-Asset</div>
+              <div className="flex items-center gap-2 cursor-pointer flex-shrink-0">
+                <img src={ALPHABAG_LOGO} alt="AlphaBag" className="w-8 h-8 rounded-lg object-contain bg-black" />
+                <div className="hidden sm:block">
+                  <div className={`font-black text-sm leading-tight ${textPrimary}`}>AlphaBag</div>
+                  <div className="text-[9px] text-amber-400/70 leading-tight">Multi-Asset</div>
                 </div>
               </div>
             </Link>
@@ -330,29 +563,35 @@ export default function Home() {
             {/* 데스크탑 메뉴 */}
             <div className="hidden md:flex items-center gap-0.5">
               {[
-                { href: "/golden", label: "Golden", cls: "hover:text-amber-400 hover:bg-amber-400/5" },
-                { href: "/self", label: "Self", cls: "hover:text-blue-400 hover:bg-blue-400/5" },
-                { href: "/node", label: "Node", cls: "hover:text-purple-400 hover:bg-purple-400/5" },
-                { href: "/notices", label: "Notices", cls: "hover:text-white hover:bg-white/5" },
+                { href: "/golden", label: "Golden", cls: "hover:text-amber-400" },
+                { href: "/self", label: "Self", cls: "hover:text-blue-400" },
+                { href: "/node", label: "Node", cls: "hover:text-purple-400" },
+                { href: "/notices", label: "Notices", cls: `hover:${isDark ? "text-white" : "text-gray-900"}` },
               ].map((item) => (
                 <Link key={item.href} href={item.href}>
-                  <button className={`px-3 py-1.5 text-xs text-gray-400 rounded-lg transition-colors ${item.cls}`}>
-                    {item.label}
-                  </button>
+                  <button className={`px-3 py-1.5 text-xs ${textSecondary} rounded-lg transition-colors ${item.cls}`}>{item.label}</button>
                 </Link>
               ))}
             </div>
 
             {/* 우측 액션 */}
-            <div className="flex items-center gap-2">
-              {/* 언어 전환 */}
+            <div className="flex items-center gap-1.5">
               <LanguageSwitcher />
 
-              {/* 지갑 연결 버튼 */}
+              {/* 테마 토글 */}
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-lg transition-colors ${isDark ? "text-gray-400 hover:text-amber-400 hover:bg-amber-400/10" : "text-gray-500 hover:text-amber-500 hover:bg-amber-50"}`}
+                title={isDark ? "라이트 모드" : "다크 모드"}
+              >
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+
+              {/* 지갑 연결 */}
               {isConnected ? (
                 <button
                   onClick={disconnectWallet}
-                  className="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-medium hover:bg-amber-500/30 transition-all"
+                  className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-medium hover:bg-amber-500/30 transition-all"
                 >
                   <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
                   {address?.slice(0, 6)}...{address?.slice(-4)}
@@ -360,40 +599,25 @@ export default function Home() {
               ) : (
                 <button
                   onClick={openModal}
-                  className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold transition-all"
+                  className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold transition-all"
                 >
-                  <Wallet className="w-3.5 h-3.5" />
-                  지갑 연결
+                  <Wallet className="w-3 h-3" />
+                  <span className="hidden sm:inline">지갑 연결</span>
                 </button>
               )}
 
               {/* 장바구니 */}
               <Link href="/cart">
-                <button className="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs font-medium hover:bg-amber-500/20 transition-all">
+                <button className={`relative flex items-center h-8 px-2.5 rounded-lg border transition-all ${isDark ? "border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20" : "border-amber-400/40 bg-amber-50 text-amber-600 hover:bg-amber-100"}`}>
                   <ShoppingCart className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">장바구니</span>
                   {cartCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-amber-500 text-black text-[10px] font-bold flex items-center justify-center">
-                      {cartCount}
-                    </span>
+                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-amber-500 text-black text-[10px] font-bold flex items-center justify-center">{cartCount}</span>
                   )}
                 </button>
               </Link>
 
-              {/* 대시보드 (로그인 시) */}
-              {isAuthenticated && (
-                <Link href="/dashboard">
-                  <Button size="sm" variant="ghost" className="text-xs text-gray-400 hover:text-white h-9 px-2">
-                    <BarChart3 className="w-3.5 h-3.5" />
-                  </Button>
-                </Link>
-              )}
-
               {/* 모바일 메뉴 */}
-              <button
-                className="md:hidden p-1.5 text-gray-400 hover:text-white"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
+              <button className={`md:hidden p-1.5 ${textSecondary}`} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                 {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
               </button>
             </div>
@@ -402,19 +626,16 @@ export default function Home() {
 
         {/* 모바일 메뉴 */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/5 bg-[#0d0d0d] px-4 py-3 space-y-1">
+          <div className={`md:hidden border-t px-4 py-3 space-y-1 ${isDark ? "border-white/5 bg-[#0d0d0d]" : "border-gray-100 bg-white"}`}>
             {[
               { href: "/golden", label: "Golden Collection", color: "text-amber-400" },
               { href: "/self", label: "Self Collection", color: "text-blue-400" },
               { href: "/node", label: "Node Products", color: "text-purple-400" },
-              { href: "/notices", label: "Notices", color: "text-gray-300" },
-              { href: "/dashboard", label: "Dashboard", color: "text-gray-300" },
+              { href: "/notices", label: "Notices", color: textSecondary },
+              { href: "/dashboard", label: "Dashboard", color: textSecondary },
             ].map((item) => (
               <Link key={item.href} href={item.href}>
-                <button
-                  className={`w-full text-left px-3 py-2 text-sm ${item.color} hover:bg-white/5 rounded-lg transition-colors`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
+                <button className={`w-full text-left px-3 py-2 text-sm ${item.color} hover:bg-white/5 rounded-lg transition-colors`} onClick={() => setMobileMenuOpen(false)}>
                   {item.label}
                 </button>
               </Link>
@@ -423,212 +644,295 @@ export default function Home() {
         )}
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-3 py-4">
 
-        {/* ─── 히어로 + 공지 섹션 (2열 레이아웃) ─── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* 좌측: 타이틀 + 설명 */}
-          <div className="flex flex-col justify-center">
-            <h1 className="text-3xl md:text-4xl font-black mb-3 leading-tight">
-              <span className="text-amber-400">AlphaBag</span>
-              <span className="text-white"> • Multi-Asset Platform</span>
-            </h1>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-md">
-              AlphaBag is a community investment platform focused on long-term asset growth through safe diversification.
-            </p>
-
-            {/* 통계 */}
-            <div className="flex items-center gap-6">
-              {[
-                { label: "Total Users", value: "663+" },
-                { label: "Total Invested", value: "$214K+" },
-                { label: "Active Plans", value: "17" },
-              ].map((stat) => (
-                <div key={stat.label}>
-                  <div className="text-lg font-bold text-amber-400">{stat.value}</div>
-                  <div className="text-xs text-gray-500">{stat.label}</div>
-                </div>
-              ))}
-            </div>
+        {/* ─── 검색바 (네이버 스타일) ─── */}
+        <div ref={searchRef} className="relative mb-4">
+          <div className={`flex items-center gap-2 rounded-2xl border px-4 py-3 ${searchBg} shadow-sm`}>
+            <img src={ALPHABAG_LOGO} alt="α" className="w-5 h-5 rounded object-contain bg-black flex-shrink-0" />
+            <input
+              type="text"
+              placeholder="AlphaBag 플랜, 전략 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => searchQuery && setShowSearchResults(true)}
+              className="flex-1 bg-transparent outline-none text-sm"
+            />
+            <button
+              className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0 hover:bg-amber-400 transition-colors"
+              onClick={() => searchQuery && setShowSearchResults(true)}
+            >
+              <Search className="w-4 h-4 text-black" />
+            </button>
           </div>
 
-          {/* 우측: 공지 박스 */}
-          <div className="bg-[#111111] border border-white/10 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-white font-bold text-base">공지</span>
-              <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs px-2 py-0.5">
-                NOTICE
-              </Badge>
+          {/* 검색 결과 드롭다운 */}
+          {showSearchResults && searchResults.length > 0 && (
+            <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border shadow-xl z-50 overflow-hidden ${isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200"}`}>
+              {searchResults.map((plan: any) => (
+                <Link key={plan.id} href={`/plan/${plan.id}`}>
+                  <div
+                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${isDark ? "hover:bg-white/5" : "hover:bg-gray-50"}`}
+                    onClick={() => { setShowSearchResults(false); setSearchQuery(""); }}
+                  >
+                    {plan.logoUrl ? (
+                      <img src={plan.logoUrl} alt={plan.name} className="w-7 h-7 rounded-lg object-contain bg-black/20" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 text-xs font-bold">{plan.name.charAt(0)}</div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-sm font-semibold truncate ${textPrimary}`}>{plan.name}</div>
+                      {plan.strategy && <div className={`text-xs truncate ${textSecondary}`}>{plan.strategy}</div>}
+                    </div>
+                    <div className="text-amber-400 text-sm font-bold">{Number(plan.dailyRate).toFixed(2)}%</div>
+                  </div>
+                </Link>
+              ))}
             </div>
+          )}
+          {showSearchResults && searchResults.length === 0 && searchQuery.trim().length > 0 && (
+            <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border shadow-xl z-50 px-4 py-3 text-sm ${textSecondary} ${isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200"}`}>
+              "{searchQuery}" 검색 결과가 없습니다.
+            </div>
+          )}
+        </div>
 
-            {/* 공지 내용 */}
+        {/* ─── 공지 + 광고 슬라이더 ─── */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
+          {/* 공지 박스 */}
+          <div className={`lg:col-span-2 rounded-xl border p-4 ${cardBg}`}>
+            <div className="flex items-center justify-between mb-3">
+              <span className={`font-bold text-sm ${textPrimary}`}>공지</span>
+              <Badge className={`text-[10px] px-2 py-0.5 ${isDark ? "bg-amber-500/20 text-amber-300 border-amber-500/30" : "bg-amber-100 text-amber-700 border-amber-300"}`}>NOTICE</Badge>
+            </div>
             {(notices as any[]).length > 0 ? (
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2 mb-3">
                 {(notices as any[]).slice(0, 3).map((n: any, i: number) => (
-                  <div key={n.id} className="flex items-start gap-2 text-sm text-gray-300">
+                  <div key={n.id} className={`flex items-start gap-2 text-xs ${textSecondary}`}>
                     <span className="text-amber-400 font-bold flex-shrink-0">{i + 1})</span>
                     <span className="leading-relaxed">{n.title}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="space-y-2 mb-4">
-                <div className="flex items-start gap-2 text-sm text-gray-300">
-                  <span className="text-amber-400 font-bold flex-shrink-0">1)</span>
-                  <span>Golden / Self / Node / CS 는 별도 페이지입니다.</span>
-                </div>
-                <div className="flex items-start gap-2 text-sm text-gray-300">
-                  <span className="text-amber-400 font-bold flex-shrink-0">2)</span>
-                  <span>광고는 이미지 전용(텍스트 없음)입니다.</span>
-                </div>
-                <div className="flex items-start gap-2 text-sm text-gray-300">
-                  <span className="text-amber-400 font-bold flex-shrink-0">3)</span>
-                  <span>지갑 연결 후 Add / Go / Cart 사용 가능합니다.</span>
-                </div>
+              <div className="space-y-2 mb-3">
+                {["Golden / Self / Node / CS 는 별도 페이지입니다.", "광고는 이미지 전용(텍스트 없음)입니다.", "지갑 연결 후 Add / Go / Cart 사용 가능합니다."].map((text, i) => (
+                  <div key={i} className={`flex items-start gap-2 text-xs ${textSecondary}`}>
+                    <span className="text-amber-400 font-bold flex-shrink-0">{i + 1})</span>
+                    <span>{text}</span>
+                  </div>
+                ))}
               </div>
             )}
-
-            {/* 하단 링크 */}
-            <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-white/5">
-              <Link href="/golden">
-                <button className="text-sm text-gray-400 hover:text-amber-400 transition-colors">
-                  골든 컬렉션
-                </button>
-              </Link>
-              <Link href="/notices">
-                <button className="text-sm text-gray-400 hover:text-white transition-colors">
-                  커뮤니티
-                </button>
-              </Link>
-              <button
-                onClick={() => {
-                  const meeting = (notices as any[]).find((n: any) => n.type === 'meeting' && n.isActive);
-                  if (meeting) setMeetingNotice(meeting);
-                  else {
-                    setMeetingNotice({ id: 0, title: '온라인 회의 안내', content: '현재 예정된 온라인 회의가 없습니다.\n새로운 일정이 공지되면 알려드리겠습니다.', meetingPlatform: 'zoom' });
-                  }
-                }}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-amber-400 transition-colors"
-              >
-                <Video className="w-3 h-3" />
-                줌/온라인 회의
+            <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
+              <Link href="/golden"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>골든 컬렉션</button></Link>
+              <Link href="/notices"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>커뮤니티</button></Link>
+              <button onClick={() => {
+                const meeting = (notices as any[]).find((n: any) => n.type === "meeting" && n.isActive);
+                setMeetingNotice(meeting || { id: 0, title: "온라인 회의 안내", content: "현재 예정된 온라인 회의가 없습니다.", meetingPlatform: "zoom" });
+              }} className={`flex items-center gap-1 text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>
+                <Video className="w-3 h-3" /> 줌/온라인 회의
               </button>
-              <button
-                onClick={() => setShowReferralModal(true)}
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-amber-400 transition-colors"
-              >
-                <MessageSquare className="w-3 h-3" />
-                추천글 선택
+              <button onClick={() => setShowReferralModal(true)} className={`flex items-center gap-1 text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>
+                <MessageSquare className="w-3 h-3" /> 추천글 선택
               </button>
             </div>
           </div>
-        </div>
 
-        {/* ─── 광고 이미지 섹션 ─── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-          {/* 첫 번째 광고 이미지 (작은 것) */}
-          <div className="relative overflow-hidden rounded-xl aspect-[4/3] md:aspect-auto md:h-56 group cursor-pointer">
-            <img
-              src={adImages[0].src}
-              alt={adImages[0].title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          </div>
-
-          {/* 두 번째 광고 이미지 (큰 것) */}
-          <div className="relative overflow-hidden rounded-xl aspect-[4/3] md:aspect-auto md:h-56 md:col-span-2 group cursor-pointer">
-            <img
-              src={adImages[1].src}
-              alt={adImages[1].title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          {/* 광고 슬라이더 */}
+          <div className="lg:col-span-3">
+            <AdSlider adImages={adImages} />
           </div>
         </div>
 
-        {/* ─── 골든 컬렉션 ─── */}
-        <CollectionSection
-          title="Golden Collection"
-          subtitle="BINANCE Alpha · Insurance(Hedge) · Daily Returns"
-          plans={goldenPlans as any[]}
-          color="golden"
-          href="/golden"
-          icon={<span className="text-base">🏆</span>}
-        />
+        {/* ─── 소메뉴 탭 (네이버 스타일) ─── */}
+        <div className={`rounded-xl border mb-4 overflow-hidden ${cardBg}`}>
+          <div className="flex overflow-x-auto scrollbar-hide">
+            {SUB_MENUS.map((menu) => (
+              <button
+                key={menu.id}
+                onClick={() => setActiveTab(menu.id)}
+                className={`flex-shrink-0 flex flex-col items-center gap-1 px-4 py-3 text-xs font-medium transition-all border-b-2 ${
+                  activeTab === menu.id
+                    ? `border-amber-400 text-amber-400 ${isDark ? "bg-amber-400/5" : "bg-amber-50"}`
+                    : `border-transparent ${tabInactiveBg}`
+                }`}
+              >
+                <span className="text-base">{menu.icon}</span>
+                <span>{menu.label}</span>
+              </button>
+            ))}
+          </div>
 
-        {/* ─── 셀프 컬렉션 ─── */}
-        <CollectionSection
-          title="Self Collection"
-          subtitle="Custom Strategy · Flexible · Self-managed"
-          plans={selfPlans as any[]}
-          color="self"
-          href="/self"
-          icon={<span className="text-base">⚡</span>}
-        />
+          {/* 탭 콘텐츠 */}
+          <div className="p-4">
+            {activeTab === "recommend" && (
+              <div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>⭐ 추천 플랜</div>
+                <div className="space-y-0">
+                  {(goldenPlans as any[]).filter((p: any) => p.isHighlight).slice(0, 4).map((plan: any) => (
+                    <PlanCardB key={plan.id} plan={plan} collectionColor="golden" />
+                  ))}
+                  {(goldenPlans as any[]).filter((p: any) => p.isHighlight).length === 0 && (
+                    <div className={`text-xs ${textSecondary} text-center py-4`}>추천 플랜이 없습니다.</div>
+                  )}
+                </div>
+              </div>
+            )}
+            {activeTab === "bbag" && (
+              <div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>💰 B Bag 컬렉션</div>
+                <div className="space-y-0">
+                  {(goldenPlans as any[]).slice(0, 5).map((plan: any) => (
+                    <PlanCardB key={plan.id} plan={plan} collectionColor="golden" />
+                  ))}
+                </div>
+              </div>
+            )}
+            {activeTab === "infoweb4" && (
+              <div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>🌐 InfoWeb4 플랜</div>
+                <div className="space-y-0">
+                  {(allPlans as any[]).filter((p: any) => p.infoweb4Url).slice(0, 5).map((plan: any) => (
+                    <PlanCardB key={plan.id} plan={plan} collectionColor="self" />
+                  ))}
+                  {(allPlans as any[]).filter((p: any) => p.infoweb4Url).length === 0 && (
+                    <div className={`text-xs ${textSecondary} text-center py-4`}>infoweb4 연동 플랜이 없습니다.</div>
+                  )}
+                </div>
+              </div>
+            )}
+            {activeTab === "snn" && (
+              <div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>📡 SNN 네트워크</div>
+                <div className="space-y-0">
+                  {(nodePlans as any[]).slice(0, 5).map((plan: any) => (
+                    <PlanCardB key={plan.id} plan={plan} collectionColor="node" />
+                  ))}
+                  {(nodePlans as any[]).length === 0 && (
+                    <div className={`text-xs ${textSecondary} text-center py-4`}>SNN 플랜이 없습니다.</div>
+                  )}
+                </div>
+              </div>
+            )}
+            {activeTab === "news" && (
+              <div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>📰 최신 뉴스</div>
+                <div className="space-y-3">
+                  {[
+                    { title: "AlphaBag 새로운 Golden Collection 출시", time: "2시간 전", category: "공지" },
+                    { title: "BTC 신고가 경신 - 암호화폐 시장 동향", time: "4시간 전", category: "시장" },
+                    { title: "Node 스테이킹 수익률 업데이트", time: "1일 전", category: "업데이트" },
+                    { title: "커뮤니티 미팅 일정 안내", time: "2일 전", category: "이벤트" },
+                  ].map((news, i) => (
+                    <div key={i} className={`flex items-start gap-3 pb-3 border-b last:border-0 ${isDark ? "border-white/5" : "border-gray-100"}`}>
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                        <Newspaper className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-xs font-medium ${textPrimary} leading-relaxed`}>{news.title}</div>
+                        <div className={`text-[10px] ${textSecondary} mt-0.5`}>{news.category} · {news.time}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {activeTab === "contents" && (
+              <div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>🎬 콘텐츠</div>
+                <div className="grid grid-cols-2 gap-3">
+                  {(allPlans as any[]).filter((p: any) => p.videoUrl).slice(0, 4).map((plan: any) => (
+                    <a key={plan.id} href={plan.videoUrl} target="_blank" rel="noopener noreferrer">
+                      <div className={`rounded-xl overflow-hidden border ${isDark ? "border-white/10" : "border-gray-200"} group cursor-pointer`}>
+                        <div className="relative aspect-video bg-black/20 flex items-center justify-center">
+                          {plan.thumbnailImages?.[0] ? (
+                            <img src={plan.thumbnailImages[0]} alt={plan.name} className="w-full h-full object-cover opacity-70" />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-amber-900/30 to-black" />
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                              <Play className="w-4 h-4 text-white fill-white" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-2">
+                          <div className={`text-xs font-medium truncate ${textPrimary}`}>{plan.name}</div>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                  {(allPlans as any[]).filter((p: any) => p.videoUrl).length === 0 && (
+                    <div className={`col-span-2 text-xs ${textSecondary} text-center py-4`}>콘텐츠가 없습니다.</div>
+                  )}
+                </div>
+              </div>
+            )}
+            {activeTab === "live" && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  <span className={`text-xs font-bold ${textPrimary}`}>🔴 Live</span>
+                </div>
+                <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                  <Tv className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                  <div className={`text-xs ${textSecondary}`}>라이브 방송 준비 중입니다.</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
-        {/* ─── 노드 컬렉션 ─── */}
-        <CollectionSection
-          title="Node Products"
-          subtitle="Node Infrastructure · Deposit · External DApp"
-          plans={nodePlans as any[]}
-          color="node"
-          href="/node"
-          icon={<span className="text-base">🔷</span>}
-        />
+        {/* ─── 금융 시장 위젯 ─── */}
+        <MarketWidget isDark={isDark} />
 
-        {/* ─── 리더 컬렉션 ─── */}
-        <CollectionSection
-          title="Leader Collection"
-          subtitle="리더 추천 · 검증된 전략 · 커뮤니티 선택"
-          plans={leaderPlans as any[]}
-          color="leader"
-          href="/leader"
-          icon={<span className="text-base">👑</span>}
-        />
-        {/* ─── 노드 컬렉션 (별도 섹션) ─── */}
-        <CollectionSection
-          title="Node Products"
-          subtitle="노드 인프라 · 안정적 수익 · 외부 DApp 연동"
-          plans={nodePlans as any[]}
-          color="node"
-          href="/node"
-          icon={<span className="text-base">🔷</span>}
-        />
-        {/* ─── 밈토큰 컬렉션 ─── */}
-        <CollectionSection
-          title="Meme Token"
-          subtitle="밈토큰 · 고수익 · 커뮤니티 드리븐"
-          plans={memePlans as any[]}
-          color="meme"
-          href="/meme"
-          icon={<span className="text-base">🚀</span>}
-        />
-        {/* ─── 인플루언서 섹션 ─── */}
-        <CollectionSection
-          title="Influencer"
-          subtitle="인플루언서 추천 · 트렌딩 · 소셜 검증"
-          plans={influencerPlans as any[]}
-          color="influencer"
-          href="/influencer"
-          icon={<span className="text-base">⭐</span>}
-        />
+        {/* ─── 뷰 타입 선택 + 통계 ─── */}
+        <div className="flex items-center justify-between mb-4">
+          <div className={`text-xs font-bold ${textPrimary}`}>투자 플랜</div>
+          <div className={`flex items-center gap-1 rounded-xl p-1 ${isDark ? "bg-[#111111] border border-white/10" : "bg-gray-100 border border-gray-200"}`}>
+            {([
+              { type: "A" as ViewType, label: "A", title: "손글씨" },
+              { type: "B" as ViewType, label: "B", title: "목록형" },
+              { type: "C" as ViewType, label: "C", title: "카드형" },
+            ] as const).map((v) => (
+              <button
+                key={v.type}
+                onClick={() => setViewType(v.type)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  viewType === v.type
+                    ? `${isDark ? "bg-amber-500 text-black" : "bg-amber-500 text-black"} shadow-sm`
+                    : `${tabInactiveBg}`
+                }`}
+                title={v.title}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ─── 컬렉션 섹션들 ─── */}
+        <CollectionSection title="Golden Collection" subtitle="BINANCE Alpha · Insurance(Hedge) · Daily Returns" plans={goldenPlans as any[]} color="golden" href="/golden" icon={<span>🏆</span>} viewType={viewType} isDark={isDark} />
+        <CollectionSection title="Self Collection" subtitle="Custom Strategy · Flexible · Self-managed" plans={selfPlans as any[]} color="self" href="/self" icon={<span>⚡</span>} viewType={viewType} isDark={isDark} />
+        <CollectionSection title="Node Products" subtitle="Node Infrastructure · Deposit · External DApp" plans={nodePlans as any[]} color="node" href="/node" icon={<span>🔷</span>} viewType={viewType} isDark={isDark} />
+        <CollectionSection title="Leader Collection" subtitle="리더 추천 · 검증된 전략 · 커뮤니티 선택" plans={leaderPlans as any[]} color="leader" href="/leader" icon={<span>👑</span>} viewType={viewType} isDark={isDark} />
+        <CollectionSection title="Meme Token" subtitle="밈토큰 · 고수익 · 커뮤니티 드리븐" plans={memePlans as any[]} color="meme" href="/meme" icon={<span>🚀</span>} viewType={viewType} isDark={isDark} />
+        <CollectionSection title="Influencer" subtitle="인플루언서 추천 · 트렌딩 · 소셜 검증" plans={influencerPlans as any[]} color="influencer" href="/influencer" icon={<span>⭐</span>} viewType={viewType} isDark={isDark} />
 
         {/* ─── 특징 섹션 ─── */}
-        <section className="mt-4 mb-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <section className="mt-4 mb-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               { icon: <Shield className="w-5 h-5" />, title: "Secure", desc: "Multi-sig protection", color: "text-green-400", bg: "bg-green-400/10" },
               { icon: <Zap className="w-5 h-5" />, title: "Daily Payouts", desc: "Automated distribution", color: "text-amber-400", bg: "bg-amber-400/10" },
-              { icon: <Globe className="w-5 h-5" />, title: "Global Access", desc: "21 languages supported", color: "text-blue-400", bg: "bg-blue-400/10" },
-              { icon: <Users className="w-5 h-5" />, title: "Referral Rewards", desc: "Earn from your network", color: "text-purple-400", bg: "bg-purple-400/10" },
+              { icon: <Globe className="w-5 h-5" />, title: "Global Access", desc: "21 languages", color: "text-blue-400", bg: "bg-blue-400/10" },
+              { icon: <Users className="w-5 h-5" />, title: "Referral Rewards", desc: "Earn from network", color: "text-purple-400", bg: "bg-purple-400/10" },
             ].map((f) => (
-              <div key={f.title} className="bg-[#111111] border border-white/5 rounded-xl p-4 text-center hover:border-white/10 transition-colors">
-                <div className={`w-10 h-10 rounded-xl ${f.bg} ${f.color} flex items-center justify-center mx-auto mb-3`}>
-                  {f.icon}
-                </div>
-                <div className="text-sm font-semibold text-white mb-1">{f.title}</div>
-                <div className="text-xs text-gray-500">{f.desc}</div>
+              <div key={f.title} className={`rounded-xl p-4 text-center border transition-colors ${isDark ? "bg-[#111111] border-white/5 hover:border-white/10" : "bg-white border-gray-200 hover:border-gray-300 shadow-sm"}`}>
+                <div className={`w-10 h-10 rounded-xl ${f.bg} ${f.color} flex items-center justify-center mx-auto mb-3`}>{f.icon}</div>
+                <div className={`text-sm font-semibold mb-1 ${textPrimary}`}>{f.title}</div>
+                <div className={`text-xs ${textSecondary}`}>{f.desc}</div>
               </div>
             ))}
           </div>
@@ -636,41 +940,28 @@ export default function Home() {
       </div>
 
       {/* ─── 모달들 ─── */}
-      {selectedPlanId && (
-        <PlanDetailModal
-          planId={selectedPlanId}
-          onClose={() => setSelectedPlanId(null)}
-        />
-      )}
-      {showReferralModal && (
-        <ReferralMessageModal onClose={() => setShowReferralModal(false)} />
-      )}
-      {meetingNotice && (
-        <MeetingNoticeModal
-          notice={meetingNotice}
-          onClose={() => setMeetingNotice(null)}
-        />
-      )}
+      {selectedPlanId && <PlanDetailModal planId={selectedPlanId} onClose={() => setSelectedPlanId(null)} />}
+      {showReferralModal && <ReferralMessageModal onClose={() => setShowReferralModal(false)} />}
+      {meetingNotice && <MeetingNoticeModal notice={meetingNotice} onClose={() => setMeetingNotice(null)} />}
 
       {/* ─── 푸터 ─── */}
-      <footer className="border-t border-white/5 bg-[#050505] py-8">
+      <footer className={`border-t py-6 ${isDark ? "border-white/5 bg-[#050505]" : "border-gray-200 bg-white"}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
               <img src={ALPHABAG_LOGO} alt="AlphaBag" className="w-7 h-7 rounded object-contain bg-black" />
               <div>
-                <div className="text-sm font-bold text-gray-400">AlphaBag</div>
-                <div className="text-[10px] text-gray-600">Multi-Asset Investment Platform</div>
+                <div className={`text-sm font-bold ${isDark ? "text-gray-400" : "text-gray-600"}`}>AlphaBag</div>
+                <div className="text-[10px] text-gray-500">Multi-Asset Investment Platform</div>
               </div>
             </div>
-            <div className="flex items-center gap-6 text-xs text-gray-500">
+            <div className={`flex items-center gap-5 text-xs ${textSecondary}`}>
               <Link href="/golden"><span className="hover:text-amber-400 cursor-pointer transition-colors">Golden</span></Link>
               <Link href="/self"><span className="hover:text-blue-400 cursor-pointer transition-colors">Self</span></Link>
               <Link href="/node"><span className="hover:text-purple-400 cursor-pointer transition-colors">Node</span></Link>
-              <Link href="/notices"><span className="hover:text-white cursor-pointer transition-colors">Notices</span></Link>
-              <Link href="/tickets"><span className="hover:text-white cursor-pointer transition-colors">Support</span></Link>
+              <Link href="/notices"><span className="hover:text-amber-400 cursor-pointer transition-colors">Notices</span></Link>
             </div>
-            <div className="text-xs text-gray-600">© 2025 AlphaBag. All rights reserved.</div>
+            <div className={`text-xs ${textSecondary}`}>© 2025 AlphaBag. All rights reserved.</div>
           </div>
         </div>
       </footer>
