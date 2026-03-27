@@ -19,6 +19,7 @@ import AdminNotifications from "./pages/admin/Notifications";
 import AdminAuditLogs from "./pages/admin/AuditLogs";
 import AdminTelegramSchedules from "./pages/admin/TelegramSchedules";
 import AdminMediaAssets from "./pages/admin/MediaAssets";
+import AdminTrendingAlerts from "./pages/admin/TrendingAlerts";
 import UserDashboard from "./pages/UserDashboard";
 import PlansPage from "./pages/PlansPage";
 import NodesPage from "./pages/NodesPage";
@@ -69,6 +70,7 @@ function Router() {
       <Route path="/admin/audit-logs" component={AdminAuditLogs} />
       <Route path="/admin/telegram-schedules" component={AdminTelegramSchedules} />
       <Route path="/admin/media-assets" component={AdminMediaAssets} />
+      <Route path="/admin/trending-alerts" component={AdminTrendingAlerts} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

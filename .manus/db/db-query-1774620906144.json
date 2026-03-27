@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `trendingAlertSettings` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`isEnabled` boolean NOT NULL DEFAULT false,\n\t`priceChangeThreshold` decimal(5,2) NOT NULL DEFAULT '10.00',\n\t`intervalMinutes` int NOT NULL DEFAULT 60,\n\t`channelChatId` varchar(100),\n\t`sendToDm` boolean NOT NULL DEFAULT false,\n\t`filterHasInvestment` boolean NOT NULL DEFAULT false,\n\t`messageTemplate` text,\n\t`lastRunAt` timestamp,\n\t`lastResult` json,\n\t`nextRunAt` timestamp,\n\t`lastAlertedTokens` json,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `trendingAlertSettings_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute CREATE TABLE `trendingAlertSettings` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`isEnabled` boolean NOT NULL DEFAULT false,\n\t`priceChangeThreshold` decimal(5,2) NOT NULL DEFAULT '10.00',\n\t`intervalMinutes` int NOT NULL DEFAULT 60,\n\t`channelChatId` varchar(100),\n\t`sendToDm` boolean NOT NULL DEFAULT false,\n\t`filterHasInvestment` boolean NOT NULL DEFAULT false,\n\t`messageTemplate` text,\n\t`lastRunAt` timestamp,\n\t`lastResult` json,\n\t`nextRunAt` timestamp,\n\t`lastAlertedTokens` json,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `trendingAlertSettings_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1775
+}

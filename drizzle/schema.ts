@@ -369,3 +369,28 @@ export const mediaAssets = mysqlTable("mediaAssets", {
 });
 export type MediaAsset = typeof mediaAssets.$inferSelect;
 export type InsertMediaAsset = typeof mediaAssets.$inferInsert;
+
+// ─── Trending Alert Settings (급등 토큰 알림 설정) ────────────────────────────
+export const trendingAlertSettings = mysqlTable("trendingAlertSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  isEnabled: boolean("isEnabled").default(false).notNull(),
+  // 알림 조건
+  priceChangeThreshold: decimal("priceChangeThreshold", { precision: 5, scale: 2 }).default("10.00").notNull(), // 기본 10% 이상
+  intervalMinutes: int("intervalMinutes").default(60).notNull(), // 체크 주기 (분)
+  // 발송 대상
+  channelChatId: varchar("channelChatId", { length: 100 }),
+  sendToDm: boolean("sendToDm").default(false).notNull(), // 개별 DM 발송 여부
+  filterHasInvestment: boolean("filterHasInvestment").default(false).notNull(),
+  // 메시지 템플릿
+  messageTemplate: text("messageTemplate"), // null이면 기본 템플릿 사용
+  // 실행 기록
+  lastRunAt: timestamp("lastRunAt"),
+  lastResult: json("lastResult"),
+  nextRunAt: timestamp("nextRunAt"),
+  // 중복 알림 방지: 이미 알림 보낸 토큰 목록
+  lastAlertedTokens: json("lastAlertedTokens"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type TrendingAlertSetting = typeof trendingAlertSettings.$inferSelect;
+export type InsertTrendingAlertSetting = typeof trendingAlertSettings.$inferInsert;

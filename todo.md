@@ -325,3 +325,15 @@
 - [x] Audit Logs CSV 내보내기 버튼 (필터 조건 적용)
 - [x] 텔레그램 발송 HTML 미리보기 패널
 - [x] 토큰 목록 1줄에 여러 개 그리드 레이아웃 (2~4개/줄 카드형)
+
+## Phase 26 - 에어드랍CRUD·즐겨찾기탭·급등알림 (2026-03-27)
+- [x] 에어드랍 백오피스 CRUD 페이지 (admin/Airdrops.tsx) - 이전 세션에서 완료
+- [x] airdrops.list/create/update/delete 프로시저 추가 - 이전 세션에서 완료
+- [x] AdminLayout에 Airdrops 메뉴 추가 - 이전 세션에서 완료
+- [x] App.tsx에 /admin/airdrops 라우트 추가 - 이전 세션에서 완료
+- [x] 즐겨찾기 모아보기 탭 (홈페이지 소메뉴 "❤️ 즐겨찾기" 탭)
+- [x] favorites.list 프로시저 개선 (userFavorites LEFT JOIN investmentPlans)
+- [x] 급등 토큰 텔레그램 자동 알림 스케줄러 (trendingAlertScheduler.ts)
+- [x] trendingAlertSettings DB 테이블 생성 (임계값/주기/채널/DM/템플릿)
+- [x] 관리자 설정 UI (admin/TrendingAlerts.tsx - 알림 임계값/주기/채널 설정)
+- [x] 스케줄러에서 급등 감지 시 텔레그램 발송 (채널 + DM 옵션)

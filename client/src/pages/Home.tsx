@@ -33,6 +33,7 @@ const SUB_MENUS = [
   { id: "snn", label: "SNN", icon: "📡" },
   { id: "trending", label: "급등토큰", icon: "🚀" },
   { id: "airdrop", label: "에어드랍", icon: "🎁" },
+  { id: "favorites", label: "즐겨찾기", icon: "❤️" },
   { id: "news", label: "news", icon: "📰" },
   { id: "contents", label: "콘텐츠", icon: "🎬" },
   { id: "live", label: "Live", icon: "🔴" },
@@ -501,6 +502,8 @@ export default function Home() {
   const { data: trendingTokens = [], isLoading: trendingLoading } = trpc.market.trending.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
   const { data: trendingCoins = [], isLoading: trendingCoinsLoading } = trpc.market.trendingCoins.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
   const { data: airdropList = [] } = trpc.airdropSection.list.useQuery();
+  const { data: favoritesList = [], refetch: refetchFavorites } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
+  const toggleFavoriteMutation = trpc.favorites.toggle.useMutation({ onSuccess: () => refetchFavorites() });
   // 장바구니 (로칼스토리지))
   const [cartCount, setCartCount] = useState(0);
   useEffect(() => {
@@ -1005,6 +1008,77 @@ export default function Home() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {activeTab === "favorites" && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className={`text-xs font-bold ${textPrimary}`}>❤️ 즐겨찾기 콜렉션</div>
+                  <span className={`text-[10px] ${textSecondary}`}>{favoritesList.length}개 저장됨</span>
+                </div>
+                {!isAuthenticated ? (
+                  <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                    <div className="text-3xl mb-2">❤️</div>
+                    <div className={`text-xs font-semibold ${textPrimary} mb-1`}>로그인이 필요합니다</div>
+                    <div className={`text-[10px] ${textSecondary}`}>즐겨찾기를 사용하려면 로그인하세요</div>
+                  </div>
+                ) : favoritesList.length === 0 ? (
+                  <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                    <div className="text-3xl mb-2">❤️</div>
+                    <div className={`text-xs font-semibold ${textPrimary} mb-1`}>즐겨찾기가 없습니다</div>
+                    <div className={`text-[10px] ${textSecondary}`}>플랜 상세에서 ♥ 버튼을 눌러 즐겨찾기를 저장하세요</div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {(favoritesList as any[]).map((fav: any) => {
+                      const plan = fav.plan;
+                      if (!plan) return null;
+                      return (
+                        <div key={fav.favoriteId} className={`rounded-xl border overflow-hidden transition-all hover:scale-[1.01] ${isDark ? "bg-white/3 border-white/8 hover:border-pink-500/30" : "bg-white border-gray-200 hover:border-pink-300"}`}>
+                          <div className="flex items-center gap-3 p-3">
+                            {plan.logoUrl ? (
+                              <img src={plan.logoUrl} alt={plan.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/20 to-rose-500/20 flex items-center justify-center flex-shrink-0">
+                                <span className="text-lg">❤️</span>
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                {plan.label && (
+                                  <span className="text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full">{plan.label}</span>
+                                )}
+                                <span className={`text-xs font-bold ${textPrimary} truncate`}>{plan.name}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-emerald-400">일 {parseFloat(plan.dailyRate || "0").toFixed(2)}%</span>
+                                {plan.duration && <span className={`text-[10px] ${textSecondary}`}>{plan.duration}일</span>}
+                                {plan.minAmount && <span className={`text-[10px] ${textSecondary}`}>최소 {parseFloat(plan.minAmount).toLocaleString()}</span>}
+                              </div>
+                              {plan.description && (
+                                <div className={`text-[10px] ${textSecondary} truncate mt-0.5`}>{plan.description}</div>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => toggleFavoriteMutation.mutate({ planId: plan.id })}
+                              className="flex-shrink-0 p-1.5 rounded-lg text-pink-400 hover:bg-pink-500/10 transition-colors"
+                              title="즐겨찾기 제거"
+                            >
+                              ♥
+                            </button>
+                          </div>
+                          {plan.badgeLabels && Array.isArray(plan.badgeLabels) && plan.badgeLabels.length > 0 && (
+                            <div className="px-3 pb-2 flex flex-wrap gap-1">
+                              {(plan.badgeLabels as string[]).map((badge: string, i: number) => (
+                                <span key={i} className={`text-[9px] px-1.5 py-0.5 rounded-full border ${isDark ? "border-white/10 text-white/50" : "border-gray-200 text-gray-400"}`}>{badge}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { startTelegramScheduler } from "../telegramScheduler";
+import { startTrendingAlertScheduler } from "../trendingAlertScheduler";
 import { registerTelegramWebhook } from "../telegramWebhook";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -67,6 +68,8 @@ async function startServer() {
 
   // Start telegram scheduled broadcast
   startTelegramScheduler();
+  // Start trending token alert scheduler
+  startTrendingAlertScheduler();
 }
 
 startServer().catch(console.error);

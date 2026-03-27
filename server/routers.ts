@@ -936,9 +936,19 @@ export const appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       const database = await getDb();
       if (!database) return [];
-      const { userFavorites } = await import("../drizzle/schema");
+      const { userFavorites, investmentPlans } = await import("../drizzle/schema");
       const { eq } = await import("drizzle-orm");
-      return database.select().from(userFavorites).where(eq(userFavorites.userId, ctx.user.id));
+      const rows = await database
+        .select({
+          favoriteId: userFavorites.id,
+          planId: userFavorites.planId,
+          createdAt: userFavorites.createdAt,
+          plan: investmentPlans,
+        })
+        .from(userFavorites)
+        .leftJoin(investmentPlans, eq(userFavorites.planId, investmentPlans.id))
+        .where(eq(userFavorites.userId, ctx.user.id));
+      return rows.filter(r => r.plan !== null);
     }),
     toggle: protectedProcedure.input(z.object({ planId: z.number() })).mutation(async ({ ctx, input }) => {
       const database = await getDb();
@@ -1282,6 +1292,94 @@ export const appRouter = router({
     delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
       await db.deleteAdminAccount(input.id);
       return { success: true };
+    }),
+  }),
+
+  // ─── Trending Alert Settings ────────────────────────────────────────────────
+  trendingAlert: router({
+    getSettings: adminProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return null;
+      const { trendingAlertSettings } = await import("../drizzle/schema");
+      const rows = await database.select().from(trendingAlertSettings).limit(1);
+      return rows[0] ?? null;
+    }),
+    updateSettings: adminProcedure.input(z.object({
+      isEnabled: z.boolean().optional(),
+      priceChangeThreshold: z.string().optional(),
+      intervalMinutes: z.number().optional(),
+      channelChatId: z.string().nullable().optional(),
+      sendToDm: z.boolean().optional(),
+      filterHasInvestment: z.boolean().optional(),
+      messageTemplate: z.string().nullable().optional(),
+    })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { trendingAlertSettings } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      // 기존 설정 조회
+      const existing = await database.select().from(trendingAlertSettings).limit(1);
+      if (existing.length === 0) {
+        // 없으면 생성
+        await database.insert(trendingAlertSettings).values({
+          isEnabled: input.isEnabled ?? false,
+          priceChangeThreshold: input.priceChangeThreshold ?? "10.00",
+          intervalMinutes: input.intervalMinutes ?? 60,
+          channelChatId: input.channelChatId ?? null,
+          sendToDm: input.sendToDm ?? false,
+          filterHasInvestment: input.filterHasInvestment ?? false,
+          messageTemplate: input.messageTemplate ?? null,
+        });
+      } else {
+        // 있으면 업데이트
+        const updateData: any = {};
+        if (input.isEnabled !== undefined) updateData.isEnabled = input.isEnabled;
+        if (input.priceChangeThreshold !== undefined) updateData.priceChangeThreshold = input.priceChangeThreshold;
+        if (input.intervalMinutes !== undefined) updateData.intervalMinutes = input.intervalMinutes;
+        if (input.channelChatId !== undefined) updateData.channelChatId = input.channelChatId;
+        if (input.sendToDm !== undefined) updateData.sendToDm = input.sendToDm;
+        if (input.filterHasInvestment !== undefined) updateData.filterHasInvestment = input.filterHasInvestment;
+        if (input.messageTemplate !== undefined) updateData.messageTemplate = input.messageTemplate;
+        await database.update(trendingAlertSettings).set(updateData).where(eq(trendingAlertSettings.id, existing[0].id));
+      }
+      return { success: true };
+    }),
+    // 즉시 테스트 실행
+    runNow: adminProcedure.mutation(async () => {
+      const botToken = process.env.TELEGRAM_BOT_TOKEN;
+      if (!botToken) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "TELEGRAM_BOT_TOKEN not set" });
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { trendingAlertSettings } = await import("../drizzle/schema");
+      const settings = await database.select().from(trendingAlertSettings).limit(1);
+      if (!settings.length) throw new TRPCError({ code: "NOT_FOUND", message: "Settings not found" });
+      const setting = settings[0];
+      const threshold = parseFloat(setting.priceChangeThreshold ?? "10");
+      // CoinGecko API 호출
+      const url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=percent_change_24h_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h";
+      const resp = await fetch(url, { headers: { "Accept": "application/json" } });
+      if (!resp.ok) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "CoinGecko API error" });
+      const data = await resp.json() as any[];
+      const tokens = data.filter((t: any) => (t.price_change_percentage_24h ?? 0) >= threshold);
+      if (tokens.length === 0) return { success: true, message: `임계값 ${threshold}% 이상 토큰 없음`, tokenCount: 0 };
+      // 메시지 생성
+      const tokenLines = tokens.slice(0, 10).map((t: any) =>
+        `• <b>${t.symbol.toUpperCase()}</b> (${t.name}): +${t.price_change_percentage_24h.toFixed(1)}% | $${t.current_price >= 1 ? t.current_price.toLocaleString("en-US", { maximumFractionDigits: 2 }) : t.current_price.toFixed(6)}`
+      ).join("\n");
+      const message = setting.messageTemplate
+        ? (setting.messageTemplate as string).replace("{tokens}", tokenLines)
+        : `🚀 <b>급등 토큰 알림 (테스트)</b>\n\n${tokenLines}\n\n<i>AlphaBag · ${new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}</i>`;
+      let successCount = 0;
+      if (setting.channelChatId) {
+        const sendResp = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: setting.channelChatId, text: message, parse_mode: "HTML" }),
+        });
+        const sendData = await sendResp.json() as { ok: boolean };
+        if (sendData.ok) successCount++;
+      }
+      return { success: true, message: `${tokens.length}개 급등 토큰 감지, ${successCount}건 발송`, tokenCount: tokens.length, tokens: tokens.slice(0, 5).map((t: any) => ({ symbol: t.symbol, change: t.price_change_percentage_24h })) };
     }),
   }),
 
