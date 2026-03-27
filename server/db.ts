@@ -354,7 +354,16 @@ export async function getTopReferrers(limit = 10) {
     referrerId: referrals.referrerId,
     totalReferrals: count(referrals.id),
     totalEarned: sum(referrals.totalEarned),
-  }).from(referrals).groupBy(referrals.referrerId).orderBy(desc(count(referrals.id))).limit(limit);
+    userName: users.name,
+    userEmail: users.email,
+    userWallet: users.walletAddress,
+    referralCode: users.referralCode,
+    totalEarnings: sum(referrals.totalEarned),
+    referralCount: count(referrals.id),
+  }).from(referrals)
+    .leftJoin(users, eq(referrals.referrerId, users.id))
+    .groupBy(referrals.referrerId, users.name, users.email, users.walletAddress, users.referralCode)
+    .orderBy(desc(count(referrals.id))).limit(limit);
 }
 
 export async function getReferralStats() {

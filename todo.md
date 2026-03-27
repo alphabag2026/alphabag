@@ -223,3 +223,9 @@
 - [x] investments 24건 planId 정확한 플랜으로 재연결 (21건 성공)
 - [x] Firebase referral_users 251건 → MySQL users 추가 임포트 (이미 포함된 동일 지갑 주소)
 - [x] 관리자 페이지 Users 탭 지갑 주소 기반 사용자 목록 표시 개선 (통계 카드, 복사 버튼, 한국어 UI)
+
+## Phase 15 - 플랜 로고 CDN 이전, 레퍼럴 트리, 노드 연결 (2026-03-27)
+- [x] Firebase 플랜 로고 17개 Cloudinary → Manus CDN 이전
+- [x] Firebase nodes 데이터 추출 및 nodeOrders nodeId 재연결 (120건, 7개 노드 타입)
+- [x] 관리자 Referrals 탭 레퍼럴 트리 시각화 (트리 탭 + 테이블 탭, 지갑 주소 기반)
+- [x] db.ts getTopReferrers에 users JOIN 추가 (userName, userWallet, referralCode, totalEarnings)
