@@ -1,12 +1,13 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import {
   Search, Download, UserCheck, Shield,
   ChevronLeft, ChevronRight, Wallet, Users2,
-  TrendingUp, Package, Copy, CheckCheck
+  TrendingUp, Package, Copy, CheckCheck, GitBranch, ChevronDown, ChevronRight as ChevronRightIcon, Network
 } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +64,25 @@ export default function Users() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [newKycStatus, setNewKycStatus] = useState<"pending" | "approved" | "rejected" | "none">("none");
   const [newRole, setNewRole] = useState<"user" | "admin" | "sub_admin">("user");
+  const [treeUser, setTreeUser] = useState<any>(null); // 레퍼럴 트리 Sheet
+
+  // 레퍼럴 트리 쿼리
+  const { data: treeData, isLoading: treeLoading } = trpc.referrals.tree.useQuery(
+    { userId: treeUser?.id ?? 0 },
+    { enabled: treeUser !== null }
+  );
+
+  const treeNodes = useMemo(() => {
+    if (!treeData || !Array.isArray(treeData)) return [];
+    return treeData.map((r: any) => ({
+      id: r.referredId ?? r.id,
+      name: r.referredName ?? r.name,
+      walletAddress: r.referredWallet ?? r.walletAddress,
+      referralCode: r.referralCode,
+      totalInvested: r.totalInvested ?? 0,
+      children: [],
+    }));
+  }, [treeData]);
 
   const utils = trpc.useUtils();
   const { data, isLoading } = trpc.users.list.useQuery({ search: debouncedSearch, page, limit: 20 });
@@ -272,6 +292,13 @@ export default function Users() {
                     <td>
                       <div className="flex items-center justify-center gap-1.5">
                         <button
+                          onClick={() => setTreeUser(user)}
+                          className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-blue-400"
+                          title="레퍼럴 트리 보기"
+                        >
+                          <GitBranch className="w-3.5 h-3.5" />
+                        </button>
+                        <button
                           onClick={() => { setSelectedUser(user); setNewKycStatus(user.kycStatus ?? "none"); setKycDialogOpen(true); }}
                           className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
                           title="KYC 업데이트"
@@ -399,6 +426,68 @@ export default function Users() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* 레퍼럴 트리 Sheet */}
+      <Sheet open={treeUser !== null} onOpenChange={open => !open && setTreeUser(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-xl bg-card border-border overflow-y-auto">
+          <SheetHeader className="mb-4">
+            <SheetTitle className="flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-blue-400" />
+              레퍼럴 트리
+            </SheetTitle>
+            {treeUser && (
+              <div className="text-sm text-muted-foreground font-mono break-all">
+                {treeUser.walletAddress ?? treeUser.name ?? `User #${treeUser.id}`}
+              </div>
+            )}
+          </SheetHeader>
+
+          {treeLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-12 bg-muted/30 rounded-lg animate-pulse" />
+              ))}
+            </div>
+          ) : treeNodes.length > 0 ? (
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground mb-3">직접 추천 {treeNodes.length}명</p>
+              {treeNodes.map((node: any, i: number) => (
+                <div key={node.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 border border-border/30">
+                  <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground flex-shrink-0">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    {node.walletAddress ? (
+                      <p className="text-xs font-mono text-blue-400 truncate">
+                        {node.walletAddress.slice(0, 8)}...{node.walletAddress.slice(-4)}
+                      </p>
+                    ) : (
+                      <p className="text-sm font-medium truncate">{node.name ?? `User #${node.id}`}</p>
+                    )}
+                    {node.referralCode && (
+                      <p className="text-xs text-muted-foreground font-mono">{node.referralCode}</p>
+                    )}
+                  </div>
+                  {node.totalInvested > 0 && (
+                    <span className="text-xs text-primary font-medium flex-shrink-0">
+                      ${Number(node.totalInvested).toLocaleString()}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setTreeUser({ id: node.id, walletAddress: node.walletAddress, name: node.name })}
+                    className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-blue-400"
+                    title="이 사용자의 하위 트리 보기"
+                  >
+                    <Network className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+              <GitBranch className="w-10 h-10 mb-3 opacity-20" />
+              <p className="text-sm">직접 추천한 사용자가 없습니다</p>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </AdminLayout>
   );
 }

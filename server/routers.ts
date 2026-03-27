@@ -167,6 +167,9 @@ export const appRouter = router({
       await createAuditLog({ adminId: ctx.user.id, action: "DELETE_NODE", targetType: "node", targetId: input.id });
       return { success: true };
     }),
+    purchasers: adminProcedure.input(z.object({ nodeId: z.number() })).query(async ({ input }) => {
+      return await db.getNodePurchasers(input.nodeId);
+    }),
   }),
 
   // ─── Users ─────────────────────────────────────────────────────────────────

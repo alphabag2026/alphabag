@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -40,22 +40,43 @@ const defaultForm: PlanForm = {
   sortOrder: "0", isActive: true, planType: "investment", tags: "",
 };
 
-function PlanCard({ plan, onEdit, onDelete, onToggle }: {
+function PlanCard({ plan, onEdit, onDelete, onToggle, onLogoUpload }: {
   plan: any;
   onEdit: (plan: any) => void;
   onDelete: (id: number) => void;
   onToggle: (id: number, current: boolean) => void;
+  onLogoUpload: (planId: number, file: File) => void;
 }) {
+  const fileRef = useRef<HTMLInputElement>(null);
   return (
     <div className="flex items-center gap-3 p-4 rounded-xl border border-border/40 bg-card hover:border-primary/30 transition-all group">
       <GripVertical className="w-4 h-4 text-muted-foreground/40 cursor-grab flex-shrink-0" />
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+      {/* 로고 영역 - 클릭하면 업로드 */}
+      <div
+        className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden cursor-pointer relative group/logo hover:ring-2 hover:ring-primary/40 transition-all"
+        title="로고 업로드"
+        onClick={() => fileRef.current?.click()}
+      >
         {plan.logoUrl ? (
           <img src={plan.logoUrl} alt={plan.name} className="w-full h-full object-cover rounded-lg" />
         ) : (
           <TrendingUp className="w-5 h-5 text-primary" />
         )}
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/logo:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+          <Upload className="w-3.5 h-3.5 text-white" />
+        </div>
       </div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={e => {
+          const file = e.target.files?.[0];
+          if (file) onLogoUpload(plan.id, file);
+          e.target.value = "";
+        }}
+      />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
           <span className="font-semibold text-sm truncate">{plan.name}</span>
@@ -243,13 +264,22 @@ export default function Plans() {
                   ) : plans && plans.length > 0 ? (
                     <div className="space-y-2">
                       {plans.map((plan: any) => (
-                        <PlanCard
-                          key={plan.id}
-                          plan={plan}
-                          onEdit={openEdit}
-                          onDelete={(id) => setDeleteId(id)}
-                          onToggle={handleToggle}
-                        />
+          <PlanCard
+                key={plan.id}
+                plan={plan}
+                onEdit={openEdit}
+                onDelete={(id) => setDeleteId(id)}
+                onToggle={(id, cur) => updateMutation.mutate({ id, isActive: !cur })}
+                onLogoUpload={(planId, file) => {
+                  if (file.size > 2 * 1024 * 1024) { toast.error("Image must be under 2MB"); return; }
+                  const reader = new FileReader();
+                  reader.onload = (ev) => {
+                    const base64 = (ev.target?.result as string).split(",")[1];
+                    uploadLogoMutation.mutate({ planId, base64, mimeType: file.type, fileName: file.name });
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
                       ))}
                     </div>
                   ) : (

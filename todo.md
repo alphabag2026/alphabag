@@ -235,3 +235,9 @@
 - [x] 레퍼럴 트리 프론트엔드 - 재귀 TreeNode 컴포넌트 (자식 lazy-load)
 - [x] 노드별 판매 통계 차트 (관리자 Dashboard - 막대/파이 차트)
 - [x] 플랜 로고 이미지 업로드 UI (Plans 탭 - 로고 교체 버튼, S3 업로드)
+
+## Phase 17 - 레퍼럴 트리 연결, 노드 상세, 플랜 로고 일괄 (2026-03-27)
+- [x] Users 탭 → Referrals 트리 연결 (사용자 행 GitBranch 아이콘 클릭 시 우측 Sheet 표시)
+- [x] 노드 판매 상세 백엔드 API (getNodePurchasers, nodes.purchasers 프로시저)
+- [x] 노드 판매 상세 드릴다운 UI (Nodes 카드 구매자 N명 버튼 → 우측 Sheet)
+- [x] Plans 탭 카드 로고 영역 호버 시 Upload 아이콘 → 클릭 시 직접 S3 업로드

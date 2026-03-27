@@ -2,7 +2,7 @@ import { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Cpu, ToggleLeft, ToggleRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Cpu, ToggleLeft, ToggleRight, Users, Copy, CheckCheck, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,22 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+
+function WalletShort({ address }: { address?: string | null }) {
+  const [copied, setCopied] = useState(false);
+  if (!address) return <span className="text-muted-foreground text-xs">—</span>;
+  const short = `${address.slice(0, 6)}...${address.slice(-4)}`;
+  return (
+    <button
+      className="flex items-center gap-1 font-mono text-xs text-blue-400 hover:text-blue-300 transition-colors"
+      onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(address); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+    >
+      {short}
+      {copied ? <CheckCheck className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3 opacity-50" />}
+    </button>
+  );
+}
 
 const NODE_COLORS = [
   { label: "Gold", value: "gold", class: "bg-yellow-500" },
@@ -46,10 +62,15 @@ export default function Nodes() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [editingNode, setEditingNode] = useState<any>(null);
   const [form, setForm] = useState(defaultForm);
+  const [buyersNode, setBuyersNode] = useState<any>(null); // 구매자 목록 드릴다운용
 
   const utils = trpc.useUtils();
   const { data: nodes, isLoading } = trpc.nodes.list.useQuery();
   const { data: earnings } = trpc.nodes.earnings.useQuery();
+  const { data: purchasers, isLoading: purchasersLoading } = trpc.nodes.purchasers.useQuery(
+    { nodeId: buyersNode?.id ?? 0 },
+    { enabled: buyersNode !== null }
+  );
 
   const createMutation = trpc.nodes.create.useMutation({
     onSuccess: () => { toast.success("Node created"); utils.nodes.list.invalidate(); setDialogOpen(false); },
@@ -181,7 +202,15 @@ export default function Nodes() {
                     )}
 
                     <div className="flex items-center gap-2 pt-3 border-t border-border/40">
-                      <Button variant="outline" size="sm" onClick={() => openEdit(node)} className="flex-1 gap-1.5 h-8 text-xs">
+                      <Button
+                        variant="outline" size="sm"
+                        onClick={() => setBuyersNode(node)}
+                        className="flex-1 gap-1.5 h-8 text-xs text-blue-400 hover:text-blue-300 hover:border-blue-400/40"
+                      >
+                        <Users className="w-3 h-3" />
+                        구매자 {earning?.totalOrders ?? 0}명
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => openEdit(node)} className="h-8 px-2 gap-1.5 text-xs">
                         <Pencil className="w-3 h-3" />
                         Edit
                       </Button>
@@ -296,6 +325,71 @@ export default function Nodes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 구매자 목록 Sheet */}
+      <Sheet open={buyersNode !== null} onOpenChange={open => !open && setBuyersNode(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl bg-card border-border overflow-y-auto">
+          <SheetHeader className="mb-4">
+            <SheetTitle className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-blue-400" />
+              {buyersNode?.name} 구매자 목록
+            </SheetTitle>
+            {buyersNode && (
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span>가격: <span className="text-primary font-medium">${Number(buyersNode.price).toLocaleString()} USDT</span></span>
+                <span>총 {purchasers?.length ?? 0}건</span>
+              </div>
+            )}
+          </SheetHeader>
+
+          {purchasersLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-14 bg-muted/30 rounded-lg animate-pulse" />
+              ))}
+            </div>
+          ) : purchasers && purchasers.length > 0 ? (
+            <div className="space-y-2">
+              {purchasers.map((p: any, i: number) => (
+                <div key={p.orderId} className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors border border-border/30">
+                  <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground flex-shrink-0">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    {p.userWallet ? (
+                      <WalletShort address={p.userWallet} />
+                    ) : (
+                      <p className="text-sm font-medium truncate">{p.userName ?? `User #${p.userId}`}</p>
+                    )}
+                    {p.userEmail && <p className="text-xs text-muted-foreground truncate">{p.userEmail}</p>}
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-sm font-semibold text-primary">${Number(p.totalAmount).toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(p.createdAt).toLocaleDateString("ko-KR")}</p>
+                  </div>
+                  <Badge className={p.status === "confirmed" ? "badge-active" : "badge-pending"}>
+                    {p.status}
+                  </Badge>
+                  {p.txHash && (
+                    <a
+                      href={`https://bscscan.com/tx/${p.txHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-foreground flex-shrink-0"
+                      title="BSCScan"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+              <Users className="w-10 h-10 mb-3 opacity-20" />
+              <p className="text-sm">구매자 데이터가 없습니다</p>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </AdminLayout>
   );
 }

@@ -195,6 +195,25 @@ export async function getNodeSalesStats() {
     .orderBy(desc(count(nodeOrders.id)));
 }
 
+export async function getNodePurchasers(nodeId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    orderId: nodeOrders.id,
+    userId: nodeOrders.userId,
+    userName: users.name,
+    userWallet: users.walletAddress,
+    userEmail: users.email,
+    totalAmount: nodeOrders.totalAmount,
+    status: nodeOrders.status,
+    txHash: nodeOrders.txHash,
+    createdAt: nodeOrders.createdAt,
+  }).from(nodeOrders)
+    .leftJoin(users, eq(nodeOrders.userId, users.id))
+    .where(eq(nodeOrders.nodeId, nodeId))
+    .orderBy(desc(nodeOrders.createdAt));
+}
+
 // ─── Notices ──────────────────────────────────────────────────────────────────
 export async function getNotices() {
   const db = await getDb();
