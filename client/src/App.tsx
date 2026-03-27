@@ -34,6 +34,7 @@ import TicketsPage from "./pages/TicketsPage";
 import ReferralsPage from "./pages/ReferralsPage";
 import NoticesPage from "./pages/NoticesPage";
 import AdminLogin from "./pages/admin/Login";
+import AdminMyAccount from "./pages/admin/MyAccount";
 import { WalletConnectModal } from "./components/WalletConnectModal";
 import GoldenPage from "./pages/GoldenPage";
 import SelfPage from "./pages/SelfPage";
@@ -86,6 +87,7 @@ function Router() {
       <Route path="/admin/trending-alerts" component={AdminTrendingAlerts} />
       <Route path="/admin/listing-requests" component={AdminListingRequests} />
       <Route path="/admin/partners" component={AdminPartners} />
+      <Route path="/admin/my-account" component={AdminMyAccount} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

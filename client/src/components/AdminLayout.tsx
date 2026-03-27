@@ -4,7 +4,7 @@ import {
   LayoutDashboard, TrendingUp, FileText, Users, Cpu,
   TicketCheck, Bell, Gift, ShieldCheck, LogOut, Shield,
   ClipboardList, CalendarClock, Image, Zap, FileSearch, Handshake,
-  BarChart2, GitBranch,
+  BarChart2, GitBranch, UserCog,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
@@ -31,7 +31,7 @@ const NAV_ITEMS = [
 const ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
   LayoutDashboard, TrendingUp, FileText, Users, Cpu,
   TicketCheck, Bell, Gift, ShieldCheck, ClipboardList, CalendarClock, Image, Zap, FileSearch, Handshake,
-  BarChart2, GitBranch,
+  BarChart2, GitBranch, UserCog,
 };
 
 interface AdminLayoutProps {
@@ -93,6 +93,14 @@ export default function AdminLayout({ children, title = "Admin Panel" }: AdminLa
 
         {/* Footer */}
         <div className="ab-sidebar-footer">
+          <Link
+            href="/admin/my-account"
+            className={`ab-sidebar-link${location === "/admin/my-account" ? " active" : ""}`}
+            style={{ marginBottom: "0.5rem" }}
+          >
+            <UserCog size={14} />
+            내 계정 설정
+          </Link>
           <button
             onClick={() => logoutMutation.mutate()}
             className="ab-btn ab-btn-outline ab-btn-sm"

@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import AdminLayout from "@/components/AdminLayout";
 import { FileText, Check, X, Eye, Clock, Copy, Mail, MessageSquare, Bell, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending: { label: "대기중", color: "bg-yellow-100 text-yellow-700" },
@@ -63,6 +63,21 @@ export default function AdminListingRequests() {
       else map[key].pending++;
     });
     return Object.entries(map).sort(([a], [b]) => a.localeCompare(b)).slice(-6).map(([, v]) => v);
+  }, [requests]);
+
+  // 카테고리별 신청 비율 데이터
+  const categoryData = useMemo(() => {
+    const map: Record<string, number> = {};
+    (requests as any[]).forEach((r: any) => {
+      const cat = r.collectionType || r.category || "기타";
+      map[cat] = (map[cat] || 0) + 1;
+    });
+    const COLORS = ["#f59e0b", "#3b82f6", "#10b981", "#f97316", "#ec4899", "#8b5cf6", "#06b6d4", "#84cc16"];
+    return Object.entries(map).map(([name, value], i) => ({
+      name: CATEGORY_LABELS[name] || name,
+      value,
+      color: COLORS[i % COLORS.length],
+    }));
   }, [requests]);
 
   const openNoteModal = (req: any, status: "pending" | "reviewing" | "approved" | "rejected") => {
@@ -140,9 +155,13 @@ export default function AdminListingRequests() {
           })}
         </div>
 
+        {/* 차트 영역 - 월별 바 차트 + 카테고리 파이 차트 */}
+        {(monthlyData.length > 0 || categoryData.length > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+
         {/* 월별 신청 현황 차트 */}
         {monthlyData.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-5">
+          <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="w-4 h-4 text-amber-500" />
               <h2 className="text-sm font-bold text-gray-900">월별 신청 현황</h2>
@@ -170,6 +189,45 @@ export default function AdminListingRequests() {
               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-red-500" /><span className="text-[11px] text-gray-500">거절</span></div>
               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-amber-500" /><span className="text-[11px] text-gray-500">대기/검토</span></div>
             </div>
+          </div>
+        )}
+
+        {/* 카테고리별 신청 비율 파이 차트 */}
+        {categoryData.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-amber-500 text-sm">🥧</span>
+              <h2 className="text-sm font-bold text-gray-900">카테고리별 신청 비율</h2>
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={45}
+                  outerRadius={75}
+                  paddingAngle={3}
+                  dataKey="value"
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ borderRadius: "8px", border: "1px solid #e5e7eb", fontSize: "12px" }}
+                  formatter={(value: any, name: string) => [value + "건", name]}
+                />
+                <Legend
+                  iconSize={8}
+                  iconType="circle"
+                  formatter={(value) => <span style={{ fontSize: "11px", color: "#6b7280" }}>{value}</span>}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
           </div>
         )}
 

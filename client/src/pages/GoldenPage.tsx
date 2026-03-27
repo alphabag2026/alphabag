@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Star, Filter } from "lucide-react";
+import { Loader2, Star, Filter, Heart } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useWallet } from "@/contexts/WalletContext";
 import { getLoginUrl } from "@/const";
@@ -14,6 +14,13 @@ const ALPHABAG_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/
 function PlanCard({ plan }: { plan: any }) {
   const { isAuthenticated } = useAuth();
   const { isConnected, openModal } = useWallet();
+  const utils = trpc.useUtils();
+  const { data: favList = [] } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
+  const isFav = (favList as any[]).some((f: any) => f.planId === plan.id);
+  const toggleFav = trpc.favorites.toggle.useMutation({
+    onSuccess: () => utils.favorites.list.invalidate(),
+    onError: () => toast.error("로그인이 필요합니다."),
+  });
   const invest = trpc.user.invest.useMutation({
     onSuccess: () => toast.success("Investment submitted!"),
     onError: (e) => toast.error(e.message),
@@ -56,6 +63,19 @@ function PlanCard({ plan }: { plan: any }) {
           {plan.isHighlight && (
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
           )}
+          {/* 하트 버튼 */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isAuthenticated) { window.location.href = getLoginUrl(); return; }
+              toggleFav.mutate({ planId: plan.id });
+            }}
+            className={`absolute bottom-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10 ${
+              isFav ? "bg-red-500 text-white shadow-md" : "bg-white/80 text-gray-400 hover:text-red-400 hover:bg-white"
+            }`}
+          >
+            <Heart className={`w-3.5 h-3.5 ${isFav ? "fill-white" : ""}`} />
+          </button>
         </div>
 
         <div className="p-4 flex flex-col flex-1">

@@ -2,7 +2,10 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { MainNav } from "@/components/MainNav";
 import { PlanDetailModal } from "@/components/PlanDetailModal";
-import { Star, Rocket } from "lucide-react";
+import { Star, Rocket, Heart } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
+import { toast } from "sonner";
 
 const ALPHABAG_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/alphabag-logo_df90878d.png";
 
@@ -11,6 +14,13 @@ type SortKey = "newest" | "rate" | "rating" | "min";
 export default function MemePage() {
   const [sort, setSort] = useState<SortKey>("newest");
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const { isAuthenticated } = useAuth();
+  const utils = trpc.useUtils();
+  const { data: favList = [] } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
+  const toggleFav = trpc.favorites.toggle.useMutation({
+    onSuccess: () => utils.favorites.list.invalidate(),
+    onError: () => toast.error("로그인이 필요합니다."),
+  });
 
   const { data: plans = [], isLoading } = trpc.public.memePlans.useQuery();
 
@@ -90,6 +100,18 @@ export default function MemePage() {
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-pink-100/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isAuthenticated) { window.location.href = getLoginUrl(); return; }
+                        toggleFav.mutate({ planId: plan.id });
+                      }}
+                      className={`absolute bottom-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10 ${
+                        (favList as any[]).some((f: any) => f.planId === plan.id) ? "bg-red-500 text-white shadow-md" : "bg-white/80 text-gray-400 hover:text-red-400 hover:bg-white"
+                      }`}
+                    >
+                      <Heart className={`w-3.5 h-3.5 ${(favList as any[]).some((f: any) => f.planId === plan.id) ? "fill-white" : ""}`} />
+                    </button>
                   </div>
                   <div className="p-4">
                     <div className="font-bold text-foreground text-sm truncate mb-1">{plan.name}</div>

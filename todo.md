@@ -407,3 +407,20 @@
 - [x] 전체 백오피스 페이지 AdminLayout 사용 확인 (Login 제외 전체 적용)
 - [x] 모든 trpc 프로시저 존재 확인 (airdrops/nodes/plans/users/content/tickets/partners/listing/adminAuth/trendingAlert/telegramSchedules/media/referrals 전체 정상)
 - [x] 25개 테스트 통과, TypeScript 0 errors
+
+## Phase 38 - 내 계정 설정·리스팅 파이 차트·하트 토글 (2026-03-28)
+- [ ] 백오피스 /admin/my-account 페이지 생성 (비밀번호 변경, 현재 사용자명 표시)
+- [ ] AdminLayout 사이드바 하단에 '내 계정' 링크 추가 (User 아이콘)
+- [ ] adminAuth.changePassword 프로시저 본인 비밀번호 변경 연동
+- [ ] 리스팅 신청 관리 페이지 카테고리별 파이 차트 추가 (recharts PieChart)
+- [ ] 컬렉션 페이지 플랜 카드 하트 토글 버튼 (Golden/Self/Leader/Influencer/Meme 5개)
+
+## Phase 38 - 내 계정 설정·리스팅 파이 차트·하트 토글 버튼 (2026-03-28)
+- [x] 백오피스 /admin/my-account 페이지 생성 (현재 계정 정보 표시 + 비밀번호 변경)
+- [x] App.tsx에 /admin/my-account 라우트 추가
+- [x] AdminLayout 사이드바 하단에 내 계정 설정 링크 추가 (User 아이콘)
+- [x] 리스팅 신청 관리 페이지 카테고리별 파이 차트 추가 (recharts PieChart, 도넛 스타일)
+- [x] 월별 바 차트 + 카테고리 파이 차트 2열 그리드 레이아웃으로 나란히 배치
+- [x] Golden/Self/Leader/Influencer/Meme 5개 컬렉션 페이지 플랜 카드 하트 토글 버튼 추가
+- [x] 미로그인 시 로그인 페이지 이동, 로그인 시 즐겨찾기 DB 토글 + 빨간 하트 표시
+- [x] 25개 테스트 통과
