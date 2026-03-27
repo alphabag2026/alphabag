@@ -199,6 +199,14 @@
 - [ ] 카드 UI에 thumbnailUrl 배경 이미지 지원
 - [ ] DB logoUrl 및 thumbnailUrl 업데이트
 
+## Phase 13 - alphabag.net Firebase 고객 데이터 마이그레이션 (2026-03-27)
+- [x] Firebase Firestore 데이터 추출 (numine-dev-e4ec1)
+- [x] users 663명 → MySQL 임포트 완료
+- [x] investments 24건 → MySQL 임포트 완료
+- [x] nodeOrders 120건 → MySQL 임포트 완료
+- [x] referrals 1013건 → MySQL 임포트 완료
+- [x] notices 3건 → MySQL 임포트 완료
+
 ## Phase 12 - 네이버 모바일 스타일 홈페이지 개편 (2026-03-27)
 - [x] 홈페이지 상단 검색바 추가 (네이버 스타일, AlphaBag 플랜 검색)
 - [x] 광고 배너 자동 슬라이더 구현
@@ -209,3 +217,9 @@
 - [x] App.tsx ThemeProvider switchable=true 설정
 - [x] 금융 데이터 백엔드 라우터 추가 (CoinGecko 공개 API)
 - [x] 소메뉴 탭별 콘텐츠 섹션 연동
+
+## Phase 14 - Firebase 데이터 추가 임포트 및 관리자 페이지 개선 (2026-03-27)
+- [x] Firebase investment_plans 17건 → MySQL investmentPlans 매핑 및 임포트
+- [x] investments 24건 planId 정확한 플랜으로 재연결 (21건 성공)
+- [x] Firebase referral_users 251건 → MySQL users 추가 임포트 (이미 포함된 동일 지갑 주소)
+- [x] 관리자 페이지 Users 탭 지갑 주소 기반 사용자 목록 표시 개선 (통계 카드, 복사 버튼, 한국어 UI)

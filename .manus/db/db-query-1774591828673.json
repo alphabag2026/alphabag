@@ -1,0 +1,33 @@
+{
+  "query": "\nSELECT 'users' as tbl, COUNT(*) as total FROM users\nUNION ALL SELECT 'investments', COUNT(*) FROM investments\nUNION ALL SELECT 'nodeOrders', COUNT(*) FROM nodeOrders\nUNION ALL SELECT 'referrals', COUNT(*) FROM referrals\nUNION ALL SELECT 'notices', COUNT(*) FROM notices;\n\nSELECT \n  COUNT(*) as total_users,\n  SUM(CASE WHEN walletAddress IS NOT NULL THEN 1 ELSE 0 END) as wallet_users,\n  SUM(CASE WHEN totalInvested > 0 THEN 1 ELSE 0 END) as investors,\n  SUM(totalInvested) as total_invested_usdt,\n  SUM(totalNodes) as total_node_value\nFROM users;\n\nSELECT u.walletAddress, u.totalInvested, u.totalNodes, u.createdAt\nFROM users u\nWHERE u.totalInvested > 0 OR u.totalNodes > 0\nORDER BY u.totalInvested DESC\nLIMIT 10;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute \nSELECT 'users' as tbl, COUNT(*) as total FROM users\nUNION ALL SELECT 'investments', COUNT(*) FROM investments\nUNION ALL SELECT 'nodeOrders', COUNT(*) FROM nodeOrders\nUNION ALL SELECT 'referrals', COUNT(*) FROM referrals\nUNION ALL SELECT 'notices', COUNT(*) FROM notices;\n\nSELECT \n  COUNT(*) as total_users,\n  SUM(CASE WHEN walletAddress IS NOT NULL THEN 1 ELSE 0 END) as wallet_users,\n  SUM(CASE WHEN totalInvested > 0 THEN 1 ELSE 0 END) as investors,\n  SUM(totalInvested) as total_invested_usdt,\n  SUM(totalNodes) as total_node_value\nFROM users;\n\nSELECT u.walletAddress, u.totalInvested, u.totalNodes, u.createdAt\nFROM users u\nWHERE u.totalInvested > 0 OR u.totalNodes > 0\nORDER BY u.totalInvested DESC\nLIMIT 10;\n",
+  "rows": [
+    {
+      "tbl": "investments",
+      "total": "24"
+    },
+    {
+      "tbl": "notices",
+      "total": "3"
+    },
+    {
+      "tbl": "nodeOrders",
+      "total": "120"
+    },
+    {
+      "tbl": "users",
+      "total": "664"
+    },
+    {
+      "tbl": "referrals",
+      "total": "1013"
+    }
+  ],
+  "messages": [
+    "total_users\twallet_users\tinvestors\ttotal_invested_usdt\ttotal_node_value",
+    "664\t663\t0\t0.00\t0.00"
+  ],
+  "stdout": "tbl\ttotal\ninvestments\t24\nnotices\t3\nnodeOrders\t120\nusers\t664\nreferrals\t1013\ntotal_users\twallet_users\tinvestors\ttotal_invested_usdt\ttotal_node_value\n664\t663\t0\t0.00\t0.00\n",
+  "stderr": "",
+  "execution_time_ms": 2070
+}
