@@ -380,3 +380,10 @@
 - [x] listing.updateStatus 백엔드 프로시저 + notifyOwner 알림 연동
 - [x] 컬렉션 페이지 라이트 테마 적용 (GoldenPage/SelfPage/LeaderPage/InfluencerPage/MemePage 5개)
 - [x] MainNav 라이트 테마 전환 (bg-background/95, semantic 토큰 전체 적용)
+
+## Phase 34 - 플랜 상세 라이트 테마·파트너 설명·리스팅 대시보드 (2026-03-28)
+- [x] /plan/:id 상세 페이지 라이트 테마 전환 (bg-background, text-foreground)
+- [x] PlanDetailModal 라이트 테마 전환 (콜렉션별 액센트 색상, semantic 토큰 전체 적용)
+- [x] 파트너 8개 설명 텍스트 실제 파트너십 내용으로 DB 업데이트 (Binance/OKX/Uniswap/Aave/Chainlink/Polygon/OpenSea/CoinGecko)
+- [x] 리스팅 신청 현황 대시보드 상태별 요약 카드 (전체/대기중/검토중/승인/거절 5개 카드, 클릭 시 필터 연동)
+- [x] 25개 테스트 통과

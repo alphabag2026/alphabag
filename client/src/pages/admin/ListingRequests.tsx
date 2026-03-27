@@ -17,6 +17,13 @@ const CATEGORY_LABELS: Record<string, string> = {
   airdrop: "🎁 Airdrop", partner: "🤝 Partner",
 };
 
+const STATUS_STATS = [
+  { key: "pending",   label: "대기중",  icon: Clock,  bg: "bg-yellow-50",  border: "border-yellow-200", text: "text-yellow-700",  iconBg: "bg-yellow-100" },
+  { key: "reviewing", label: "검토중",  icon: Eye,    bg: "bg-blue-50",    border: "border-blue-200",   text: "text-blue-700",    iconBg: "bg-blue-100" },
+  { key: "approved",  label: "승인",   icon: Check,  bg: "bg-green-50",   border: "border-green-200",  text: "text-green-700",   iconBg: "bg-green-100" },
+  { key: "rejected",  label: "거절",   icon: X,      bg: "bg-red-50",     border: "border-red-200",    text: "text-red-700",     iconBg: "bg-red-100" },
+];
+
 export default function AdminListingRequests() {
   const { data: requests = [], refetch } = trpc.listing.list.useQuery();
   const updateStatus = trpc.listing.updateStatus.useMutation({
@@ -63,14 +70,57 @@ export default function AdminListingRequests() {
             <h1 className="text-2xl font-black text-gray-900">리스팅 신청 관리</h1>
             <p className="text-gray-500 text-sm mt-1">프로젝트 리스팅 신청 목록을 검토하고 승인/거절합니다</p>
           </div>
-          <div className="flex gap-2">
-            {["all", "pending", "reviewing", "approved", "rejected"].map(s => (
-              <button key={s} onClick={() => setFilterStatus(s)}
-                className={`px-3 py-1.5 text-xs rounded-lg transition-all ${filterStatus === s ? "bg-amber-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-                {s === "all" ? "전체" : STATUS_LABELS[s]?.label}
+        </div>
+
+        {/* 상태별 요약 카드 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {/* 전체 카드 */}
+          <button
+            onClick={() => setFilterStatus("all")}
+            className={`rounded-xl border p-4 text-left transition-all hover:shadow-md ${
+              filterStatus === "all"
+                ? "bg-amber-500 border-amber-500 text-white shadow-md"
+                : "bg-white border-gray-100 hover:border-amber-200"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className={`text-xs font-semibold ${filterStatus === "all" ? "text-white/80" : "text-gray-500"}`}>전체 신청</span>
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                filterStatus === "all" ? "bg-white/20" : "bg-amber-100"
+              }`}>
+                <FileText className={`w-4 h-4 ${filterStatus === "all" ? "text-white" : "text-amber-600"}`} />
+              </div>
+            </div>
+            <div className={`text-3xl font-black ${filterStatus === "all" ? "text-white" : "text-gray-900"}`}>
+              {(requests as any[]).length}
+            </div>
+          </button>
+
+          {/* 상태별 카드 */}
+          {STATUS_STATS.map(({ key, label, icon: Icon, bg, border, text, iconBg }) => {
+            const count = (requests as any[]).filter(r => r.status === key).length;
+            const isActive = filterStatus === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setFilterStatus(key)}
+                className={`rounded-xl border p-4 text-left transition-all hover:shadow-md ${
+                  isActive ? `${bg} ${border} shadow-md ring-2 ring-offset-1 ring-current` : `bg-white border-gray-100 hover:${border}`
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-xs font-semibold ${isActive ? text : "text-gray-500"}`}>{label}</span>
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isActive ? iconBg : "bg-gray-100"}`}>
+                    <Icon className={`w-4 h-4 ${isActive ? text : "text-gray-400"}`} />
+                  </div>
+                </div>
+                <div className={`text-3xl font-black ${isActive ? text : "text-gray-900"}`}>{count}</div>
+                {count > 0 && key === "pending" && !isActive && (
+                  <div className="text-[10px] text-yellow-600 font-medium mt-1">검토 필요</div>
+                )}
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
         {/* 알림 안내 배너 */}
