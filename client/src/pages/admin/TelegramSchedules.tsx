@@ -16,8 +16,9 @@ import {
 import { toast } from "sonner";
 import {
   Loader2, Plus, Trash2, Edit2, Clock, Send, CheckCircle2, XCircle,
-  Calendar, RefreshCw,
+  Calendar, RefreshCw, Link, AlertCircle,
 } from "lucide-react";
+import { useEffect } from "react";
 
 const CRON_PRESETS = [
   { label: "매일 오전 9시", value: "0 9 * * *" },
@@ -54,6 +55,51 @@ export default function TelegramSchedules() {
   const [editTarget, setEditTarget] = useState<any>(null);
   const [form, setForm] = useState<ScheduleForm>(defaultForm);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [webhookInfo, setWebhookInfo] = useState<any>(null);
+  const [webhookLoading, setWebhookLoading] = useState(false);
+  const [registerLoading, setRegisterLoading] = useState(false);
+
+  // 웹훅 상태 조회
+  const fetchWebhookInfo = async () => {
+    setWebhookLoading(true);
+    try {
+      const res = await fetch("/api/telegram/webhook/info");
+      const data = await res.json();
+      setWebhookInfo(data);
+    } catch {
+      setWebhookInfo(null);
+    } finally {
+      setWebhookLoading(false);
+    }
+  };
+
+  // 웹훅 자동 등록
+  const registerWebhook = async () => {
+    setRegisterLoading(true);
+    try {
+      const webhookUrl = `${window.location.origin}/api/telegram/webhook`;
+      const res = await fetch("/api/telegram/webhook/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ webhookUrl }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        toast.success(`웹훅 등록 완료!\n${webhookUrl}`);
+        fetchWebhookInfo();
+      } else {
+        toast.error(`등록 실패: ${data.description || data.error}`);
+      }
+    } catch (err: any) {
+      toast.error(`오류: ${err.message}`);
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWebhookInfo();
+  }, []);
 
   const utils = trpc.useUtils();
   const { data: schedules, isLoading } = trpc.telegramSchedules.list.useQuery();
@@ -132,6 +178,12 @@ export default function TelegramSchedules() {
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
+  // 웹훅 현재 URL 파싱
+  const currentWebhookUrl = webhookInfo?.result?.url || "";
+  const isWebhookActive = !!currentWebhookUrl;
+  const expectedUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/api/telegram/webhook`;
+  const isWebhookCorrect = currentWebhookUrl === expectedUrl;
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -142,9 +194,36 @@ export default function TelegramSchedules() {
               Automated recurring telegram broadcasts. Runs every minute to check due schedules.
             </p>
           </div>
-          <Button onClick={() => { setForm(defaultForm); setShowCreate(true); }} className="gap-2">
-            <Plus className="w-4 h-4" /> New Schedule
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* 웹훅 상태 표시 */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/40 bg-muted/20 text-xs">
+              {webhookLoading ? (
+                <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+              ) : isWebhookCorrect ? (
+                <CheckCircle2 className="w-3 h-3 text-green-400" />
+              ) : isWebhookActive ? (
+                <AlertCircle className="w-3 h-3 text-yellow-400" />
+              ) : (
+                <XCircle className="w-3 h-3 text-red-400" />
+              )}
+              <span className={isWebhookCorrect ? "text-green-400" : isWebhookActive ? "text-yellow-400" : "text-red-400"}>
+                {webhookLoading ? "확인 중..." : isWebhookCorrect ? "웹훅 연결됨" : isWebhookActive ? "URL 불일치" : "웹훅 미등록"}
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs h-8"
+              onClick={registerWebhook}
+              disabled={registerLoading}
+            >
+              {registerLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Link className="w-3 h-3" />}
+              웹훅 등록
+            </Button>
+            <Button onClick={() => { setForm(defaultForm); setShowCreate(true); }} className="gap-2">
+              <Plus className="w-4 h-4" /> New Schedule
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (

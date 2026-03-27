@@ -298,3 +298,12 @@
 - [x] AuditLogs.tsx 테이블에 Admin ID 대신 username 표시
 - [x] telegramSchedules.runNow 프로시저 (즉시 실행)
 - [x] TelegramSchedules.tsx 카드에 "지금 발송" 버튼 추가
+
+## Phase 24 - 웹훅 자동등록·다국어봇·Audit 날짜필터 (2026-03-27)
+- [x] TelegramSchedules 페이지 상단에 "웹훅 등록" 버튼 추가
+- [x] POST /api/telegram/webhook/register 호출 → 현재 도메인 자동 등록
+- [x] 웹훅 현재 상태 표시 (GET /api/telegram/webhook/info)
+- [x] telegramWebhook.ts /start 다국어 응답 (한국어/영어/중국어/일본어/베트남어/태국어/인도네시아어)
+- [x] 언어 감지: Telegram from.language_code 기반 자동 선택
+- [x] auditLogs.list 프로시저에 dateRange 파라미터 추가 (today/week/month/all)
+- [x] AuditLogs.tsx 날짜 범위 필터 버튼 UI (오늘/이번 주/이번 달/전체)

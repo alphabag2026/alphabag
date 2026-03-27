@@ -9,7 +9,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Loader2, ChevronLeft, ChevronRight, Eye, Send, Shield, User, FileText, Cpu } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Eye, Send, Shield, User, FileText, Cpu, Calendar } from "lucide-react";
 
 const ACTION_FILTERS = [
   { label: "All", value: "" },
@@ -43,15 +43,24 @@ function getActionIcon(action: string) {
   return null;
 }
 
+const DATE_RANGE_FILTERS = [
+  { label: "전체", value: "all" as const },
+  { label: "오늘", value: "today" as const },
+  { label: "이번 주", value: "week" as const },
+  { label: "이번 달", value: "month" as const },
+];
+
 export default function AuditLogs() {
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState("");
+  const [dateRange, setDateRange] = useState<"all" | "today" | "week" | "month">("all");
   const [selectedLog, setSelectedLog] = useState<any>(null);
 
   const { data, isLoading } = trpc.auditLogs.list.useQuery({
     page,
     limit: 50,
     action: actionFilter || undefined,
+    dateRange,
   });
 
   const logs = data?.data ?? [];
@@ -68,19 +77,38 @@ export default function AuditLogs() {
           </p>
         </div>
 
-        {/* Action Filter */}
-        <div className="flex flex-wrap gap-2">
-          {ACTION_FILTERS.map((f) => (
-            <Button
-              key={f.value}
-              variant={actionFilter === f.value ? "default" : "outline"}
-              size="sm"
-              onClick={() => { setActionFilter(f.value); setPage(1); }}
-              className="h-8"
-            >
-              {f.label}
-            </Button>
-          ))}
+        {/* Filters Row */}
+        <div className="space-y-2">
+          {/* Action Filter */}
+          <div className="flex flex-wrap gap-2">
+            {ACTION_FILTERS.map((f) => (
+              <Button
+                key={f.value}
+                variant={actionFilter === f.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => { setActionFilter(f.value); setPage(1); }}
+                className="h-8"
+              >
+                {f.label}
+              </Button>
+            ))}
+          </div>
+          {/* Date Range Filter */}
+          <div className="flex items-center gap-2">
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">기간:</span>
+            {DATE_RANGE_FILTERS.map((f) => (
+              <Button
+                key={f.value}
+                variant={dateRange === f.value ? "default" : "ghost"}
+                size="sm"
+                onClick={() => { setDateRange(f.value); setPage(1); }}
+                className="h-7 px-3 text-xs"
+              >
+                {f.label}
+              </Button>
+            ))}
+          </div>
         </div>
 
         {/* Table */}

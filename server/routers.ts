@@ -634,13 +634,30 @@ export const appRouter = router({
       page: z.number().default(1),
       limit: z.number().default(50),
       action: z.string().optional(),
+      dateRange: z.enum(["today", "week", "month", "all"]).default("all"),
     })).query(async ({ input }) => {
       const database = await getDb();
       if (!database) return { data: [], total: 0 };
       const { auditLogs, adminAccounts: adminAccountsTable } = await import("../drizzle/schema");
-      const { desc, count, like, sql } = await import("drizzle-orm");
+      const { desc, count, like, sql, and, gte } = await import("drizzle-orm");
       const offset = (input.page - 1) * input.limit;
-      const whereClause = input.action ? like(auditLogs.action, `%${input.action}%`) : undefined;
+
+      // 날짜 범위 계산
+      let dateFrom: Date | undefined;
+      const now = new Date();
+      if (input.dateRange === "today") {
+        dateFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      } else if (input.dateRange === "week") {
+        dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      } else if (input.dateRange === "month") {
+        dateFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      }
+
+      const actionCond = input.action ? like(auditLogs.action, `%${input.action}%`) : undefined;
+      const dateCond = dateFrom ? gte(auditLogs.createdAt, dateFrom) : undefined;
+      const whereClause = actionCond && dateCond ? and(actionCond, dateCond)
+        : actionCond ?? dateCond;
+
       const selectFields = {
         id: auditLogs.id,
         adminId: auditLogs.adminId,
