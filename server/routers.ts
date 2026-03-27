@@ -1093,6 +1093,101 @@ export const appRouter = router({
       if (!user) return { valid: false, referrer: null };
       return { valid: true, referrer: { name: user.name, code: user.referralCode } };
     }),
+    // C-BAG 콜렉션
+    cbagPlans: publicProcedure.query(async () => {
+      return await db.getInvestmentPlans(undefined, "cbag" as any);
+    }),
+    // 파트너 목록
+    partners: publicProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      const { partners } = await import("../drizzle/schema");
+      return drizzleDb.select().from(partners).where(eq(partners.isHidden, false)).orderBy(partners.sortOrder);
+    }),
+    // 에어드랍 목록 (공개)
+    airdrops: publicProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      const { airdrops } = await import("../drizzle/schema");
+      return drizzleDb.select().from(airdrops).where(eq(airdrops.status, "active")).orderBy(airdrops.sortOrder);
+    }),
+  }),
+  // 리스팅 신청
+  listing: router({
+    submit: publicProcedure.input(z.object({
+      projectName: z.string().min(1),
+      projectSymbol: z.string().optional(),
+      projectWebsite: z.string().optional(),
+      projectDescription: z.string().optional(),
+      category: z.enum(["golden","self","leader","meme","influencer","cbag","airdrop","partner"]),
+      contactName: z.string().min(1),
+      contactEmail: z.string().email(),
+      contactTelegram: z.string().optional(),
+      logoUrl: z.string().optional(),
+      telegramUrl: z.string().optional(),
+      twitterUrl: z.string().optional(),
+      additionalInfo: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { listingRequests } = await import("../drizzle/schema");
+      await drizzleDb.insert(listingRequests).values(input);
+      return { success: true };
+    }),
+    list: adminProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      const { listingRequests } = await import("../drizzle/schema");
+      return drizzleDb.select().from(listingRequests).orderBy(listingRequests.createdAt);
+    }),
+    updateStatus: adminProcedure.input(z.object({
+      id: z.number(),
+      status: z.enum(["pending","reviewing","approved","rejected"]),
+      adminNote: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { listingRequests } = await import("../drizzle/schema");
+      await drizzleDb.update(listingRequests).set({ status: input.status, adminNote: input.adminNote }).where(eq(listingRequests.id, input.id));
+      return { success: true };
+    }),
+  }),
+  // 파트너 관리
+  partners: router({
+    list: adminProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      const { partners } = await import("../drizzle/schema");
+      return drizzleDb.select().from(partners).orderBy(partners.sortOrder);
+    }),
+    create: adminProcedure.input(z.object({
+      name: z.string().min(1),
+      logoUrl: z.string().optional(),
+      website: z.string().optional(),
+      description: z.string().optional(),
+      category: z.string().optional(),
+      sortOrder: z.number().default(0),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { partners } = await import("../drizzle/schema");
+      await drizzleDb.insert(partners).values(input);
+      return { success: true };
+    }),
+    toggleHidden: adminProcedure.input(z.object({ id: z.number(), isHidden: z.boolean() })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { partners } = await import("../drizzle/schema");
+      await drizzleDb.update(partners).set({ isHidden: input.isHidden }).where(eq(partners.id, input.id));
+      return { success: true };
+    }),
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { partners } = await import("../drizzle/schema");
+      await drizzleDb.delete(partners).where(eq(partners.id, input.id));
+      return { success: true };
+    }),
   }),
 
   // ─── User API (auth required) ─────────────────────────────────────────────────

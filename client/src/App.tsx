@@ -20,6 +20,12 @@ import AdminAuditLogs from "./pages/admin/AuditLogs";
 import AdminTelegramSchedules from "./pages/admin/TelegramSchedules";
 import AdminMediaAssets from "./pages/admin/MediaAssets";
 import AdminTrendingAlerts from "./pages/admin/TrendingAlerts";
+import CbagPage from "./pages/CbagPage";
+import AirdropPage from "./pages/AirdropPage";
+import PartnersPage from "./pages/PartnersPage";
+import ListingPage from "./pages/ListingPage";
+import AdminListingRequests from "./pages/admin/ListingRequests";
+import AdminPartners from "./pages/admin/Partners";
 import UserDashboard from "./pages/UserDashboard";
 import PlansPage from "./pages/PlansPage";
 import NodesPage from "./pages/NodesPage";
@@ -55,6 +61,10 @@ function Router() {
       <Route path="/meme" component={MemePage} />
       <Route path="/influencer" component={InfluencerPage} />
       <Route path="/plan/:id" component={PlanDetailPage} />
+      <Route path="/cbag" component={CbagPage} />
+      <Route path="/airdrop" component={AirdropPage} />
+      <Route path="/partners" component={PartnersPage} />
+      <Route path="/listing" component={ListingPage} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/plans" component={AdminPlans} />
@@ -71,6 +81,8 @@ function Router() {
       <Route path="/admin/telegram-schedules" component={AdminTelegramSchedules} />
       <Route path="/admin/media-assets" component={AdminMediaAssets} />
       <Route path="/admin/trending-alerts" component={AdminTrendingAlerts} />
+      <Route path="/admin/listing-requests" component={AdminListingRequests} />
+      <Route path="/admin/partners" component={AdminPartners} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

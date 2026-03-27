@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, TrendingUp, FileText, Users, Cpu,
   TicketCheck, Bell, Gift, ShieldCheck, LogOut, Shield,
-  ClipboardList, CalendarClock, Image, Zap,
+  ClipboardList, CalendarClock, Image, Zap, FileSearch, Handshake,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
@@ -21,11 +21,13 @@ const NAV_ITEMS = [
   { href: "/admin/audit-logs", label: "Audit Logs", icon: "ClipboardList" },
   { href: "/admin/media-assets", label: "Media Assets", icon: "Image" },
   { href: "/admin/trending-alerts", label: "Trending Alerts", icon: "Zap" },
+  { href: "/admin/listing-requests", label: "Listing Requests", icon: "FileSearch" },
+  { href: "/admin/partners", label: "Partners", icon: "Handshake" },
 ];
 
 const ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
   LayoutDashboard, TrendingUp, FileText, Users, Cpu,
-  TicketCheck, Bell, Gift, ShieldCheck, ClipboardList, CalendarClock, Image, Zap,
+  TicketCheck, Bell, Gift, ShieldCheck, ClipboardList, CalendarClock, Image, Zap, FileSearch, Handshake,
 };
 
 interface AdminLayoutProps {

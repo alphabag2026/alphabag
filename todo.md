@@ -354,3 +354,14 @@
 ## Phase 30 - 금융 위젯 사이드바 이동 + 코인 토글 (2026-03-27)
 - [x] 금융 위젯을 오른쪽 사이드바로 이동 (lg 이상 화면에서 sticky 사이드바로 표시)
 - [x] BNB/SOL 코인 토글 스위치 추가 (코인 선택 버튼으로 토글)
+## Phase 31 - 햄버거 메뉴 + 별도 페이지 + 리스팅 신청 + 샘플 데이터 (2026-03-27)
+- [x] DB: investmentPlans에 isHidden 필드 추가, listingRequests/partners 테이블 생성
+- [x] 햄버거 메뉴 네비 (About B-BAG 접이식 서브메뉴: Golden/Self/Leader/Influencer/MemeToken)
+- [x] 핵심 파트너 메뉴 추가 (/partners)
+- [x] 별도 페이지: C-BAG(/cbag), Airdrop(/airdrop), Partners(/partners), Listing(/listing)
+- [x] 프로젝트 리스팅 신청 페이지 (/listing) - 신청 폼 + 백오피스 관리
+- [x] 백오피스 프로젝트 숨기기 기능 (isHidden 토글, admin/Plans)
+- [x] 샘플 데이터 자동 생성 (C-BAG 플랜 3개, 파트너 3개, 에어드랍 3개)
+- [x] 사이드바: 오늘의 추천 플랜 미니 카드 (TodayRecommendWidget)
+- [x] 사이드바: 환율 접기/펼치기 토글 추가
+- [x] 모바일 금융 위젯 1줄 인라인 표시 (MobileMarketBar 컴포넌트)

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
-  Star, ChevronRight, Bell, Shield, Zap, Globe,
+  Star, ChevronRight, ChevronDown, Bell, Shield, Zap, Globe,
   Users, BarChart3, Menu, X, ShoppingCart, LogOut,
   Wallet, ExternalLink, Video, MessageSquare, Search,
   Sun, Moon, TrendingUp, TrendingDown, RefreshCw,
@@ -252,13 +252,14 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
 }
 
 // ─── 금융 위젯 ────────────────────────────────────────────────────────────────
-function MarketWidget({ isDark, sidebar = false }: { isDark: boolean; sidebar?: boolean }) {
+function MarketWidget({ isDark, sidebar = false, mobileInline = false }: { isDark: boolean; sidebar?: boolean; mobileInline?: boolean }) {
   const { data: marketData, isLoading, refetch } = trpc.market.prices.useQuery(undefined, {
     refetchInterval: 60000,
     staleTime: 30000,
   });
   const [showBNB, setShowBNB] = useState(false);
   const [showSOL, setShowSOL] = useState(false);
+  const [fxCollapsed, setFxCollapsed] = useState(true);
   const bgCard = isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200 shadow-sm";
   const textPrimary = isDark ? "text-white" : "text-gray-900";
   const textSecondary = isDark ? "text-gray-400" : "text-gray-500";
@@ -340,25 +341,95 @@ function MarketWidget({ isDark, sidebar = false }: { isDark: boolean; sidebar?: 
         </div>
       </div>
 
-      {/* 환율 */}
+      {/* 환율 접기/펼치기 */}
       {fx && (
-        <div className={`px-4 py-2.5 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
-          <div className={`text-[10px] ${textSecondary} mb-2`}>주요 환율 (1 USD 기준)</div>
-          <div className="grid grid-cols-4 gap-2">
-            {[
-              { label: "KRW", value: `₩${fx.KRW?.toLocaleString()}` },
-              { label: "JPY", value: `¥${fx.JPY?.toFixed(0)}` },
-              { label: "EUR", value: `€${fx.EUR?.toFixed(3)}` },
-              { label: "CNY", value: `¥${fx.CNY?.toFixed(2)}` },
-            ].map((item) => (
-              <div key={item.label} className={`text-center p-1.5 rounded-lg ${isDark ? "bg-white/5" : "bg-gray-50"}`}>
-                <div className={`text-[9px] ${textSecondary}`}>{item.label}</div>
-                <div className={`text-[10px] font-bold ${textPrimary}`}>{item.value}</div>
+        <div className={`border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
+          <button
+            onClick={() => setFxCollapsed(v => !v)}
+            className={`w-full px-4 py-2 flex items-center justify-between text-[10px] ${textSecondary} hover:${isDark ? "text-white" : "text-gray-700"} transition-colors`}
+          >
+            <span>주요 환율 (1 USD 기준)</span>
+            <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${fxCollapsed ? "" : "rotate-180"}`} />
+          </button>
+          {!fxCollapsed && (
+            <div className="px-4 pb-2.5">
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { label: "KRW", value: `₩${fx.KRW?.toLocaleString()}` },
+                  { label: "JPY", value: `¥${fx.JPY?.toFixed(0)}` },
+                  { label: "EUR", value: `€${fx.EUR?.toFixed(3)}` },
+                  { label: "CNY", value: `¥${fx.CNY?.toFixed(2)}` },
+                ].map((item) => (
+                  <div key={item.label} className={`text-center p-1.5 rounded-lg ${isDark ? "bg-white/5" : "bg-gray-50"}`}>
+                    <div className={`text-[9px] ${textSecondary}`}>{item.label}</div>
+                    <div className={`text-[10px] font-bold ${textPrimary}`}>{item.value}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── 모바일 1줄 금융 바 ─────────────────────────────────────────────────────
+function MobileMarketBar({ isDark }: { isDark: boolean }) {
+  const { data: marketData } = trpc.market.prices.useQuery(undefined, {
+    refetchInterval: 60000,
+    staleTime: 30000,
+  });
+  const crypto = marketData?.crypto;
+  const bgCard = isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200 shadow-sm";
+  const textPrimary = isDark ? "text-white" : "text-gray-900";
+  if (!crypto) return null;
+  const coins = [
+    { symbol: "BTC", price: crypto.BTC.usd, change: crypto.BTC.change24h, icon: "₿", color: "text-orange-400" },
+    { symbol: "ETH", price: crypto.ETH.usd, change: crypto.ETH.change24h, icon: "Ξ", color: "text-blue-400" },
+  ];
+  return (
+    <div className={`rounded-xl border px-3 py-2 flex items-center gap-3 overflow-x-auto scrollbar-hide ${bgCard}`}>
+      <TrendingUp className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+      {coins.map(c => (
+        <div key={c.symbol} className="flex items-center gap-1.5 flex-shrink-0">
+          <span className={`text-xs font-bold ${c.color}`}>{c.icon} {c.symbol}</span>
+          <span className={`text-xs font-semibold ${textPrimary}`}>${c.price >= 1000 ? c.price.toLocaleString() : c.price.toFixed(2)}</span>
+          <span className={`text-[10px] font-medium ${c.change >= 0 ? "text-emerald-500" : "text-red-500"}`}>{c.change >= 0 ? "+" : ""}{c.change.toFixed(2)}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── 오늘의 추천 플랜 사이드바 위젯 ─────────────────────────────────────────
+function TodayRecommendWidget({ isDark, onSelectPlan }: { isDark: boolean; onSelectPlan: (id: number) => void }) {
+  const { data: plans } = trpc.public.plans.useQuery({ limit: 3, highlightOnly: true });
+  const bgCard = isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200 shadow-sm";
+  const textPrimary = isDark ? "text-white" : "text-gray-900";
+  const textSecondary = isDark ? "text-gray-400" : "text-gray-500";
+  if (!plans || plans.length === 0) return null;
+  return (
+    <div className={`rounded-xl border overflow-hidden ${bgCard}`}>
+      <div className={`px-4 py-3 border-b ${isDark ? "border-white/5" : "border-gray-100"} flex items-center gap-2`}>
+        <span className="text-amber-400">⭐</span>
+        <span className={`text-sm font-bold ${textPrimary}`}>오늘의 추천 플랜</span>
+      </div>
+      <div className="divide-y divide-gray-100/10">
+        {plans.slice(0, 3).map((plan: any) => (
+          <button
+            key={plan.id}
+            onClick={() => onSelectPlan(plan.id)}
+            className={`w-full px-4 py-3 text-left hover:${isDark ? "bg-white/5" : "bg-gray-50"} transition-colors`}
+          >
+            <div className={`text-xs font-semibold ${textPrimary} truncate`}>{plan.name}</div>
+            <div className="flex items-center justify-between mt-1">
+              <span className={`text-[10px] ${textSecondary}`}>{plan.strategy || plan.planType}</span>
+              <span className="text-[10px] font-bold text-amber-500">{plan.dailyRate ? `${(parseFloat(plan.dailyRate)*100).toFixed(2)}%` : "HOT"}</span>
+            </div>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -494,6 +565,7 @@ export default function Home() {
   const isDark = theme === "dark";
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [meetingNotice, setMeetingNotice] = useState<any>(null);
@@ -590,18 +662,37 @@ export default function Home() {
               </div>
             </Link>
 
-            {/* 데스크탑 메뉴 */}
+            {/* 데스크탑 메뉴 - 햄버거 */}
             <div className="hidden md:flex items-center gap-0.5">
-              {[
-                { href: "/golden", label: "Golden", cls: "hover:text-amber-400" },
-                { href: "/self", label: "Self", cls: "hover:text-blue-400" },
-                { href: "/notices", label: "Notices", cls: `hover:${isDark ? "text-white" : "text-gray-900"}` },
-                { href: "/#airdrop", label: "Airdrop", cls: "hover:text-emerald-400" },
-              ].map((item) => (
-                <Link key={item.href} href={item.href}>
-                  <button className={`px-3 py-1.5 text-xs ${textSecondary} rounded-lg transition-colors ${item.cls}`}>{item.label}</button>
-                </Link>
-              ))}
+              {/* About B-BAG 드롭다운 */}
+              <div className="relative group">
+                <button className={`flex items-center gap-1 px-3 py-1.5 text-xs ${textSecondary} rounded-lg transition-colors hover:text-amber-400`}>
+                  About B-BAG
+                  <ChevronDown className="w-3 h-3 group-hover:rotate-180 transition-transform" />
+                </button>
+                <div className={`absolute top-full left-0 mt-1 w-52 rounded-xl border shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all z-50 ${
+                  isDark ? "bg-[#111] border-white/10" : "bg-white border-gray-200"
+                }`}>
+                  {[
+                    { href: "/golden", label: "🏆 Golden Collection", color: "text-amber-500" },
+                    { href: "/self", label: "⚡ Self Collection", color: "text-blue-500" },
+                    { href: "/leader", label: "👑 Leader Collection", color: "text-emerald-500" },
+                    { href: "/influencer", label: "⭐ Influencer", color: "text-purple-500" },
+                    { href: "/meme", label: "🚀 Meme Token", color: "text-pink-500" },
+                    { href: "/cbag", label: "💎 C-BAG", color: "text-cyan-500" },
+                  ].map((sub) => (
+                    <Link key={sub.href} href={sub.href}>
+                      <div className={`px-4 py-2.5 text-xs ${sub.color} font-medium hover:bg-amber-50/50 cursor-pointer first:rounded-t-xl last:rounded-b-xl transition-colors`}>{sub.label}</div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <Link href="/airdrop"><button className={`px-3 py-1.5 text-xs ${textSecondary} rounded-lg transition-colors hover:text-emerald-400`}>Airdrop</button></Link>
+              <Link href="/partners"><button className={`px-3 py-1.5 text-xs ${textSecondary} rounded-lg transition-colors hover:text-blue-400`}>Partners</button></Link>
+              <Link href="/notices"><button className={`px-3 py-1.5 text-xs ${textSecondary} rounded-lg transition-colors`}>Notices</button></Link>
+              <Link href="/listing"><button className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                isDark ? "text-amber-400 hover:bg-amber-400/10" : "text-amber-600 hover:bg-amber-50"
+              }`}>리스팅 신청</button></Link>
             </div>
 
             {/* 우측 액션 */}
@@ -657,12 +748,38 @@ export default function Home() {
         {/* 모바일 메뉴 */}
         {mobileMenuOpen && (
           <div className={`md:hidden border-t px-4 py-3 space-y-1 ${isDark ? "border-white/5 bg-[#0d0d0d]" : "border-gray-100 bg-white"}`}>
+            {/* About B-BAG 접이식 */}
+            <div>
+              <button
+                onClick={() => setMobileAboutOpen(!mobileAboutOpen)}
+                className={`w-full flex items-center justify-between px-3 py-2 text-sm font-semibold ${textPrimary} hover:bg-amber-50/50 rounded-lg transition-colors`}
+              >
+                About B-BAG
+                <ChevronDown className={`w-4 h-4 transition-transform ${mobileAboutOpen ? "rotate-180" : ""}`} />
+              </button>
+              {mobileAboutOpen && (
+                <div className="pl-4 space-y-0.5 mt-1">
+                  {[
+                    { href: "/golden", label: "🏆 Golden Collection", color: "text-amber-500" },
+                    { href: "/self", label: "⚡ Self Collection", color: "text-blue-500" },
+                    { href: "/leader", label: "👑 Leader Collection", color: "text-emerald-500" },
+                    { href: "/influencer", label: "⭐ Influencer", color: "text-purple-500" },
+                    { href: "/meme", label: "🚀 Meme Token", color: "text-pink-500" },
+                    { href: "/cbag", label: "💎 C-BAG", color: "text-cyan-500" },
+                  ].map((sub) => (
+                    <Link key={sub.href} href={sub.href}>
+                      <button className={`w-full text-left px-3 py-2 text-sm ${sub.color} hover:bg-white/5 rounded-lg transition-colors`} onClick={() => setMobileMenuOpen(false)}>{sub.label}</button>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             {[
-              { href: "/golden", label: "Golden Collection", color: "text-amber-400" },
-              { href: "/self", label: "Self Collection", color: "text-blue-400" },
-              { href: "/notices", label: "Notices", color: textSecondary },
-              { href: "/#airdrop", label: "Airdrop", color: "text-emerald-400" },
-              { href: "/dashboard", label: "Dashboard", color: textSecondary },
+              { href: "/airdrop", label: "🎁 Airdrop", color: "text-emerald-400" },
+              { href: "/partners", label: "🤝 Partners", color: "text-blue-400" },
+              { href: "/notices", label: "📢 Notices", color: textSecondary },
+              { href: "/listing", label: "📝 리스팅 신청", color: "text-amber-500" },
+              { href: "/dashboard", label: "📊 Dashboard", color: textSecondary },
             ].map((item) => (
               <Link key={item.href} href={item.href}>
                 <button className={`w-full text-left px-3 py-2 text-sm ${item.color} hover:bg-white/5 rounded-lg transition-colors`} onClick={() => setMobileMenuOpen(false)}>
@@ -779,6 +896,10 @@ export default function Home() {
         <div className="flex gap-4 items-start">
           {/* 왼쪽 메인 콘텐츠 */}
           <div className="flex-1 min-w-0">
+        {/* ─── 모바일 전용 1줄 금융 위젯 ─── */}
+        <div className="lg:hidden mb-3">
+          <MobileMarketBar isDark={isDark} />
+        </div>
         {/* ─── 소메뉴 탭 (네이버 스타일) ─── */}
         <div className={`rounded-xl border mb-4 overflow-hidden ${cardBg}`}>
           <div className="flex overflow-x-auto scrollbar-hide">
@@ -1171,8 +1292,9 @@ export default function Home() {
           </div>{/* end main */}
           {/* 오른쪽 사이드바 */}
           <div className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-20">
+            <div className="sticky top-20 space-y-3">
               <MarketWidget isDark={isDark} sidebar />
+              <TodayRecommendWidget isDark={isDark} onSelectPlan={setSelectedPlanId} />
             </div>
           </div>
         </div>{/* end 2열 */}

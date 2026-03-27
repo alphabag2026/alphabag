@@ -64,6 +64,7 @@ export const investmentPlans = mysqlTable("investmentPlans", {
   strategy: varchar("strategy", { length: 100 }),
   badgeLabels: json("badgeLabels"),
   isHighlight: boolean("isHighlight").default(false).notNull(),
+  isHidden: boolean("isHidden").default(false).notNull(),
   // Extended fields
   videoUrl2: text("videoUrl2"),
   docsUrl2: text("docsUrl2"),
@@ -394,3 +395,42 @@ export const trendingAlertSettings = mysqlTable("trendingAlertSettings", {
 });
 export type TrendingAlertSetting = typeof trendingAlertSettings.$inferSelect;
 export type InsertTrendingAlertSetting = typeof trendingAlertSettings.$inferInsert;
+
+// ─── Listing Requests (프로젝트 리스팅 신청) ─────────────────────────────────
+export const listingRequests = mysqlTable("listingRequests", {
+  id: int("id").autoincrement().primaryKey(),
+  projectName: varchar("projectName", { length: 100 }).notNull(),
+  projectSymbol: varchar("projectSymbol", { length: 20 }),
+  projectWebsite: varchar("projectWebsite", { length: 255 }),
+  projectDescription: text("projectDescription"),
+  category: mysqlEnum("category", ["golden", "self", "leader", "meme", "influencer", "cbag", "airdrop", "partner"]).notNull(),
+  contactName: varchar("contactName", { length: 100 }).notNull(),
+  contactEmail: varchar("contactEmail", { length: 255 }).notNull(),
+  contactTelegram: varchar("contactTelegram", { length: 100 }),
+  logoUrl: text("logoUrl"),
+  whitepaperUrl: text("whitepaperUrl"),
+  telegramUrl: text("telegramUrl"),
+  twitterUrl: text("twitterUrl"),
+  additionalInfo: text("additionalInfo"),
+  status: mysqlEnum("status", ["pending", "reviewing", "approved", "rejected"]).default("pending").notNull(),
+  adminNote: text("adminNote"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type ListingRequest = typeof listingRequests.$inferSelect;
+export type InsertListingRequest = typeof listingRequests.$inferInsert;
+
+// ─── Partners (핵심 파트너) ───────────────────────────────────────────────────
+export const partners = mysqlTable("partners", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  logoUrl: text("logoUrl"),
+  website: varchar("website", { length: 255 }),
+  description: text("description"),
+  category: varchar("category", { length: 50 }),
+  isHidden: boolean("isHidden").default(false).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type Partner = typeof partners.$inferSelect;
+export type InsertPartner = typeof partners.$inferInsert;
