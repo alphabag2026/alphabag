@@ -282,8 +282,6 @@ function MarketWidget({ isDark }: { isDark: boolean }) {
   const cryptoItems = crypto ? [
     { symbol: "BTC", price: crypto.BTC.usd, change: crypto.BTC.change24h, icon: "₿" },
     { symbol: "ETH", price: crypto.ETH.usd, change: crypto.ETH.change24h, icon: "Ξ" },
-    { symbol: "BNB", price: crypto.BNB.usd, change: crypto.BNB.change24h, icon: "B" },
-    { symbol: "SOL", price: crypto.SOL.usd, change: crypto.SOL.change24h, icon: "◎" },
   ] : [];
 
   return (
@@ -301,31 +299,27 @@ function MarketWidget({ isDark }: { isDark: boolean }) {
         </button>
       </div>
 
-      {/* 암호화폐 가격 - 1줄 4열 가로 레이아웃 */}
-      <div className="px-3 pb-2">
-        <div className="grid grid-cols-4 gap-2">
+      {/* 암호화폐 가격 - 2개 컴팩트 가로 레이아웃 */}
+      <div className="px-3 py-2">
+        <div className="grid grid-cols-2 gap-2">
           {cryptoItems.map((item) => (
-            <div key={item.symbol} className={`flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors ${
+            <div key={item.symbol} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors ${
               isDark ? "bg-white/4 border border-white/8" : "bg-gray-50 border border-gray-100"
             }`}>
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0 ${
-                item.symbol === "BTC" ? "bg-orange-500/20 text-orange-400" :
-                item.symbol === "ETH" ? "bg-blue-500/20 text-blue-400" :
-                item.symbol === "BNB" ? "bg-yellow-500/20 text-yellow-400" :
-                "bg-purple-500/20 text-purple-400"
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 ${
+                item.symbol === "BTC" ? "bg-orange-500/20 text-orange-400" : "bg-blue-500/20 text-blue-400"
               }`}>
                 {item.icon}
               </div>
               <div className="min-w-0">
                 <div className={`text-xs font-bold ${textPrimary}`}>{item.symbol}</div>
-                <div className={`text-[11px] font-semibold ${textPrimary} truncate`}>
+                <div className={`text-xs font-semibold ${textPrimary}`}>
                   ${item.price >= 1000 ? item.price.toLocaleString() : item.price.toFixed(2)}
                 </div>
-                <div className={`text-[10px] flex items-center gap-0.5 ${
-                  item.change >= 0 ? "text-emerald-400" : "text-red-400"
+                <div className={`text-[10px] flex items-center gap-0.5 font-medium ${
+                  item.change >= 0 ? "text-emerald-500" : "text-red-500"
                 }`}>
-                  {item.change >= 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
-                  {Math.abs(item.change).toFixed(2)}%
+                  {item.change >= 0 ? "+" : ""}{Math.abs(item.change).toFixed(2)}%
                 </div>
               </div>
             </div>

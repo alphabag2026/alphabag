@@ -347,3 +347,6 @@
 ## Phase 28 - 에어드랍 관리자 추가 기능 + 카드 가독성 (2026-03-27)
 - [x] 에어드랍 관리자 페이지 신규 아이템 추가 폼 개선 (projectName/imageUrl/participateUrl/isHot/sortOrder 필드 추가, 4섹션 구조화)
 - [x] 라이트 테마 투자 플랜 카드(C형) 색상/테두리 진하게 조정 (border-2, 라이트 colorMap 별도 정의)
+
+## Phase 29 - 금융 시장 위젯 2개 컴팩트 (2026-03-27)
+- [x] MarketWidget BTC/ETH 2개만 표시, 컴팩트 2열 스타일로 축소
