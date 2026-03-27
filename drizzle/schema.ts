@@ -434,3 +434,4 @@ export const partners = mysqlTable("partners", {
 });
 export type Partner = typeof partners.$inferSelect;
 export type InsertPartner = typeof partners.$inferInsert;
+

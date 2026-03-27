@@ -387,3 +387,12 @@
 - [x] 파트너 8개 설명 텍스트 실제 파트너십 내용으로 DB 업데이트 (Binance/OKX/Uniswap/Aave/Chainlink/Polygon/OpenSea/CoinGecko)
 - [x] 리스팅 신청 현황 대시보드 상태별 요약 카드 (전체/대기중/검토중/승인/거절 5개 카드, 클릭 시 필터 연동)
 - [x] 25개 테스트 통과
+
+## Phase 35 - 즐겨찾기 페이지·월별 차트·검색 하이라이트 (2026-03-28)
+- [x] /favorites 즐겨찾기 페이지 생성 (DB 기반, 콜렉션별 색상 카드, 호버 시 삭제 버튼, 전체 삭제)
+- [x] favorites DB 테이블(userFavorites) + 백엔드 프로시저 (list/toggle) - 이미 구현되어 있음
+- [x] MainNav 프로필 드롭다운에 즐겨찾기 링크 추가 (Heart 아이콘)
+- [x] App.tsx /favorites 라우트 등록
+- [x] 리스팅 신청 대시보드 월별 바 차트 추가 (recharts, 승인/거절/대기 스택 바, 최근 6개월)
+- [x] 홈 검색 결과 키워드 하이라이트 구현 (HighlightText 컴포넌트, amber-200 배경)
+- [x] 25개 테스트 통과

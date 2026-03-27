@@ -1,0 +1,13 @@
+{
+  "query": "SHOW TABLES LIKE 'userFavorites';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute SHOW TABLES LIKE 'userFavorites';",
+  "rows": [
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe (userFavorites)": "userFavorites"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe (userFavorites)\nuserFavorites\n",
+  "stderr": "",
+  "execution_time_ms": 5203
+}

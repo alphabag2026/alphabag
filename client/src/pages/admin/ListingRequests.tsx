@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import AdminLayout from "@/components/AdminLayout";
-import { FileText, Check, X, Eye, Clock, Copy, Mail, MessageSquare, Bell } from "lucide-react";
+import { FileText, Check, X, Eye, Clock, Copy, Mail, MessageSquare, Bell, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending: { label: "대기중", color: "bg-yellow-100 text-yellow-700" },
@@ -47,6 +48,22 @@ export default function AdminListingRequests() {
   const [adminNote, setAdminNote] = useState("");
 
   const filtered = filterStatus === "all" ? requests as any[] : (requests as any[]).filter(r => r.status === filterStatus);
+
+  // 월별 신청 현황 데이터 계산
+  const monthlyData = useMemo(() => {
+    const map: Record<string, { month: string; total: number; approved: number; rejected: number; pending: number }> = {};
+    (requests as any[]).forEach((r: any) => {
+      const d = new Date(Number(r.createdAt));
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const label = `${d.getMonth() + 1}월`;
+      if (!map[key]) map[key] = { month: label, total: 0, approved: 0, rejected: 0, pending: 0 };
+      map[key].total++;
+      if (r.status === "approved") map[key].approved++;
+      else if (r.status === "rejected") map[key].rejected++;
+      else map[key].pending++;
+    });
+    return Object.entries(map).sort(([a], [b]) => a.localeCompare(b)).slice(-6).map(([, v]) => v);
+  }, [requests]);
 
   const openNoteModal = (req: any, status: "pending" | "reviewing" | "approved" | "rejected") => {
     setNoteModal({ id: req.id, status, projectName: req.projectName, contactEmail: req.contactEmail });
@@ -122,6 +139,39 @@ export default function AdminListingRequests() {
             );
           })}
         </div>
+
+        {/* 월별 신청 현황 차트 */}
+        {monthlyData.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-5">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="w-4 h-4 text-amber-500" />
+              <h2 className="text-sm font-bold text-gray-900">월별 신청 현황</h2>
+              <span className="text-xs text-gray-400">(최근 6개월)</span>
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={monthlyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{ borderRadius: "8px", border: "1px solid #e5e7eb", fontSize: "12px", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)" }}
+                  formatter={(value: any, name: string) => [
+                    value,
+                    name === "approved" ? "승인" : name === "rejected" ? "거절" : name === "pending" ? "대기/검토" : "전체"
+                  ]}
+                />
+                <Bar dataKey="approved" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="rejected" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="pending" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="flex items-center gap-4 mt-3 justify-end">
+              <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-green-500" /><span className="text-[11px] text-gray-500">승인</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-red-500" /><span className="text-[11px] text-gray-500">거절</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-amber-500" /><span className="text-[11px] text-gray-500">대기/검토</span></div>
+            </div>
+          </div>
+        )}
 
         {/* 알림 안내 배너 */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-5 flex items-start gap-3">

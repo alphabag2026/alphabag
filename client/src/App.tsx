@@ -42,6 +42,7 @@ import LeaderPage from "./pages/LeaderPage";
 import MemePage from "./pages/MemePage";
 import InfluencerPage from "./pages/InfluencerPage";
 import PlanDetailPage from "./pages/PlanDetailPage";
+import FavoritesPage from "./pages/FavoritesPage";
 
 function Router() {
   return (
@@ -61,6 +62,7 @@ function Router() {
       <Route path="/meme" component={MemePage} />
       <Route path="/influencer" component={InfluencerPage} />
       <Route path="/plan/:id" component={PlanDetailPage} />
+      <Route path="/favorites" component={FavoritesPage} />
       <Route path="/cbag" component={CbagPage} />
       <Route path="/airdrop" component={AirdropPage} />
       <Route path="/partners" component={PartnersPage} />

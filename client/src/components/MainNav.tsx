@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useWallet } from "@/contexts/WalletContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { BarChart3, Menu, X, ShoppingCart, Wallet, ChevronDown, Copy, LogOut, ExternalLink, User } from "lucide-react";
+import { BarChart3, Menu, X, ShoppingCart, Wallet, ChevronDown, Copy, LogOut, ExternalLink, User, Heart } from "lucide-react";
 import { toast } from "sonner";
 
 const ALPHABAG_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/alphabag-logo_df90878d.png";
@@ -162,15 +162,26 @@ export function MainNav() {
                         Explorer에서 보기
                       </a>
                       {isAuthenticated && (
-                        <Link href="/dashboard">
-                          <button
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
-                            onClick={() => setProfileOpen(false)}
-                          >
-                            <BarChart3 className="w-4 h-4 text-muted-foreground" />
-                            대시보드
-                          </button>
-                        </Link>
+                        <>
+                          <Link href="/dashboard">
+                            <button
+                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                              onClick={() => setProfileOpen(false)}
+                            >
+                              <BarChart3 className="w-4 h-4 text-muted-foreground" />
+                              대시보드
+                            </button>
+                          </Link>
+                          <Link href="/favorites">
+                            <button
+                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                              onClick={() => setProfileOpen(false)}
+                            >
+                              <Heart className="w-4 h-4 text-red-400" />
+                              즐겨찾기
+                            </button>
+                          </Link>
+                        </>
                       )}
                     </div>
 

@@ -25,6 +25,24 @@ const ALPHABAG_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/
 const AD_DOLLARS = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/ad-dollars_88f0319b.jpg";
 const AD_TRADING = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/ad-trading_0ad7d05d.jpg";
 
+// ─── 키워드 하이라이트 헬퍼 ─────────────────────────────────────────────────────
+function HighlightText({ text, query, className }: { text: string; query: string; className?: string }) {
+  if (!query.trim() || !text) return <span className={className}>{text}</span>;
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <span className={className}>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark key={i} className="bg-amber-200 text-amber-900 rounded-sm px-0.5 not-italic font-semibold">{part}</mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </span>
+  );
+}
+
 // ─── 소메뉴 탭 정의 ──────────────────────────────────────────────────────────
 const SUB_MENUS = [
   { id: "recommend", label: "추천", icon: "⭐" },
@@ -828,8 +846,8 @@ export default function Home() {
                       <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 text-xs font-bold">{plan.name.charAt(0)}</div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className={`text-sm font-semibold truncate ${textPrimary}`}>{plan.name}</div>
-                      {plan.strategy && <div className={`text-xs truncate ${textSecondary}`}>{plan.strategy}</div>}
+                      <HighlightText text={plan.name} query={searchQuery} className={`text-sm font-semibold truncate block ${textPrimary}`} />
+                      {plan.strategy && <HighlightText text={plan.strategy} query={searchQuery} className={`text-xs truncate block ${textSecondary}`} />}
                     </div>
                     <div className="text-amber-400 text-sm font-bold">{Number(plan.dailyRate).toFixed(2)}%</div>
                   </div>
