@@ -4,6 +4,7 @@ import {
   LayoutDashboard, TrendingUp, FileText, Users, Cpu,
   TicketCheck, Bell, Gift, ShieldCheck, LogOut, Shield,
   ClipboardList, CalendarClock, Image, Zap, FileSearch, Handshake,
+  BarChart2, GitBranch,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
@@ -12,7 +13,9 @@ const NAV_ITEMS = [
   { href: "/admin/plans", label: "Plans", icon: "TrendingUp" },
   { href: "/admin/content", label: "Content", icon: "FileText" },
   { href: "/admin/users", label: "Users & Org", icon: "Users" },
-  { href: "/admin/assets", label: "Assets", icon: "Cpu" },
+  { href: "/admin/nodes", label: "Nodes", icon: "Cpu" },
+  { href: "/admin/analytics", label: "Analytics", icon: "BarChart2" },
+  { href: "/admin/referrals", label: "Referrals", icon: "GitBranch" },
   { href: "/admin/tickets", label: "Support Tickets", icon: "TicketCheck" },
   { href: "/admin/notifications", label: "Notifications", icon: "Bell" },
   { href: "/admin/airdrops", label: "Airdrop", icon: "Gift" },
@@ -28,6 +31,7 @@ const NAV_ITEMS = [
 const ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
   LayoutDashboard, TrendingUp, FileText, Users, Cpu,
   TicketCheck, Bell, Gift, ShieldCheck, ClipboardList, CalendarClock, Image, Zap, FileSearch, Handshake,
+  BarChart2, GitBranch,
 };
 
 interface AdminLayoutProps {

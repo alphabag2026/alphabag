@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -603,7 +603,9 @@ export default function Home() {
   const { data: influencerPlans = [] } = trpc.public.influencerPlans.useQuery();
   const { data: notices = [] } = trpc.public.notices.useQuery();
   const { data: banners = [] } = trpc.public.banners.useQuery();
-  const { data: allPlans = [] } = trpc.public.plans.useQuery({});
+  const allPlansInput = useMemo(() => ({}), []);
+  const { data: allPlansRaw } = trpc.public.plans.useQuery(allPlansInput);
+  const allPlans = useMemo(() => allPlansRaw ?? [], [allPlansRaw]);
   // 급등 토큰 + 에어드랍
   const { data: trendingTokens = [], isLoading: trendingLoading } = trpc.market.trending.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
   const { data: trendingCoins = [], isLoading: trendingCoinsLoading } = trpc.market.trendingCoins.useQuery(undefined, { staleTime: 5 * 60 * 1000 });

@@ -396,3 +396,14 @@
 - [x] 리스팅 신청 대시보드 월별 바 차트 추가 (recharts, 승인/거절/대기 스택 바, 최근 6개월)
 - [x] 홈 검색 결과 키워드 하이라이트 구현 (HighlightText 컴포넌트, amber-200 배경)
 - [x] 25개 테스트 통과
+
+## Phase 37 - 백오피스 전체 에러 수정 (2026-03-28)
+- [x] 서버 로그 및 TypeScript 에러 전체 파악
+- [x] Home.tsx allPlans useQuery({}) 무한루프 수정 (useMemo로 안정화)
+- [x] media 라우터 storagePut import 경로 수정 (../server/storage → ./storage)
+- [x] TrendingAlerts.tsx AdminLayout 누락 추가
+- [x] AdminLayout 사이드바 /admin/assets → /admin/nodes 수정, Analytics/Referrals 메뉴 추가
+- [x] App.tsx /admin/dashboard 라우트 추가
+- [x] 전체 백오피스 페이지 AdminLayout 사용 확인 (Login 제외 전체 적용)
+- [x] 모든 trpc 프로시저 존재 확인 (airdrops/nodes/plans/users/content/tickets/partners/listing/adminAuth/trendingAlert/telegramSchedules/media/referrals 전체 정상)
+- [x] 25개 테스트 통과, TypeScript 0 errors

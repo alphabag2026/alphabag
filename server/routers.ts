@@ -985,7 +985,7 @@ export const appRouter = router({
     })).mutation(async ({ input, ctx }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      const { storagePut } = await import("../server/storage");
+      const { storagePut } = await import("./storage");
       const { mediaAssets } = await import("../drizzle/schema");
       const buf = Buffer.from(input.base64, "base64");
       const suffix = Date.now().toString(36);
