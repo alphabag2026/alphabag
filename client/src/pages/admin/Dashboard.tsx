@@ -23,6 +23,7 @@ export default function AdminDashboard() {
   const { data: chartData } = trpc.dashboard.investmentTrend.useQuery({ days: range });
   const { data: categoryData } = trpc.dashboard.planDistribution.useQuery();
   const { data: topInvestors } = trpc.dashboard.topInvestors.useQuery({ limit: 10 });
+  const { data: nodeSalesData } = trpc.nodes.salesStats.useQuery();
 
   const kpiCards = [
     { label: "Total Revenue", value: `$${(stats?.totalRevenue ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, sub: "USDT", color: "gold", icon: DollarSign },
@@ -113,6 +114,52 @@ export default function AdminDashboard() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* Node Sales Stats */}
+      {nodeSalesData && nodeSalesData.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
+          <div className="ab-chart-card">
+            <div className="ab-chart-title">Node Sales by Type</div>
+            <div className="ab-chart-desc">노드 타입별 판매 현황</div>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={nodeSalesData.map(n => ({
+                name: (n.nodeName ?? `Node #${n.nodeId}`)?.replace(/ Node$/, "").substring(0, 18),
+                orders: Number(n.totalOrders ?? 0),
+                revenue: Number(n.totalRevenue ?? 0),
+              }))} margin={{ top: 5, right: 10, left: 0, bottom: 40 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.20 0.01 240)" />
+                <XAxis dataKey="name" tick={{ fill: "oklch(0.55 0.01 240)", fontSize: 10 }} axisLine={false} tickLine={false} angle={-30} textAnchor="end" interval={0} />
+                <YAxis yAxisId="left" tick={{ fill: "oklch(0.55 0.01 240)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fill: "oklch(0.55 0.01 240)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
+                <Tooltip contentStyle={{ background: "oklch(0.11 0.008 240)", border: "1px solid oklch(0.20 0.01 240)", borderRadius: 6, fontSize: 12 }}
+                  formatter={(v: number, name: string) => [name === "revenue" ? `$${v.toLocaleString()}` : v, name === "revenue" ? "Revenue" : "Orders"]} />
+                <Bar yAxisId="left" dataKey="orders" fill="#4A9EBF" radius={[3, 3, 0, 0]} name="orders" />
+                <Bar yAxisId="right" dataKey="revenue" fill={GOLD} radius={[3, 3, 0, 0]} name="revenue" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="ab-chart-card">
+            <div className="ab-chart-title">Node Revenue Share</div>
+            <div className="ab-chart-desc">노드별 매출 비중</div>
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={nodeSalesData.map(n => ({
+                    name: (n.nodeName ?? `Node #${n.nodeId}`)?.substring(0, 16),
+                    value: Number(n.totalRevenue ?? 0),
+                  }))}
+                  cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" nameKey="name" paddingAngle={2}
+                >
+                  {nodeSalesData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={{ background: "oklch(0.11 0.008 240)", border: "1px solid oklch(0.20 0.01 240)", borderRadius: 6, fontSize: 12 }}
+                  formatter={(v: number) => [`$${v.toLocaleString()}`, ""]} />
+                <Legend iconType="circle" iconSize={8} formatter={(v) => <span style={{ color: "oklch(0.55 0.01 240)", fontSize: 10 }}>{v}</span>} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       {/* Charts row 2 */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>

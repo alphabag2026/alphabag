@@ -229,3 +229,9 @@
 - [x] Firebase nodes 데이터 추출 및 nodeOrders nodeId 재연결 (120건, 7개 노드 타입)
 - [x] 관리자 Referrals 탭 레퍼럴 트리 시각화 (트리 탭 + 테이블 탭, 지갑 주소 기반)
 - [x] db.ts getTopReferrers에 users JOIN 추가 (userName, userWallet, referralCode, totalEarnings)
+
+## Phase 16 - 레퍼럴 트리 확장, 노드 통계, 플랜 로고 UI (2026-03-27)
+- [x] 레퍼럴 2단계 재귀 트리 백엔드 (getReferralTree 재귀 쿼리, 최대 5단계)
+- [x] 레퍼럴 트리 프론트엔드 - 재귀 TreeNode 컴포넌트 (자식 lazy-load)
+- [x] 노드별 판매 통계 차트 (관리자 Dashboard - 막대/파이 차트)
+- [x] 플랜 로고 이미지 업로드 UI (Plans 탭 - 로고 교체 버튼, S3 업로드)

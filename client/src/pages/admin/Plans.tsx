@@ -2,7 +2,7 @@ import { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, GripVertical, TrendingUp, Coins } from "lucide-react";
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, GripVertical, TrendingUp, Coins, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -113,6 +113,31 @@ export default function Plans() {
     onSuccess: () => { toast.success("Plan deleted"); utils.plans.list.invalidate(); setDeleteId(null); },
     onError: (e) => toast.error(e.message),
   });
+  const uploadLogoMutation = trpc.plans.uploadLogo.useMutation({
+    onSuccess: (data) => {
+      toast.success("Logo uploaded successfully");
+      setForm(f => ({ ...f, logoUrl: data.url }));
+      utils.plans.list.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingPlan) return;
+    if (file.size > 2 * 1024 * 1024) { toast.error("Image must be under 2MB"); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = (ev.target?.result as string).split(",")[1];
+      uploadLogoMutation.mutate({
+        planId: editingPlan.id,
+        base64,
+        mimeType: file.type,
+        fileName: file.name,
+      });
+    };
+    reader.readAsDataURL(file);
+  };
 
   const openCreate = () => {
     setEditingPlan(null);
@@ -256,8 +281,32 @@ export default function Plans() {
               <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Gold Starter" className="mt-1 bg-input" />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Logo URL</Label>
-              <Input value={form.logoUrl} onChange={e => setForm(f => ({ ...f, logoUrl: e.target.value }))} placeholder="https://..." className="mt-1 bg-input" />
+              <Label className="text-xs text-muted-foreground">Logo</Label>
+              <div className="mt-1 space-y-2">
+                {form.logoUrl && (
+                  <div className="flex items-center gap-2">
+                    <img src={form.logoUrl} alt="logo" className="w-10 h-10 rounded-lg object-cover border border-border" />
+                    <span className="text-xs text-muted-foreground truncate max-w-[180px]">{form.logoUrl.split("/").pop()}</span>
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Input value={form.logoUrl} onChange={e => setForm(f => ({ ...f, logoUrl: e.target.value }))} placeholder="https://..." className="bg-input text-xs" />
+                  {editingPlan && (
+                    <label className="cursor-pointer">
+                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoFileChange} />
+                      <Button type="button" variant="outline" size="sm" className="gap-1.5 whitespace-nowrap" asChild>
+                        <span>
+                          {uploadLogoMutation.isPending ? (
+                            <span className="text-xs">Uploading...</span>
+                          ) : (
+                            <><Upload className="w-3 h-3" /> Upload</>  
+                          )}
+                        </span>
+                      </Button>
+                    </label>
+                  )}
+                </div>
+              </div>
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Label / Badge</Label>

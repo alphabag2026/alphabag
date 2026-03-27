@@ -179,6 +179,22 @@ export async function getNodeEarnings() {
   }).from(nodeOrders).where(eq(nodeOrders.status, "confirmed")).groupBy(nodeOrders.nodeId);
 }
 
+export async function getNodeSalesStats() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    nodeId: nodeOrders.nodeId,
+    nodeName: nodes.name,
+    nodeColor: nodes.color,
+    nodePrice: nodes.price,
+    totalOrders: count(nodeOrders.id),
+    totalRevenue: sum(nodeOrders.totalAmount),
+  }).from(nodeOrders)
+    .leftJoin(nodes, eq(nodeOrders.nodeId, nodes.id))
+    .groupBy(nodeOrders.nodeId, nodes.name, nodes.color, nodes.price)
+    .orderBy(desc(count(nodeOrders.id)));
+}
+
 // ─── Notices ──────────────────────────────────────────────────────────────────
 export async function getNotices() {
   const db = await getDb();
@@ -345,6 +361,58 @@ export async function getReferralTree(userId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(referrals).where(eq(referrals.referrerId, userId));
+}
+
+export interface ReferralTreeNode {
+  id: number;
+  name: string | null;
+  walletAddress: string | null;
+  referralCode: string | null;
+  totalInvested: number;
+  level: number;
+  children: ReferralTreeNode[];
+}
+
+export async function getReferralTreeRecursive(userId: number, maxDepth = 5): Promise<ReferralTreeNode[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  async function buildTree(parentId: number, depth: number): Promise<ReferralTreeNode[]> {
+    if (depth > maxDepth) return [];
+    const rows = await db!.select({
+      referredId: referrals.referredId,
+      totalEarned: referrals.totalEarned,
+    }).from(referrals).where(eq(referrals.referrerId, parentId));
+
+    if (rows.length === 0) return [];
+
+    const results: ReferralTreeNode[] = [];
+    for (const row of rows) {
+      const userRow = await db!.select({
+        id: users.id,
+        name: users.name,
+        walletAddress: users.walletAddress,
+        referralCode: users.referralCode,
+      }).from(users).where(eq(users.id, row.referredId)).limit(1);
+
+      const user = userRow[0];
+      if (!user) continue;
+
+      const children = await buildTree(user.id, depth + 1);
+      results.push({
+        id: user.id,
+        name: user.name,
+        walletAddress: user.walletAddress,
+        referralCode: user.referralCode,
+        totalInvested: Number(row.totalEarned ?? 0),
+        level: depth,
+        children,
+      });
+    }
+    return results;
+  }
+
+  return buildTree(userId, 1);
 }
 
 export async function getTopReferrers(limit = 10) {

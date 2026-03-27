@@ -12,6 +12,7 @@ import * as db from "./db";
 import { getDb } from "./db";
 import { createAuditLog } from "./db";
 import { referralMessages as referralMessagesTable } from "../drizzle/schema.js";
+import { storagePut } from "./storage";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -109,12 +110,26 @@ export const appRouter = router({
       await createAuditLog({ adminId: ctx.user.id, action: "DELETE_PLAN", targetType: "plan", targetId: input.id });
       return { success: true };
     }),
+    uploadLogo: superAdminProcedure.input(z.object({
+      planId: z.number(),
+      base64: z.string(),
+      mimeType: z.string().default("image/png"),
+      fileName: z.string().default("logo.png"),
+    })).mutation(async ({ input, ctx }) => {
+      const buffer = Buffer.from(input.base64, "base64");
+      const key = `plan-logos/${input.planId}-${Date.now()}-${input.fileName}`;
+      const { url } = await storagePut(key, buffer, input.mimeType);
+      await db.updateInvestmentPlan(input.planId, { logoUrl: url });
+      await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_PLAN", targetType: "plan", targetId: input.planId, details: { logoUrl: url } });
+      return { success: true, url };
+    }),
   }),
 
   // ─── Nodes ─────────────────────────────────────────────────────────────────
   nodes: router({
     list: adminProcedure.query(async () => await db.getNodes()),
     earnings: adminProcedure.query(async () => await db.getNodeEarnings()),
+    salesStats: adminProcedure.query(async () => await db.getNodeSalesStats()),
     create: superAdminProcedure.input(z.object({
       name: z.string().min(1),
       price: z.string(),
@@ -397,6 +412,12 @@ export const appRouter = router({
     }),
     tree: adminProcedure.input(z.object({ userId: z.number() })).query(async ({ input }) => {
       return await db.getReferralTree(input.userId);
+    }),
+    treeRecursive: adminProcedure.input(z.object({
+      userId: z.number(),
+      maxDepth: z.number().min(1).max(5).default(5),
+    })).query(async ({ input }) => {
+      return await db.getReferralTreeRecursive(input.userId, input.maxDepth);
     }),
     stats: adminProcedure.query(async () => {
       return await db.getReferralStats();
