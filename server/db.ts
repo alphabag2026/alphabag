@@ -1,4 +1,4 @@
-import { and, desc, eq, like, or, sql, count, sum, countDistinct } from "drizzle-orm";
+import { and, desc, eq, gt, like, or, sql, count, sum, countDistinct } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users,
@@ -56,19 +56,31 @@ export async function getUserByOpenId(openId: string) {
   return result[0];
 }
 
-export async function getAllUsers(search?: string, page = 1, limit = 20) {
+export async function getAllUsers(
+  search?: string,
+  page = 1,
+  limit = 20,
+  filter?: { hasInvestment?: boolean; hasNode?: boolean; kycApproved?: boolean }
+) {
   const db = await getDb();
   if (!db) return { data: [], total: 0 };
   const offset = (page - 1) * limit;
-  const where = search
-    ? or(
+  const conditions: ReturnType<typeof eq>[] = [];
+  if (search) {
+    conditions.push(
+      or(
         like(users.walletAddress, `%${search}%`),
         like(users.referralCode, `%${search}%`),
         like(users.referredBy, `%${search}%`),
         like(users.name, `%${search}%`),
         like(users.email, `%${search}%`)
-      )
-    : undefined;
+      ) as ReturnType<typeof eq>
+    );
+  }
+  if (filter?.hasInvestment) conditions.push(gt(users.totalInvested, "0") as ReturnType<typeof eq>);
+  if (filter?.hasNode) conditions.push(gt(users.totalNodes, "0") as ReturnType<typeof eq>);
+  if (filter?.kycApproved) conditions.push(eq(users.kycStatus, "approved") as ReturnType<typeof eq>);
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
   const [data, totalResult] = await Promise.all([
     db.select().from(users).where(where).orderBy(desc(users.createdAt)).limit(limit).offset(offset),
     db.select({ count: count() }).from(users).where(where),

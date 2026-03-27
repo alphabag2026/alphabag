@@ -2,7 +2,7 @@ import { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Cpu, ToggleLeft, ToggleRight, Users, Copy, CheckCheck, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, Cpu, ToggleLeft, ToggleRight, Users, Copy, CheckCheck, ExternalLink, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -330,10 +330,42 @@ export default function Nodes() {
       <Sheet open={buyersNode !== null} onOpenChange={open => !open && setBuyersNode(null)}>
         <SheetContent side="right" className="w-full sm:max-w-2xl bg-card border-border overflow-y-auto">
           <SheetHeader className="mb-4">
-            <SheetTitle className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-400" />
-              {buyersNode?.name} 구매자 목록
-            </SheetTitle>
+            <div className="flex items-center justify-between">
+              <SheetTitle className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-blue-400" />
+                {buyersNode?.name} 구매자 목록
+              </SheetTitle>
+              {purchasers && purchasers.length > 0 && (
+                <button
+                  onClick={() => {
+                    const headers = ["순번", "지갑주소", "이름", "이메일", "금액(USDT)", "상태", "구매일", "TxHash"];
+                    const rows = purchasers.map((p: any, i: number) => [
+                      i + 1,
+                      p.userWallet ?? "",
+                      p.userName ?? "",
+                      p.userEmail ?? "",
+                      Number(p.totalAmount ?? 0).toFixed(2),
+                      p.status ?? "",
+                      new Date(p.createdAt).toLocaleDateString("ko-KR"),
+                      p.txHash ?? "",
+                    ]);
+                    const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
+                    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `${buyersNode?.name ?? "node"}-buyers-${Date.now()}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    toast.success("CSV 다운로드 완료");
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-border/40 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                >
+                  <Download className="w-3 h-3" />
+                  CSV
+                </button>
+              )}
+            </div>
             {buyersNode && (
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <span>가격: <span className="text-primary font-medium">${Number(buyersNode.price).toLocaleString()} USDT</span></span>

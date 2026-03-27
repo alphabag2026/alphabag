@@ -65,6 +65,7 @@ export default function Users() {
   const [newKycStatus, setNewKycStatus] = useState<"pending" | "approved" | "rejected" | "none">("none");
   const [newRole, setNewRole] = useState<"user" | "admin" | "sub_admin">("user");
   const [treeUser, setTreeUser] = useState<any>(null); // 레퍼럴 트리 Sheet
+  const [filter, setFilter] = useState<{ hasInvestment?: boolean; hasNode?: boolean; kycApproved?: boolean }>({});
 
   // 레퍼럴 트리 쿼리
   const { data: treeData, isLoading: treeLoading } = trpc.referrals.tree.useQuery(
@@ -85,7 +86,7 @@ export default function Users() {
   }, [treeData]);
 
   const utils = trpc.useUtils();
-  const { data, isLoading } = trpc.users.list.useQuery({ search: debouncedSearch, page, limit: 20 });
+  const { data, isLoading } = trpc.users.list.useQuery({ search: debouncedSearch, page, limit: 20, filter: Object.keys(filter).length > 0 ? filter : undefined });
 
   // 통계 쿼리
   const { data: statsData } = trpc.dashboard.stats.useQuery(undefined, { retry: false });
@@ -179,20 +180,67 @@ export default function Users() {
         </div>
 
         {/* 검색 및 내보내기 */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={e => handleSearch(e.target.value)}
-              placeholder="지갑 주소, 레퍼럴 코드, 이름으로 검색..."
-              className="pl-9 bg-input"
-            />
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={e => handleSearch(e.target.value)}
+                placeholder="지갑 주소, 레퍼럴 코드, 이름으로 검색..."
+                className="pl-9 bg-input"
+              />
+            </div>
+            <Button variant="outline" onClick={downloadCSV} className="gap-2 flex-shrink-0">
+              <Download className="w-4 h-4" />
+              CSV 내보내기
+            </Button>
           </div>
-          <Button variant="outline" onClick={downloadCSV} className="gap-2 flex-shrink-0">
-            <Download className="w-4 h-4" />
-            CSV 내보내기
-          </Button>
+          {/* 필터 버튼 */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-muted-foreground mr-1">필터:</span>
+            <button
+              onClick={() => { setFilter(f => ({ ...f, hasInvestment: f.hasInvestment ? undefined : true })); setPage(1); }}
+              className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+                filter.hasInvestment
+                  ? "bg-green-500/20 border-green-500/50 text-green-400"
+                  : "bg-transparent border-border/40 text-muted-foreground hover:border-border"
+              }`}
+            >
+              <TrendingUp className="w-3 h-3 inline mr-1" />
+              투자 있음
+            </button>
+            <button
+              onClick={() => { setFilter(f => ({ ...f, hasNode: f.hasNode ? undefined : true })); setPage(1); }}
+              className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+                filter.hasNode
+                  ? "bg-amber-500/20 border-amber-500/50 text-amber-400"
+                  : "bg-transparent border-border/40 text-muted-foreground hover:border-border"
+              }`}
+            >
+              <Package className="w-3 h-3 inline mr-1" />
+              노드 구매 있음
+            </button>
+            <button
+              onClick={() => { setFilter(f => ({ ...f, kycApproved: f.kycApproved ? undefined : true })); setPage(1); }}
+              className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+                filter.kycApproved
+                  ? "bg-blue-500/20 border-blue-500/50 text-blue-400"
+                  : "bg-transparent border-border/40 text-muted-foreground hover:border-border"
+              }`}
+            >
+              <UserCheck className="w-3 h-3 inline mr-1" />
+              KYC 완료
+            </button>
+            {Object.values(filter).some(Boolean) && (
+              <button
+                onClick={() => { setFilter({}); setPage(1); }}
+                className="px-3 py-1 rounded-full text-xs border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors"
+              >
+                ✕ 필터 초기화
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 사용자 테이블 */}

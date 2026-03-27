@@ -1,0 +1,19 @@
+{
+  "query": "SHOW TABLES LIKE 'adminAccounts'; SELECT id, username, role, isActive FROM adminAccounts LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute SHOW TABLES LIKE 'adminAccounts'; SELECT id, username, role, isActive FROM adminAccounts LIMIT 5;",
+  "rows": [
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe (adminAccounts)": "adminAccounts"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe (adminAccounts)": "id\tusername\trole\tisActive"
+    },
+    {
+      "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe (adminAccounts)": "1\tadmin\tadmin\t1"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_TGrbnQ7ygm6GBAS6CWnuGe (adminAccounts)\nadminAccounts\nid\tusername\trole\tisActive\n1\tadmin\tadmin\t1\n",
+  "stderr": "",
+  "execution_time_ms": 1943
+}

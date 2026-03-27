@@ -246,3 +246,12 @@
 - [x] Users CSV에 walletAddress, referralCode, totalInvested 컨럼 확인 (이미 포함되어 있음)
 - [x] 노드 구매자 Sheet 상단 총 매출 + 평균 구매금액 요약 카드 (총 구매자/총 매출/평균 구매 3개 카드)
 - [x] Plans 카드 로고 업로드 중 스피너 표시 + 완료 시 ✅ 토스트 피드백
+
+## Phase 19 - 관리자 로그인, Users 필터, 노드 CSV (2026-03-27)
+- [x] adminAccounts DB 테이블 추가 (id, username, passwordHash, role, createdAt) - 이미 존재
+- [x] /api/admin/login POST 엔드포인트 (bcrypt 검증, JWT 발급) - adminAuth.login 프로시저
+- [x] /admin/login 로그인 페이지 (ID/PW 입력, 기본 admin/admin321) - 이미 구현됨
+- [x] AdminLayout에 adminToken 쿠키 기반 인증 미들웨어 적용
+- [x] Users 탭 필터 버튼: 투자 있음 / 노드 구매 있음 / KYC 완료 (토글 방식, 필터 초기화 버튼 포함)
+- [x] users.list 백엔드에 filter 파라미터 추가 (hasInvestment, hasNode, kycApproved)
+- [x] 노드 구매자 Sheet에 CSV 다운로드 버튼 추가 (지갑주소/이름/이메일/금액/상태/날짜/TxHash)

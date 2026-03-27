@@ -11,6 +11,7 @@ import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import * as db from "./db";
 import { getDb } from "./db";
 import { createAuditLog } from "./db";
+import { adminAccounts } from "../drizzle/schema";
 import { referralMessages as referralMessagesTable } from "../drizzle/schema.js";
 import { storagePut } from "./storage";
 
@@ -178,8 +179,13 @@ export const appRouter = router({
       search: z.string().optional(),
       page: z.number().default(1),
       limit: z.number().default(20),
+      filter: z.object({
+        hasInvestment: z.boolean().optional(),
+        hasNode: z.boolean().optional(),
+        kycApproved: z.boolean().optional(),
+      }).optional(),
     })).query(async ({ input }) => {
-      return await db.getAllUsers(input.search, input.page, input.limit);
+      return await db.getAllUsers(input.search, input.page, input.limit, input.filter);
     }),
     updateKyc: superAdminProcedure.input(z.object({
       userId: z.number(),
