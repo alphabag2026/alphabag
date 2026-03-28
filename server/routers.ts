@@ -1542,6 +1542,212 @@ export const appRouter = router({
     }),
   }),
 
+  // ─── SNS Influencers ──────────────────────────────────────────────────────────────────
+  sns: router({
+    // 인플루언서 목록 (퍼블릭)
+    influencers: publicProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return [];
+      const { snsInfluencers } = await import("../drizzle/schema");
+      const { asc } = await import("drizzle-orm");
+      return database.select().from(snsInfluencers)
+        .where(eq(snsInfluencers.isActive, true))
+        .orderBy(asc(snsInfluencers.sortOrder));
+    }),
+    // 인플루언서별 포스트 목록 (퍼블릭)
+    posts: publicProcedure.input(z.object({
+      influencerId: z.number().optional(),
+      limit: z.number().default(20),
+    })).query(async ({ input }) => {
+      const database = await getDb();
+      if (!database) return [];
+      const { snsPosts, snsInfluencers } = await import("../drizzle/schema");
+      const { desc } = await import("drizzle-orm");
+      let query = database.select({
+        id: snsPosts.id,
+        influencerId: snsPosts.influencerId,
+        content: snsPosts.content,
+        tweetUrl: snsPosts.tweetUrl,
+        tweetId: snsPosts.tweetId,
+        likes: snsPosts.likes,
+        retweets: snsPosts.retweets,
+        replies: snsPosts.replies,
+        postedAt: snsPosts.postedAt,
+        isActive: snsPosts.isActive,
+        influencerName: snsInfluencers.name,
+        influencerHandle: snsInfluencers.handle,
+        influencerAvatarUrl: snsInfluencers.avatarUrl,
+        influencerTwitterUrl: snsInfluencers.twitterUrl,
+      }).from(snsPosts)
+        .innerJoin(snsInfluencers, eq(snsPosts.influencerId, snsInfluencers.id))
+        .where(eq(snsPosts.isActive, true)) as any;
+      if (input.influencerId) {
+        const { and } = await import("drizzle-orm");
+        query = database.select({
+          id: snsPosts.id,
+          influencerId: snsPosts.influencerId,
+          content: snsPosts.content,
+          tweetUrl: snsPosts.tweetUrl,
+          tweetId: snsPosts.tweetId,
+          likes: snsPosts.likes,
+          retweets: snsPosts.retweets,
+          replies: snsPosts.replies,
+          postedAt: snsPosts.postedAt,
+          isActive: snsPosts.isActive,
+          influencerName: snsInfluencers.name,
+          influencerHandle: snsInfluencers.handle,
+          influencerAvatarUrl: snsInfluencers.avatarUrl,
+          influencerTwitterUrl: snsInfluencers.twitterUrl,
+        }).from(snsPosts)
+          .innerJoin(snsInfluencers, eq(snsPosts.influencerId, snsInfluencers.id))
+          .where(and(eq(snsPosts.isActive, true), eq(snsPosts.influencerId, input.influencerId)));
+      }
+      return (query as any).orderBy(desc(snsPosts.postedAt)).limit(input.limit);
+    }),
+    // 어드민: 인플루언서 전체 목록
+    adminInfluencers: adminProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return [];
+      const { snsInfluencers } = await import("../drizzle/schema");
+      const { asc } = await import("drizzle-orm");
+      return database.select().from(snsInfluencers).orderBy(asc(snsInfluencers.sortOrder));
+    }),
+    // 어드민: 인플루언서 생성
+    createInfluencer: adminProcedure.input(z.object({
+      name: z.string().min(1),
+      handle: z.string().min(1),
+      avatarUrl: z.string().optional(),
+      twitterUrl: z.string().optional(),
+      description: z.string().optional(),
+      category: z.string().default("crypto"),
+      followerCount: z.string().optional(),
+      sortOrder: z.number().default(0),
+    })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { snsInfluencers } = await import("../drizzle/schema");
+      await database.insert(snsInfluencers).values(input);
+      return { success: true };
+    }),
+    // 어드민: 인플루언서 수정
+    updateInfluencer: adminProcedure.input(z.object({
+      id: z.number(),
+      name: z.string().optional(),
+      handle: z.string().optional(),
+      avatarUrl: z.string().optional(),
+      twitterUrl: z.string().optional(),
+      description: z.string().optional(),
+      category: z.string().optional(),
+      followerCount: z.string().optional(),
+      isActive: z.boolean().optional(),
+      sortOrder: z.number().optional(),
+    })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { snsInfluencers } = await import("../drizzle/schema");
+      const { id, ...fields } = input;
+      await database.update(snsInfluencers).set(fields).where(eq(snsInfluencers.id, id));
+      return { success: true };
+    }),
+    // 어드민: 인플루언서 삭제
+    deleteInfluencer: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { snsInfluencers, snsPosts } = await import("../drizzle/schema");
+      await database.delete(snsPosts).where(eq(snsPosts.influencerId, input.id));
+      await database.delete(snsInfluencers).where(eq(snsInfluencers.id, input.id));
+      return { success: true };
+    }),
+    // 어드민: 포스트 전체 목록
+    adminPosts: adminProcedure.input(z.object({
+      influencerId: z.number().optional(),
+    })).query(async ({ input }) => {
+      const database = await getDb();
+      if (!database) return [];
+      const { snsPosts, snsInfluencers } = await import("../drizzle/schema");
+      const { desc } = await import("drizzle-orm");
+      if (input.influencerId) {
+        return database.select({
+          id: snsPosts.id,
+          influencerId: snsPosts.influencerId,
+          content: snsPosts.content,
+          tweetUrl: snsPosts.tweetUrl,
+          likes: snsPosts.likes,
+          retweets: snsPosts.retweets,
+          replies: snsPosts.replies,
+          postedAt: snsPosts.postedAt,
+          isActive: snsPosts.isActive,
+          influencerName: snsInfluencers.name,
+          influencerHandle: snsInfluencers.handle,
+        }).from(snsPosts)
+          .innerJoin(snsInfluencers, eq(snsPosts.influencerId, snsInfluencers.id))
+          .where(eq(snsPosts.influencerId, input.influencerId))
+          .orderBy(desc(snsPosts.postedAt));
+      }
+      return database.select({
+        id: snsPosts.id,
+        influencerId: snsPosts.influencerId,
+        content: snsPosts.content,
+        tweetUrl: snsPosts.tweetUrl,
+        likes: snsPosts.likes,
+        retweets: snsPosts.retweets,
+        replies: snsPosts.replies,
+        postedAt: snsPosts.postedAt,
+        isActive: snsPosts.isActive,
+        influencerName: snsInfluencers.name,
+        influencerHandle: snsInfluencers.handle,
+      }).from(snsPosts)
+        .innerJoin(snsInfluencers, eq(snsPosts.influencerId, snsInfluencers.id))
+        .orderBy(desc(snsPosts.postedAt));
+    }),
+    // 어드민: 포스트 생성
+    createPost: adminProcedure.input(z.object({
+      influencerId: z.number(),
+      content: z.string().min(1),
+      tweetUrl: z.string().optional(),
+      tweetId: z.string().optional(),
+      likes: z.number().default(0),
+      retweets: z.number().default(0),
+      replies: z.number().default(0),
+      postedAt: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { snsPosts } = await import("../drizzle/schema");
+      const { postedAt, ...rest } = input;
+      await database.insert(snsPosts).values({
+        ...rest,
+        postedAt: postedAt ? new Date(postedAt) : new Date(),
+      });
+      return { success: true };
+    }),
+    // 어드민: 포스트 수정
+    updatePost: adminProcedure.input(z.object({
+      id: z.number(),
+      content: z.string().optional(),
+      tweetUrl: z.string().optional(),
+      likes: z.number().optional(),
+      retweets: z.number().optional(),
+      replies: z.number().optional(),
+      isActive: z.boolean().optional(),
+    })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { snsPosts } = await import("../drizzle/schema");
+      const { id, ...fields } = input;
+      await database.update(snsPosts).set(fields).where(eq(snsPosts.id, id));
+      return { success: true };
+    }),
+    // 어드민: 포스트 삭제
+    deletePost: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { snsPosts } = await import("../drizzle/schema");
+      await database.delete(snsPosts).where(eq(snsPosts.id, input.id));
+      return { success: true };
+    }),
+  }),
+
   notifications: router({
     list: adminProcedure.query(async () => {
       const database = await getDb();

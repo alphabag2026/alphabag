@@ -420,6 +420,41 @@ export const listingRequests = mysqlTable("listingRequests", {
 export type ListingRequest = typeof listingRequests.$inferSelect;
 export type InsertListingRequest = typeof listingRequests.$inferInsert;
 
+// ─── SNS Influencers (SNS 인플루언서) ────────────────────────────────────────
+export const snsInfluencers = mysqlTable("snsInfluencers", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  handle: varchar("handle", { length: 100 }).notNull(), // @handle
+  avatarUrl: text("avatarUrl"),
+  twitterUrl: text("twitterUrl"),
+  description: text("description"),
+  category: varchar("category", { length: 50 }).default("crypto"), // crypto, defi, trading, nft
+  followerCount: varchar("followerCount", { length: 30 }), // e.g. "9.2M"
+  isActive: boolean("isActive").default(true).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type SnsInfluencer = typeof snsInfluencers.$inferSelect;
+export type InsertSnsInfluencer = typeof snsInfluencers.$inferInsert;
+
+// ─── SNS Posts (인플루언서 포스트) ────────────────────────────────────────────
+export const snsPosts = mysqlTable("snsPosts", {
+  id: int("id").autoincrement().primaryKey(),
+  influencerId: int("influencerId").notNull(),
+  content: text("content").notNull(),
+  tweetUrl: text("tweetUrl"),
+  tweetId: varchar("tweetId", { length: 50 }),
+  likes: int("likes").default(0).notNull(),
+  retweets: int("retweets").default(0).notNull(),
+  replies: int("replies").default(0).notNull(),
+  postedAt: timestamp("postedAt").defaultNow().notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type SnsPost = typeof snsPosts.$inferSelect;
+export type InsertSnsPost = typeof snsPosts.$inferInsert;
+
 // ─── Partners (핵심 파트너) ───────────────────────────────────────────────────
 export const partners = mysqlTable("partners", {
   id: int("id").autoincrement().primaryKey(),

@@ -48,7 +48,7 @@ const SUB_MENUS = [
   { id: "recommend", label: "추천", icon: "⭐" },
   { id: "bbag", label: "B bag", icon: "💰" },
   { id: "infoweb4", label: "infoweb4", icon: "🌐" },
-  { id: "snn", label: "SNN", icon: "📡" },
+  { id: "sns", label: "SNS", icon: "📱" },
   { id: "trending", label: "급등토큰", icon: "🚀" },
   { id: "airdrop", label: "에어드랍", icon: "🎁" },
   { id: "favorites", label: "즐겨찾기", icon: "❤️" },
@@ -612,6 +612,11 @@ export default function Home() {
   const { data: airdropList = [] } = trpc.airdropSection.list.useQuery();
   const { data: favoritesList = [], refetch: refetchFavorites } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
   const toggleFavoriteMutation = trpc.favorites.toggle.useMutation({ onSuccess: () => refetchFavorites() });
+  // SNS 인플루언서
+  const [selectedInfluencerId, setSelectedInfluencerId] = useState<number | null>(null);
+  const { data: snsInfluencers = [] } = trpc.sns.influencers.useQuery();
+  const snsPostsInput = useMemo(() => ({ influencerId: selectedInfluencerId ?? undefined, limit: 20 }), [selectedInfluencerId]);
+  const { data: snsPosts = [], isLoading: snsPostsLoading } = trpc.sns.posts.useQuery(snsPostsInput);
   // 장바구니 (로칼스토리지))
   const [cartCount, setCartCount] = useState(0);
   useEffect(() => {
@@ -977,17 +982,114 @@ export default function Home() {
                 </div>
               </div>
             )}
-            {activeTab === "snn" && (
+            {activeTab === "sns" && (
               <div>
-                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>📡 SNN 네트워크</div>
-                <div className="space-y-0">
-                  {(nodePlans as any[]).slice(0, 5).map((plan: any) => (
-                    <PlanCardB key={plan.id} plan={plan} collectionColor="node" />
+                {/* 인플루언서 필터 리스트 */}
+                <div className="flex items-center gap-2 mb-4 overflow-x-auto scrollbar-hide pb-1">
+                  <button
+                    onClick={() => setSelectedInfluencerId(null)}
+                    className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                      selectedInfluencerId === null
+                        ? isDark ? "bg-sky-500/20 border-sky-500/40 text-sky-300" : "bg-sky-100 border-sky-300 text-sky-700"
+                        : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-gray-100 border-gray-200 text-gray-500"
+                    }`}
+                  >
+                    📱 전체
+                  </button>
+                  {(snsInfluencers as any[]).map((inf: any) => (
+                    <button
+                      key={inf.id}
+                      onClick={() => setSelectedInfluencerId(inf.id)}
+                      className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                        selectedInfluencerId === inf.id
+                          ? isDark ? "bg-sky-500/20 border-sky-500/40 text-sky-300" : "bg-sky-100 border-sky-300 text-sky-700"
+                          : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-gray-100 border-gray-200 text-gray-500"
+                      }`}
+                    >
+                      {inf.avatarUrl ? (
+                        <img src={inf.avatarUrl} alt={inf.name} className="w-4 h-4 rounded-full object-cover" />
+                      ) : (
+                        <span className="w-4 h-4 rounded-full bg-sky-400/30 flex items-center justify-center text-[9px] font-bold">{inf.name[0]}</span>
+                      )}
+                      {inf.name}
+                    </button>
                   ))}
-                  {(nodePlans as any[]).length === 0 && (
-                    <div className={`text-xs ${textSecondary} text-center py-4`}>SNN 플랜이 없습니다.</div>
-                  )}
                 </div>
+
+                {/* 포스트 피드 */}
+                {snsPostsLoading ? (
+                  <div className={`text-xs ${textSecondary} text-center py-8`}>로딩 중...</div>
+                ) : (snsPosts as any[]).length === 0 ? (
+                  <div className={`text-center py-8`}>
+                    <div className="text-3xl mb-2">📱</div>
+                    <div className={`text-xs ${textSecondary}`}>등록된 SNS 소식이 없습니다.</div>
+                    <div className={`text-[10px] ${textSecondary} mt-1`}>관리자가 인플루언서 소식을 등록하면 여기에 표시됩니다.</div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {(snsPosts as any[]).map((post: any) => (
+                      <div
+                        key={post.id}
+                        className={`rounded-xl border p-3.5 transition-all hover:shadow-md ${
+                          isDark ? "bg-white/3 border-white/8 hover:border-sky-500/30" : "bg-white border-gray-100 hover:border-sky-300/50 shadow-sm"
+                        }`}
+                      >
+                        {/* 인플루언서 헤더 */}
+                        <div className="flex items-center justify-between mb-2.5">
+                          <div className="flex items-center gap-2">
+                            {post.influencerAvatarUrl ? (
+                              <img src={post.influencerAvatarUrl} alt={post.influencerName} className="w-8 h-8 rounded-full object-cover border-2 border-sky-400/30" />
+                            ) : (
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                                isDark ? "bg-sky-500/20 text-sky-300" : "bg-sky-100 text-sky-600"
+                              }`}>
+                                {post.influencerName?.[0] || "?"}
+                              </div>
+                            )}
+                            <div>
+                              <div className={`text-xs font-bold ${textPrimary}`}>{post.influencerName}</div>
+                              <div className={`text-[10px] ${textSecondary}`}>@{post.influencerHandle}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[10px] ${textSecondary}`}>
+                              {new Date(post.postedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}
+                            </span>
+                            {post.tweetUrl && (
+                              <a
+                                href={post.tweetUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`flex items-center gap-0.5 text-[10px] font-medium px-2 py-0.5 rounded-full transition-colors ${
+                                  isDark ? "bg-sky-500/15 text-sky-400 hover:bg-sky-500/25" : "bg-sky-50 text-sky-600 hover:bg-sky-100"
+                                }`}
+                                onClick={e => e.stopPropagation()}
+                              >
+                                🐦 X
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        {/* 포스트 내용 */}
+                        <p className={`text-xs leading-relaxed ${textPrimary} whitespace-pre-wrap`}>{post.content}</p>
+                        {/* 에끄 지표 */}
+                        <div className={`flex items-center gap-4 mt-2.5 pt-2.5 border-t ${
+                          isDark ? "border-white/5" : "border-gray-100"
+                        }`}>
+                          <span className={`flex items-center gap-1 text-[10px] ${textSecondary}`}>
+                            ❤️ {post.likes?.toLocaleString() || 0}
+                          </span>
+                          <span className={`flex items-center gap-1 text-[10px] ${textSecondary}`}>
+                            🔁 {post.retweets?.toLocaleString() || 0}
+                          </span>
+                          <span className={`flex items-center gap-1 text-[10px] ${textSecondary}`}>
+                            💬 {post.replies?.toLocaleString() || 0}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             {activeTab === "news" && (

@@ -424,3 +424,18 @@
 - [x] Golden/Self/Leader/Influencer/Meme 5개 컬렉션 페이지 플랜 카드 하트 토글 버튼 추가
 - [x] 미로그인 시 로그인 페이지 이동, 로그인 시 즐겨찾기 DB 토글 + 빨간 하트 표시
 - [x] 25개 테스트 통과
+
+## Phase 39 - SNS 인플루언서 피드 탭 (2026-03-28)
+
+- [x] DB 스키마에 snsInfluencers 테이블 추가 (name, handle, avatarUrl, twitterUrl, description, category, sortOrder, isActive)
+- [x] DB 스키마에 snsPosts 테이블 추가 (influencerId, content, tweetUrl, postedAt, likes, retweets, isManual)
+- [x] 마이그레이션 SQL 실행
+- [x] 백엔드: public.snsInfluencers.list 프로시저 추가
+- [x] 백엔드: public.snsPosts.list 프로시저 추가
+- [x] 백엔드: admin SNS CRUD 프로시저 추가 (create/update/delete influencer, create/update/delete post)
+- [x] 홈 페이지 SNN 탭 → SNS 탭으로 교체 (아이콘 📱, 라벨 SNS)
+- [x] 홈 SNS 탭 UI: 인플루언서 카드 + 최신 포스트 피드
+- [x] 어드민 /admin/sns 페이지 추가 (인플루언서 + 포스트 관리)
+- [x] AdminLayout 사이드바에 SNS 메뉴 추가
+- [x] 샘플 데이터 삽입 (CZ, 허이, Vitalik, Elon 등)
+- [x] 테스트 추가 및 체크포인트 저장
