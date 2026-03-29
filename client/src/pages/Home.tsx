@@ -614,9 +614,24 @@ export default function Home() {
   const toggleFavoriteMutation = trpc.favorites.toggle.useMutation({ onSuccess: () => refetchFavorites() });
   // SNS 인플루언서
   const [selectedInfluencerId, setSelectedInfluencerId] = useState<number | null>(null);
+  const [snsCategory, setSnsCategory] = useState<string>("all");
   const { data: snsInfluencers = [] } = trpc.sns.influencers.useQuery();
-  const snsPostsInput = useMemo(() => ({ influencerId: selectedInfluencerId ?? undefined, limit: 20 }), [selectedInfluencerId]);
+  const snsPostsInput = useMemo(() => ({ influencerId: selectedInfluencerId ?? undefined, limit: 30 }), [selectedInfluencerId]);
   const { data: snsPosts = [], isLoading: snsPostsLoading } = trpc.sns.posts.useQuery(snsPostsInput);
+  // 카테고리 필터 적용
+  const filteredSnsPosts = useMemo(() => {
+    if (snsCategory === "all") return snsPosts as any[];
+    const catInfluencerIds = new Set(
+      (snsInfluencers as any[]).filter((inf: any) => inf.category === snsCategory).map((inf: any) => inf.id)
+    );
+    return (snsPosts as any[]).filter((p: any) => catInfluencerIds.has(p.influencerId));
+  }, [snsPosts, snsInfluencers, snsCategory]);
+  // 카테고리 목록 (실제 인플루언서 카테고리 기반)
+  const snsCategories = useMemo(() => {
+    const cats = new Set((snsInfluencers as any[]).map((inf: any) => inf.category).filter(Boolean));
+    return Array.from(cats) as string[];
+  }, [snsInfluencers]);
+  const snsCategoryLabels: Record<string, string> = { crypto: "크립토", defi: "DeFi", trading: "트레이딩", nft: "NFT", web3: "Web3", vc: "VC/투자" };
   // 장바구니 (로칼스토리지))
   const [cartCount, setCartCount] = useState(0);
   useEffect(() => {
@@ -984,6 +999,34 @@ export default function Home() {
             )}
             {activeTab === "sns" && (
               <div>
+                {/* 카테고리 필터 탭 */}
+                {snsCategories.length > 1 && (
+                  <div className="flex items-center gap-1.5 mb-3 overflow-x-auto scrollbar-hide pb-1">
+                    <button
+                      onClick={() => { setSnsCategory("all"); setSelectedInfluencerId(null); }}
+                      className={`flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold border transition-all ${
+                        snsCategory === "all"
+                          ? isDark ? "bg-sky-500/20 border-sky-500/40 text-sky-300" : "bg-sky-100 border-sky-300 text-sky-700"
+                          : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-gray-100 border-gray-200 text-gray-500"
+                      }`}
+                    >
+                      전체
+                    </button>
+                    {snsCategories.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => { setSnsCategory(cat); setSelectedInfluencerId(null); }}
+                        className={`flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold border transition-all ${
+                          snsCategory === cat
+                            ? isDark ? "bg-sky-500/20 border-sky-500/40 text-sky-300" : "bg-sky-100 border-sky-300 text-sky-700"
+                            : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-gray-100 border-gray-200 text-gray-500"
+                        }`}
+                      >
+                        {snsCategoryLabels[cat] || cat}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {/* 인플루언서 필터 리스트 */}
                 <div className="flex items-center gap-2 mb-4 overflow-x-auto scrollbar-hide pb-1">
                   <button
@@ -996,7 +1039,9 @@ export default function Home() {
                   >
                     📱 전체
                   </button>
-                  {(snsInfluencers as any[]).map((inf: any) => (
+                  {(snsInfluencers as any[])
+                    .filter((inf: any) => snsCategory === "all" || inf.category === snsCategory)
+                    .map((inf: any) => (
                     <button
                       key={inf.id}
                       onClick={() => setSelectedInfluencerId(inf.id)}
@@ -1019,15 +1064,15 @@ export default function Home() {
                 {/* 포스트 피드 */}
                 {snsPostsLoading ? (
                   <div className={`text-xs ${textSecondary} text-center py-8`}>로딩 중...</div>
-                ) : (snsPosts as any[]).length === 0 ? (
+                ) : filteredSnsPosts.length === 0 ? (
                   <div className={`text-center py-8`}>
                     <div className="text-3xl mb-2">📱</div>
-                    <div className={`text-xs ${textSecondary}`}>등록된 SNS 소식이 없습니다.</div>
+                    <div className={`text-xs ${textSecondary}`}>{snsCategory !== "all" ? `${snsCategoryLabels[snsCategory] || snsCategory} 카테고리 소식이 없습니다.` : "등록된 SNS 소식이 없습니다."}</div>
                     <div className={`text-[10px] ${textSecondary} mt-1`}>관리자가 인플루언서 소식을 등록하면 여기에 표시됩니다.</div>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {(snsPosts as any[]).map((post: any) => (
+                    {filteredSnsPosts.map((post: any) => (
                       <div
                         key={post.id}
                         className={`rounded-xl border p-3.5 transition-all hover:shadow-md ${

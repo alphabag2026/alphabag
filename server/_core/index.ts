@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { startTelegramScheduler } from "../telegramScheduler";
 import { startTrendingAlertScheduler } from "../trendingAlertScheduler";
+import { startTwitterFetchScheduler } from "../twitterFetchScheduler";
 import { registerTelegramWebhook } from "../telegramWebhook";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -70,6 +71,8 @@ async function startServer() {
   startTelegramScheduler();
   // Start trending token alert scheduler
   startTrendingAlertScheduler();
+  // Start Twitter/X auto-fetch scheduler
+  startTwitterFetchScheduler();
 }
 
 startServer().catch(console.error);

@@ -430,6 +430,10 @@ export const snsInfluencers = mysqlTable("snsInfluencers", {
   description: text("description"),
   category: varchar("category", { length: 50 }).default("crypto"), // crypto, defi, trading, nft
   followerCount: varchar("followerCount", { length: 30 }), // e.g. "9.2M"
+  twitterUserId: varchar("twitterUserId", { length: 50 }), // X API user ID for auto-fetch
+  autoFetchEnabled: boolean("autoFetchEnabled").default(false).notNull(),
+  lastFetchedAt: timestamp("lastFetchedAt"),
+  snsTelegramChatId: varchar("snsTelegramChatId", { length: 64 }), // 텔레그램 채널 ID
   isActive: boolean("isActive").default(true).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

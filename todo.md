@@ -439,3 +439,17 @@
 - [x] AdminLayout 사이드바에 SNS 메뉴 추가
 - [x] 샘플 데이터 삽입 (CZ, 허이, Vitalik, Elon 등)
 - [x] 테스트 추가 및 체크포인트 저장
+## Phase 40 - SNS 탭 기능 강화 (2026-03-30)
+
+- [x] X API v2 자동 트윗 수집 스케줄러 (twitterFetchScheduler.ts) 구현
+- [x] snsInfluencers 테이블에 twitterUserId, autoFetchEnabled, lastFetchedAt, snsTelegramChatId 컬럼 추가
+- [x] DB 마이그레이션 실행 (0014_overconfident_lionheart.sql)
+- [x] server/_core/index.ts에 startTwitterFetchScheduler() 초기화 추가
+- [x] sns.manualFetch 어드민 프로시저 추가 (수동 트윗 수집 트리거)
+- [x] sns.updateInfluencer에 autoFetchEnabled, twitterUserId, snsTelegramChatId 필드 추가
+- [x] sns.createPost에 sendToTelegram 플래그 추가 (등록 시 텔레그램 채널 자동 발송)
+- [x] 어드민 SNS 페이지 전면 재구성 (X API 설정 UI, 텔레그램 채널 설정, 수동수집 버튼)
+- [x] 홈 SNS 탭 카테고리 필터 탭 UI 추가 (크립토/DeFi/트레이딩/NFT 등)
+- [x] 인플루언서 필터가 카테고리 선택에 따라 동적 필터링
+- [x] filteredSnsPosts 카테고리 기반 포스트 필터링 로직
+- [x] 테스트 추가 (manualFetch, updateInfluencer 새 필드, createPost.sendToTelegram) - 37개 전체 통과

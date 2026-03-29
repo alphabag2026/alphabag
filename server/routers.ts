@@ -1639,6 +1639,9 @@ export const appRouter = router({
       description: z.string().optional(),
       category: z.string().optional(),
       followerCount: z.string().optional(),
+      twitterUserId: z.string().optional(),
+      autoFetchEnabled: z.boolean().optional(),
+      snsTelegramChatId: z.string().optional(),
       isActive: z.boolean().optional(),
       sortOrder: z.number().optional(),
     })).mutation(async ({ input }) => {
@@ -1657,6 +1660,26 @@ export const appRouter = router({
       await database.delete(snsPosts).where(eq(snsPosts.influencerId, input.id));
       await database.delete(snsInfluencers).where(eq(snsInfluencers.id, input.id));
       return { success: true };
+    }),
+    // 어드민: 수동 트윗 수집 트리거
+    manualFetch: adminProcedure.input(z.object({
+      influencerId: z.number(),
+    })).mutation(async ({ input }) => {
+      const { fetchForInfluencer } = await import("./twitterFetchScheduler");
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { snsInfluencers } = await import("../drizzle/schema");
+      const rows = await database.select().from(snsInfluencers).where(eq(snsInfluencers.id, input.influencerId));
+      const inf = rows[0];
+      if (!inf) throw new TRPCError({ code: "NOT_FOUND", message: "인플루언서를 찾을 수 없습니다" });
+      const count = await fetchForInfluencer({
+        id: inf.id,
+        name: inf.name,
+        handle: inf.handle,
+        twitterUserId: inf.twitterUserId,
+        snsTelegramChatId: inf.snsTelegramChatId,
+      });
+      return { success: true, newPosts: count };
     }),
     // 어드민: 포스트 전체 목록
     adminPosts: adminProcedure.input(z.object({
@@ -1710,15 +1733,30 @@ export const appRouter = router({
       retweets: z.number().default(0),
       replies: z.number().default(0),
       postedAt: z.string().optional(),
+      sendToTelegram: z.boolean().default(false),
     })).mutation(async ({ input }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      const { snsPosts } = await import("../drizzle/schema");
-      const { postedAt, ...rest } = input;
+      const { snsPosts, snsInfluencers } = await import("../drizzle/schema");
+      const { postedAt, sendToTelegram, ...rest } = input;
       await database.insert(snsPosts).values({
         ...rest,
         postedAt: postedAt ? new Date(postedAt) : new Date(),
       });
+      // 텔레그램 발송 (설정된 경우)
+      if (sendToTelegram) {
+        const rows = await database.select().from(snsInfluencers).where(eq(snsInfluencers.id, input.influencerId));
+        const inf = rows[0];
+        if (inf?.snsTelegramChatId && process.env.TELEGRAM_BOT_TOKEN) {
+          const tweetLink = input.tweetUrl ? `\n\n<a href="${input.tweetUrl}">🔗 원문 보기</a>` : "";
+          const msg = `📱 <b>${inf.name}</b> (@${inf.handle})\n\n${input.content}${tweetLink}`;
+          fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chat_id: inf.snsTelegramChatId, text: msg, parse_mode: "HTML" }),
+          }).catch((e: unknown) => console.error("[SNS] Telegram send error:", e));
+        }
+      }
       return { success: true };
     }),
     // 어드민: 포스트 수정
