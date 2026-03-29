@@ -453,3 +453,10 @@
 - [x] 인플루언서 필터가 카테고리 선택에 따라 동적 필터링
 - [x] filteredSnsPosts 카테고리 기반 포스트 필터링 로직
 - [x] 테스트 추가 (manualFetch, updateInfluencer 새 필드, createPost.sendToTelegram) - 37개 전체 통과
+
+## Phase 41 - SNS 인플루언서 확장 및 X API 연동 (2026-03-30)
+
+- [x] X API Bearer Token Secrets 등록 (TWITTER_BEARER_TOKEN)
+- [x] DeFi 유명 인플루언서 5명 DB 삽입 (Andre Cronje, Hayden Adams, Stani Kulechov, Rune Christensen, Kain Warwick)
+- [x] NFT 유명 인플루언서 5명 DB 삽입 (Beeple, Gary Vee, Pranksy, Gmoney, Punk6529)
+- [x] 체크포인트 저장
