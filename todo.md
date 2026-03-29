@@ -460,3 +460,11 @@
 - [x] DeFi 유명 인플루언서 5명 DB 삽입 (Andre Cronje, Hayden Adams, Stani Kulechov, Rune Christensen, Kain Warwick)
 - [x] NFT 유명 인플루언서 5명 DB 삽입 (Beeple, Gary Vee, Pranksy, Gmoney, Punk6529)
 - [x] 체크포인트 저장
+
+## Phase 42 - 인플루언서 이미지·Trading 카테고리·자동수집 (2026-03-30)
+
+- [x] 인플루언서 16명 프로필 이미지 URL 수집 및 DB 업데이트
+- [x] Trading 카테고리 전문가 3명 추가 (Peter Brandt, Willy Woo, Tone Vays)
+- [x] 전체 인플루언서 twitterUserId 수집 및 DB 업데이트
+- [x] 모든 인플루언서 autoFetchEnabled = 1 활성화
+- [x] 체크포인트 저장
