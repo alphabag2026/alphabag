@@ -529,3 +529,18 @@
 - [ ] 홈 화면 골든 컬렉션 CTA 배너 추가
 - [ ] /about 플랫폼 소개 및 기능 소개 텍스트 페이지 구현
 - [ ] 테스트 및 체크포인트 저장
+
+## Phase 46 - 노드 투표 보상 시스템 + 다크 테마 단일화
+
+- [ ] DB 스키마: voteRewards 테이블 (userId, submissionId, voteId, rewardUsdt, status, paidAt)
+- [ ] DB 스키마: rewardWithdrawals 테이블 (userId, amount, walletAddress, network, status, txHash)
+- [ ] 마이그레이션 SQL 실행
+- [ ] 백엔드: rewards.myRewards (누적 보상, 미지급 잔액, 투표별 보상 내역)
+- [ ] 백엔드: rewards.requestWithdrawal (출금 신청)
+- [ ] 백엔드: rewards.myWithdrawals (출금 내역)
+- [ ] 백엔드: admin.rewards.list (전체 보상 내역)
+- [ ] 백엔드: admin.rewards.processWithdrawal (출금 승인/거절)
+- [ ] 마이페이지(/my-submissions) 투표 보상 현황 섹션 추가 (누적 USDT, 미지급 잔액, 투표별 보상, 출금 신청 폼)
+- [ ] 어드민 보상 관리 페이지 (/admin/rewards)
+- [ ] 전체 페이지 다크 테마 단일화 (ThemeProvider defaultTheme="dark", index.css 다크 변수 정리, 모든 페이지 일관 적용)
+- [ ] 테스트 작성 및 체크포인트 저장

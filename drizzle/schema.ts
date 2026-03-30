@@ -567,3 +567,36 @@ export const submissionFeeDistributions = mysqlTable("submissionFeeDistributions
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type SubmissionFeeDistribution = typeof submissionFeeDistributions.$inferSelect;
+
+// ─── Vote Rewards (투표 보상) ──────────────────────────────────────────────────
+export const voteRewards = mysqlTable("voteRewards", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),           // 보상 수령자 (노드 보유자)
+  submissionId: int("submissionId").notNull(), // 어떤 신청건 투표 보상인지
+  voteId: int("voteId").notNull(),            // submissionVotes.id
+  rewardUsdt: decimal("rewardUsdt", { precision: 18, scale: 6 }).notNull(), // 보상 금액 (USDT)
+  rewardReason: varchar("rewardReason", { length: 100 }).default("vote_participation"), // 보상 사유
+  status: mysqlEnum("status", ["pending", "paid", "cancelled"]).default("pending").notNull(),
+  paidAt: timestamp("paidAt"),
+  txHash: varchar("txHash", { length: 100 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type VoteReward = typeof voteRewards.$inferSelect;
+export type InsertVoteReward = typeof voteRewards.$inferInsert;
+
+// ─── Reward Withdrawals (보상 출금 신청) ──────────────────────────────────────
+export const rewardWithdrawals = mysqlTable("rewardWithdrawals", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  amountUsdt: decimal("amountUsdt", { precision: 18, scale: 6 }).notNull(), // 출금 신청 금액
+  walletAddress: varchar("walletAddress", { length: 100 }).notNull(), // 수령 지갑 주소
+  network: mysqlEnum("network", ["BSC", "TRC20", "ERC20"]).default("BSC").notNull(),
+  status: mysqlEnum("status", ["pending", "approved", "rejected", "completed"]).default("pending").notNull(),
+  adminNote: text("adminNote"),
+  txHash: varchar("txHash", { length: 100 }),
+  processedAt: timestamp("processedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type RewardWithdrawal = typeof rewardWithdrawals.$inferSelect;
+export type InsertRewardWithdrawal = typeof rewardWithdrawals.$inferInsert;

@@ -2482,5 +2482,146 @@ Return ONLY valid JSON.`;
           .where(eq(submissionFeeDistributions.submissionId, input.submissionId));
       }),
   }),
+
+  // ─── Rewards (투표 보상) ─────────────────────────────────────────────────────
+  rewards: router({
+    // 내 보상 현황
+    myRewards: protectedProcedure.query(async ({ ctx }) => {
+      const database = await getDb();
+      if (!database) return { totalEarned: 0, pendingBalance: 0, paidBalance: 0, rewards: [] };
+      const { voteRewards, planSubmissions } = await import("../drizzle/schema");
+      const { eq, desc } = await import("drizzle-orm");
+      const rewards = await database
+        .select({
+          id: voteRewards.id,
+          submissionId: voteRewards.submissionId,
+          voteId: voteRewards.voteId,
+          rewardUsdt: voteRewards.rewardUsdt,
+          rewardReason: voteRewards.rewardReason,
+          status: voteRewards.status,
+          paidAt: voteRewards.paidAt,
+          txHash: voteRewards.txHash,
+          createdAt: voteRewards.createdAt,
+          submissionTitle: planSubmissions.applicantName,
+        })
+        .from(voteRewards)
+        .leftJoin(planSubmissions, eq(voteRewards.submissionId, planSubmissions.id))
+        .where(eq(voteRewards.userId, ctx.user.id))
+        .orderBy(desc(voteRewards.createdAt));
+      const totalEarned = rewards.reduce((acc, r) => acc + parseFloat(r.rewardUsdt as string || "0"), 0);
+      const pendingBalance = rewards.filter(r => r.status === "pending").reduce((acc, r) => acc + parseFloat(r.rewardUsdt as string || "0"), 0);
+      const paidBalance = rewards.filter(r => r.status === "paid").reduce((acc, r) => acc + parseFloat(r.rewardUsdt as string || "0"), 0);
+      return { totalEarned, pendingBalance, paidBalance, rewards };
+    }),
+
+    // 출금 신청
+    requestWithdrawal: protectedProcedure
+      .input(z.object({
+        amountUsdt: z.number().positive(),
+        walletAddress: z.string().min(10),
+        network: z.enum(["BSC", "TRC20", "ERC20"]).default("BSC"),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { voteRewards, rewardWithdrawals } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const pendingRewards = await database.select().from(voteRewards).where(eq(voteRewards.userId, ctx.user.id));
+        const pendingBalance = pendingRewards.filter(r => r.status === "pending").reduce((acc, r) => acc + parseFloat(r.rewardUsdt as string || "0"), 0);
+        if (input.amountUsdt > pendingBalance) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: `출금 신청 금액(${input.amountUsdt} USDT)이 미지급 잔액(${pendingBalance.toFixed(2)} USDT)을 초과합니다.` });
+        }
+        const [result] = await database.insert(rewardWithdrawals).values({
+          userId: ctx.user.id,
+          amountUsdt: input.amountUsdt.toString(),
+          walletAddress: input.walletAddress,
+          network: input.network,
+          status: "pending",
+        });
+        return { success: true, withdrawalId: (result as any).insertId };
+      }),
+
+    // 내 출금 내역
+    myWithdrawals: protectedProcedure.query(async ({ ctx }) => {
+      const database = await getDb();
+      if (!database) return [];
+      const { rewardWithdrawals } = await import("../drizzle/schema");
+      const { eq, desc } = await import("drizzle-orm");
+      return database.select().from(rewardWithdrawals).where(eq(rewardWithdrawals.userId, ctx.user.id)).orderBy(desc(rewardWithdrawals.createdAt));
+    }),
+
+    // 어드민: 전체 보상 내역
+    adminList: adminProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return { rewards: [], withdrawals: [] };
+      const { voteRewards, rewardWithdrawals, users, planSubmissions } = await import("../drizzle/schema");
+      const { eq, desc } = await import("drizzle-orm");
+      const rewards = await database
+        .select({ id: voteRewards.id, userId: voteRewards.userId, userName: users.name, userWallet: users.walletAddress, submissionId: voteRewards.submissionId, submissionTitle: planSubmissions.applicantName, rewardUsdt: voteRewards.rewardUsdt, status: voteRewards.status, paidAt: voteRewards.paidAt, createdAt: voteRewards.createdAt })
+        .from(voteRewards).leftJoin(users, eq(voteRewards.userId, users.id)).leftJoin(planSubmissions, eq(voteRewards.submissionId, planSubmissions.id)).orderBy(desc(voteRewards.createdAt)).limit(200);
+      const withdrawals = await database
+        .select({ id: rewardWithdrawals.id, userId: rewardWithdrawals.userId, userName: users.name, amountUsdt: rewardWithdrawals.amountUsdt, walletAddress: rewardWithdrawals.walletAddress, network: rewardWithdrawals.network, status: rewardWithdrawals.status, txHash: rewardWithdrawals.txHash, processedAt: rewardWithdrawals.processedAt, createdAt: rewardWithdrawals.createdAt })
+        .from(rewardWithdrawals).leftJoin(users, eq(rewardWithdrawals.userId, users.id)).orderBy(desc(rewardWithdrawals.createdAt)).limit(200);
+      return { rewards, withdrawals };
+    }),
+
+    // 어드민: 출금 처리
+    adminProcessWithdrawal: adminProcedure
+      .input(z.object({
+        withdrawalId: z.number(),
+        action: z.enum(["approve", "reject", "complete"]),
+        txHash: z.string().optional(),
+        adminNote: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { rewardWithdrawals, voteRewards } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const [withdrawal] = await database.select().from(rewardWithdrawals).where(eq(rewardWithdrawals.id, input.withdrawalId));
+        if (!withdrawal) throw new TRPCError({ code: "NOT_FOUND" });
+        const newStatus = input.action === "approve" ? "approved" : input.action === "complete" ? "completed" : "rejected";
+        await database.update(rewardWithdrawals).set({ status: newStatus, txHash: input.txHash, adminNote: input.adminNote, processedAt: new Date() }).where(eq(rewardWithdrawals.id, input.withdrawalId));
+        if (input.action === "complete") {
+          const pendingRewards = await database.select().from(voteRewards).where(eq(voteRewards.userId, withdrawal.userId));
+          let remaining = parseFloat(withdrawal.amountUsdt as string);
+          for (const reward of pendingRewards.filter(r => r.status === "pending")) {
+            if (remaining <= 0) break;
+            await database.update(voteRewards).set({ status: "paid", paidAt: new Date(), txHash: input.txHash }).where(eq(voteRewards.id, reward.id));
+            remaining -= parseFloat(reward.rewardUsdt as string);
+          }
+        }
+        await createAuditLog({ adminId: ctx.user.id, action: `REWARD_WITHDRAWAL_${input.action.toUpperCase()}`, targetType: "rewardWithdrawal", targetId: input.withdrawalId, details: input });
+        return { success: true };
+      }),
+
+    // 어드민: 보상 지급 (투표 완료된 신청건에 보상 계산 및 지급)
+    adminDistributeRewards: superAdminProcedure
+      .input(z.object({ submissionId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { submissionVotes, submissionSettings, voteRewards, planSubmissions } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const [submission] = await database.select().from(planSubmissions).where(eq(planSubmissions.id, input.submissionId));
+        if (!submission) throw new TRPCError({ code: "NOT_FOUND" });
+        if (!submission.feePaid) throw new TRPCError({ code: "BAD_REQUEST", message: "상장비용이 납부되지 않았습니다." });
+        const [settings] = await database.select().from(submissionSettings).limit(1);
+        const listingFee = parseFloat((settings?.listingFeeUsdt as string) || "500");
+        const platformPct = parseFloat(String(settings?.platformFeePct ?? "40")) / 100;
+        const voterPoolPct = 1 - platformPct;
+        const votes = await database.select().from(submissionVotes).where(eq(submissionVotes.submissionId, input.submissionId));
+        if (votes.length === 0) throw new TRPCError({ code: "BAD_REQUEST", message: "투표 참여자가 없습니다." });
+        const existingRewards = await database.select().from(voteRewards).where(eq(voteRewards.submissionId, input.submissionId));
+        if (existingRewards.length > 0) throw new TRPCError({ code: "BAD_REQUEST", message: "이미 보상이 지급되었습니다." });
+        const voterPool = listingFee * voterPoolPct;
+        const rewardPerVoter = voterPool / votes.length;
+        for (const vote of votes) {
+          await database.insert(voteRewards).values({ userId: vote.voterId, submissionId: input.submissionId, voteId: vote.id, rewardUsdt: String(rewardPerVoter.toFixed(6)), rewardReason: "vote_participation", status: "pending" });
+        }
+        await createAuditLog({ adminId: ctx.user.id, action: "DISTRIBUTE_VOTE_REWARDS", targetType: "submission", targetId: input.submissionId, details: { voterCount: votes.length, rewardPerVoter } });
+        return { success: true, voterCount: votes.length, rewardPerVoter, totalDistributed: voterPool };
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;
