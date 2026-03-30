@@ -482,6 +482,9 @@ export const submissionSettings = mysqlTable("submissionSettings", {
   votingPeriodDays: int("votingPeriodDays").default(7).notNull(),
   approvalThresholdPct: int("approvalThresholdPct").default(60).notNull(), // 60% 이상 찬성
   platformFeePct: int("platformFeePct").default(40).notNull(), // 알파백 40%
+  // 온체인 납부 설정
+  paymentWalletAddress: varchar("paymentWalletAddress", { length: 100 }), // USDT 수령 지갑 주소
+  paymentNetwork: mysqlEnum("paymentNetwork", ["BSC", "TRC20", "ERC20"]).default("BSC"), // 네트워크
   isActive: boolean("isActive").default(true).notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

@@ -50,6 +50,7 @@ import MemePage from "./pages/MemePage";
 import InfluencerPage from "./pages/InfluencerPage";
 import PlanDetailPage from "./pages/PlanDetailPage";
 import FavoritesPage from "./pages/FavoritesPage";
+import About from "./pages/About";
 
 function Router() {
   return (
@@ -100,6 +101,7 @@ function Router() {
       <Route path="/submit-plan" component={SubmitPlan} />
       <Route path="/vote" component={VotePage} />
       <Route path="/my-submissions" component={MySubmissions} />
+      <Route path="/about" component={About} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

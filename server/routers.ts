@@ -2452,6 +2452,8 @@ Return ONLY valid JSON.`;
         votingPeriodDays: z.number().optional(),
         approvalThresholdPct: z.number().optional(),
         platformFeePct: z.number().optional(),
+        paymentWalletAddress: z.string().optional(),
+        paymentNetwork: z.enum(["BSC", "TRC20", "ERC20"]).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const database = await getDb();

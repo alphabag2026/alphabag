@@ -1431,6 +1431,34 @@ export default function Home() {
           </div>
         </div>
 
+        {/* ─── 골든 컬렉션 상장 신청 CTA 배너 ─── */}
+        <div className={`relative overflow-hidden rounded-2xl mb-4 p-5 border ${isDark ? "bg-gradient-to-r from-amber-900/30 via-yellow-900/20 to-amber-900/30 border-amber-500/30" : "bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50 border-amber-300"}`}>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="text-3xl">🏆</div>
+              <div>
+                <div className={`text-sm font-bold mb-0.5 ${isDark ? "text-amber-300" : "text-amber-700"}`}>골든 컬렉션 상장 신청</div>
+                <div className={`text-xs ${isDark ? "text-amber-400/70" : "text-amber-600/80"}`}>알파백 노드 투표로 선정 · 상장비용 500 USDT · 투표 노드에 수익 분배</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/vote">
+                <button className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${isDark ? "border-amber-500/40 text-amber-400 hover:bg-amber-500/10" : "border-amber-400 text-amber-700 hover:bg-amber-100"}`}>
+                  투표 참여
+                </button>
+              </Link>
+              <Link href="/submit-plan">
+                <button className="text-xs px-4 py-1.5 rounded-lg bg-amber-500 text-black font-bold hover:bg-amber-400 transition-all shadow-sm">
+                  상장 신청하기 →
+                </button>
+              </Link>
+            </div>
+          </div>
+          {/* 배경 장식 */}
+          <div className="absolute -right-4 -top-4 text-6xl opacity-10 pointer-events-none">🏆</div>
+          <div className="absolute -right-8 -bottom-4 text-8xl opacity-5 pointer-events-none">⭐</div>
+        </div>
+
         {/* ─── 컬렉션 섹션들 ─── */}
         <CollectionSection title="Golden Collection" subtitle="BINANCE Alpha · Insurance(Hedge) · Daily Returns" plans={goldenPlans as any[]} color="golden" href="/golden" icon={<span>🏆</span>} viewType={viewType} isDark={isDark} />
         <CollectionSection title="Self Collection" subtitle="Custom Strategy · Flexible · Self-managed" plans={selfPlans as any[]} color="self" href="/self" icon={<span>⚡</span>} viewType={viewType} isDark={isDark} />

@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `submissionSettings` ADD `paymentWalletAddress` varchar(100);\nALTER TABLE `submissionSettings` ADD `paymentNetwork` enum('BSC','TRC20','ERC20') DEFAULT 'BSC';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user ZhmXq2fuwbq2e6E.e61bbb066453 --database TGrbnQ7ygm6GBAS6CWnuGe --execute ALTER TABLE `submissionSettings` ADD `paymentWalletAddress` varchar(100);\nALTER TABLE `submissionSettings` ADD `paymentNetwork` enum('BSC','TRC20','ERC20') DEFAULT 'BSC';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 2865
+}

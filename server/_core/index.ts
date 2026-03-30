@@ -11,6 +11,7 @@ import { startTelegramScheduler } from "../telegramScheduler";
 import { startTrendingAlertScheduler } from "../trendingAlertScheduler";
 import { startTwitterFetchScheduler } from "../twitterFetchScheduler";
 import { registerTelegramWebhook } from "../telegramWebhook";
+import { startPaymentChecker } from "../paymentChecker";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -73,6 +74,8 @@ async function startServer() {
   startTrendingAlertScheduler();
   // Start Twitter/X auto-fetch scheduler
   startTwitterFetchScheduler();
+  // Start onchain payment checker
+  startPaymentChecker();
 }
 
 startServer().catch(console.error);

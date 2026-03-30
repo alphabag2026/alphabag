@@ -520,3 +520,12 @@
 - [ ] AdminLayout 사이드바에 신청 관리 메뉴 추가
 - [ ] App.tsx 라우트 추가
 - [ ] 테스트 작성 및 체크포인트 저장
+
+## Phase 45 - 골든 컬렉션 시스템 강화 + 플랫폼 소개 페이지
+
+- [ ] USDT 지갑 주소 설정 (어드민 submissionSettings에 paymentWalletAddress 필드 추가)
+- [ ] 온체인 입금 확인 폴링 스케줄러 (TronScan/BSCScan API 활용)
+- [ ] 노드 보유자 투표 자격 검증 강화 (nodes 테이블에서 userId 확인)
+- [ ] 홈 화면 골든 컬렉션 CTA 배너 추가
+- [ ] /about 플랫폼 소개 및 기능 소개 텍스트 페이지 구현
+- [ ] 테스트 및 체크포인트 저장
