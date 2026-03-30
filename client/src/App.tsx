@@ -36,6 +36,7 @@ import NoticesPage from "./pages/NoticesPage";
 import AdminLogin from "./pages/admin/Login";
 import AdminMyAccount from "./pages/admin/MyAccount";
 import AdminSns from "./pages/admin/Sns";
+import AdminAiPlanImport from "./pages/admin/AiPlanImport";
 import { WalletConnectModal } from "./components/WalletConnectModal";
 import GoldenPage from "./pages/GoldenPage";
 import SelfPage from "./pages/SelfPage";
@@ -90,6 +91,7 @@ function Router() {
       <Route path="/admin/partners" component={AdminPartners} />
       <Route path="/admin/my-account" component={AdminMyAccount} />
       <Route path="/admin/sns" component={AdminSns} />
+      <Route path="/admin/ai-plan-import" component={AdminAiPlanImport} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

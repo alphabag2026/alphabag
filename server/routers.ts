@@ -1814,5 +1814,279 @@ export const appRouter = router({
       return { success: true };
     }),
   }),
+
+  // ─── AI Plan Import ──────────────────────────────────────────────────────────
+  aiPlanImport: router({
+    // 텍스트 프롬프트에서 플랜 정보 파싱
+    parseFromText: adminProcedure.input(z.object({
+      text: z.string().min(1),
+    })).mutation(async ({ input }) => {
+      const { invokeLLM } = await import("./_core/llm");
+      const systemPrompt = `You are an expert at extracting investment plan information from text descriptions.
+Extract the following fields from the provided text and return a JSON object.
+Fields to extract:
+- name: Plan name (string)
+- label: Short label/subtitle (string, optional)
+- dailyRate: Daily return rate as decimal string e.g. "0.35" for 0.35% (string)
+- minAmount: Minimum investment amount in USDT (string, optional)
+- recommendedAmount: Recommended investment amount in USDT (string, optional)
+- allocation: Asset allocation ratio e.g. "40% 40% 20%" (string, optional)
+- strategy: Investment strategy description (string, optional)
+- badgeLabels: Array of strategy tags/badges e.g. ["BINANCE Alpha", "Insurance(Hedge)"] (array of strings)
+- tags: Array of feature tags (array of strings, optional)
+- description: Full description (string, optional)
+- planType: One of "investment", "staking" (default: "investment")
+- yieldInfo: Yield range info e.g. "Daily: 0.6% ~ 2%" (string, optional)
+- ratioInfo: Ratio info e.g. "40% 40% 20%" (string, optional)
+- rating: Rating from 1-5 (number, default 4.0)
+Return ONLY valid JSON, no markdown, no explanation.`;
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: input.text },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "plan_info",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                label: { type: "string" },
+                dailyRate: { type: "string" },
+                minAmount: { type: "string" },
+                recommendedAmount: { type: "string" },
+                allocation: { type: "string" },
+                strategy: { type: "string" },
+                badgeLabels: { type: "array", items: { type: "string" } },
+                tags: { type: "array", items: { type: "string" } },
+                description: { type: "string" },
+                planType: { type: "string" },
+                yieldInfo: { type: "string" },
+                ratioInfo: { type: "string" },
+                rating: { type: "number" },
+              },
+              required: ["name", "dailyRate", "badgeLabels", "tags", "description", "planType"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const content = response.choices[0].message.content;
+      const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
+      return { success: true, plan: parsed };
+    }),
+
+    // 이미지에서 플랜 정보 파싱 (LLM Vision)
+    parseFromImage: adminProcedure.input(z.object({
+      base64: z.string(),
+      mimeType: z.string().default("image/png"),
+    })).mutation(async ({ input }) => {
+      const { invokeLLM } = await import("./_core/llm");
+      const { storagePut } = await import("./storage");
+      // S3에 임시 업로드
+      const buffer = Buffer.from(input.base64, "base64");
+      const key = `ai-plan-import/temp-${Date.now()}.${input.mimeType.split("/")[1] || "png"}`;
+      const { url: imageUrl } = await storagePut(key, buffer, input.mimeType);
+      const systemPrompt = `You are an expert at extracting investment plan information from images (screenshots, cards, presentations).
+Look at the image and extract all visible investment plan information.
+Return a JSON object with these fields:
+- name: Plan name
+- label: Short label/subtitle
+- dailyRate: Daily return rate as decimal string e.g. "0.35" for 0.35%
+- minAmount: Minimum investment in USDT
+- recommendedAmount: Recommended investment in USDT
+- allocation: Asset allocation e.g. "40% 40% 20%"
+- strategy: Strategy description
+- badgeLabels: Array of strategy/feature badges visible in the image
+- tags: Array of feature tags
+- description: Description text if visible
+- planType: "investment" or "staking"
+- yieldInfo: Yield range e.g. "Daily: 0.6% ~ 2%"
+- ratioInfo: Ratio info
+- rating: Numeric rating if visible (default 4.0)
+Return ONLY valid JSON.`;
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: [{ type: "image_url", image_url: { url: imageUrl } }, { type: "text", text: "Extract all investment plan information from this image." }] },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "plan_info",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                label: { type: "string" },
+                dailyRate: { type: "string" },
+                minAmount: { type: "string" },
+                recommendedAmount: { type: "string" },
+                allocation: { type: "string" },
+                strategy: { type: "string" },
+                badgeLabels: { type: "array", items: { type: "string" } },
+                tags: { type: "array", items: { type: "string" } },
+                description: { type: "string" },
+                planType: { type: "string" },
+                yieldInfo: { type: "string" },
+                ratioInfo: { type: "string" },
+                rating: { type: "number" },
+              },
+              required: ["name", "dailyRate", "badgeLabels", "tags", "description", "planType"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const content = response.choices[0].message.content;
+      const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
+      return { success: true, plan: parsed, imageUrl };
+    }),
+
+    // PDF/PPT 파일에서 플랜 정보 파싱
+    parseFromFile: adminProcedure.input(z.object({
+      base64: z.string(),
+      mimeType: z.string(),
+      fileName: z.string(),
+    })).mutation(async ({ input }) => {
+      const { invokeLLM } = await import("./_core/llm");
+      const buffer = Buffer.from(input.base64, "base64");
+      let extractedText = "";
+      try {
+        if (input.mimeType === "application/pdf" || input.fileName.endsWith(".pdf")) {
+          const pdfParseModule = await import("pdf-parse");
+          const pdfParseFn = (pdfParseModule as any).default ?? pdfParseModule;
+          const pdfData = await pdfParseFn(buffer);
+          extractedText = pdfData.text;
+        } else if (
+          input.mimeType.includes("presentation") ||
+          input.mimeType.includes("powerpoint") ||
+          input.fileName.endsWith(".pptx") ||
+          input.fileName.endsWith(".ppt")
+        ) {
+          const officeParserModule = await import("officeparser");
+          const officeParser = (officeParserModule as any).default ?? officeParserModule;
+          extractedText = await new Promise<string>((resolve, reject) => {
+            officeParser.parseOffice(buffer, (data: any, err: any) => {
+              if (err) reject(err);
+              else resolve(typeof data === "string" ? data : JSON.stringify(data));
+            }, { outputErrorToConsole: false });
+          });
+        } else {
+          extractedText = buffer.toString("utf-8");
+        }
+      } catch (e) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: `파일 텍스트 추출 실패: ${(e as Error).message}` });
+      }
+      if (!extractedText.trim()) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "파일에서 텍스트를 추출할 수 없습니다." });
+      }
+      const systemPrompt = `You are an expert at extracting investment plan information from documents (PDF, PPT).
+Extract investment plan information from the provided document text.
+Return a JSON object with these fields:
+- name: Plan name
+- label: Short label/subtitle
+- dailyRate: Daily return rate as decimal string e.g. "0.35" for 0.35%
+- minAmount: Minimum investment in USDT
+- recommendedAmount: Recommended investment in USDT
+- allocation: Asset allocation e.g. "40% 40% 20%"
+- strategy: Strategy description
+- badgeLabels: Array of strategy/feature badges
+- tags: Array of feature tags
+- description: Full description
+- planType: "investment" or "staking"
+- yieldInfo: Yield range e.g. "Daily: 0.6% ~ 2%"
+- ratioInfo: Ratio info
+- rating: Numeric rating (default 4.0)
+Return ONLY valid JSON.`;
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Document content:\n\n${extractedText.slice(0, 8000)}` },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "plan_info",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                label: { type: "string" },
+                dailyRate: { type: "string" },
+                minAmount: { type: "string" },
+                recommendedAmount: { type: "string" },
+                allocation: { type: "string" },
+                strategy: { type: "string" },
+                badgeLabels: { type: "array", items: { type: "string" } },
+                tags: { type: "array", items: { type: "string" } },
+                description: { type: "string" },
+                planType: { type: "string" },
+                yieldInfo: { type: "string" },
+                ratioInfo: { type: "string" },
+                rating: { type: "number" },
+              },
+              required: ["name", "dailyRate", "badgeLabels", "tags", "description", "planType"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const content = response.choices[0].message.content;
+      const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
+      return { success: true, plan: parsed };
+    }),
+
+    // 파싱된 데이터로 플랜 자동 등록
+    createFromParsed: adminProcedure.input(z.object({
+      name: z.string().min(1),
+      label: z.string().optional(),
+      dailyRate: z.string(),
+      minAmount: z.string().optional(),
+      recommendedAmount: z.string().optional(),
+      allocation: z.string().optional(),
+      strategy: z.string().optional(),
+      badgeLabels: z.array(z.string()).optional(),
+      tags: z.array(z.string()).optional(),
+      description: z.string().optional(),
+      planType: z.enum(["investment", "staking"]).default("investment"),
+      yieldInfo: z.string().optional(),
+      ratioInfo: z.string().optional(),
+      rating: z.number().optional(),
+      logoUrl: z.string().optional(),
+      sortOrder: z.number().default(0),
+      isActive: z.boolean().default(true),
+    })).mutation(async ({ input, ctx }) => {
+      const { investmentPlans } = await import("../drizzle/schema");
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB not available" });
+      await database.insert(investmentPlans).values({
+        name: input.name,
+        label: input.label,
+        dailyRate: input.dailyRate,
+        minAmount: input.minAmount,
+        recommendedAmount: input.recommendedAmount,
+        allocation: input.allocation,
+        strategy: input.strategy,
+        badgeLabels: input.badgeLabels ?? null,
+        tags: input.tags ?? null,
+        description: input.description,
+        planType: input.planType,
+        yieldInfo: input.yieldInfo,
+        ratioInfo: input.ratioInfo,
+        rating: input.rating?.toString() ?? "4.0",
+        logoUrl: input.logoUrl,
+        sortOrder: input.sortOrder,
+        isActive: input.isActive,
+      });
+      await createAuditLog({ adminId: ctx.user.id, action: "CREATE_PLAN", targetType: "plan", details: { name: input.name, source: "ai_import" } });
+      return { success: true };
+    }),
+  }),
 });
 export type AppRouter = typeof appRouter;

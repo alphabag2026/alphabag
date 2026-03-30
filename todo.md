@@ -468,3 +468,33 @@
 - [x] 전체 인플루언서 twitterUserId 수집 및 DB 업데이트
 - [x] 모든 인플루언서 autoFetchEnabled = 1 활성화
 - [x] 체크포인트 저장
+
+## Phase 43 - AI 플랜 자동 등록 기능 (2026-03-30)
+
+- [ ] 백엔드: 이미지/PDF/PPT 파일 업로드 → S3 저장 프로시저
+- [ ] 백엔드: LLM Vision으로 이미지에서 플랜 정보 추출 프로시저 (parsePlanFromImage)
+- [ ] 백엔드: 텍스트 프롬프트에서 플랜 정보 추출 프로시저 (parsePlanFromText)
+- [ ] 백엔드: PDF/PPT 텍스트 추출 후 LLM 파싱 프로시저 (parsePlanFromFile)
+- [ ] 백엔드: 파싱된 데이터로 플랜 자동 생성 프로시저 (createPlanFromParsed)
+- [ ] 어드민 /admin/ai-plan-import 페이지 생성 (탭: 프롬프트/이미지/파일)
+- [ ] 프롬프트 탭: 텍스트 입력 → LLM 파싱 → 미리보기 카드 → 등록 확인
+- [ ] 이미지 탭: 이미지 업로드 → LLM Vision 파싱 → 미리보기 카드 → 등록 확인
+- [ ] 파일 탭: PDF/PPT 업로드 → 텍스트 추출 → LLM 파싱 → 미리보기 카드 → 등록 확인
+- [ ] AdminLayout 사이드바에 "AI 플랜 등록" 메뉴 추가
+- [ ] App.tsx에 /admin/ai-plan-import 라우트 추가
+- [ ] 테스트 작성 및 체크포인트 저장
+
+## Phase 43 - AI 플랜 자동 등록 기능 (2026-03-30)
+- [x] 백엔드 aiPlanImport 라우터 추가 (parseFromText, parseFromImage, parseFromFile, createFromParsed)
+- [x] pdf-parse, officeparser 패키지 설치
+- [x] LLM Vision 이미지 분석 → 플랜 구조 자동 추출
+- [x] PDF/PPT 텍스트 추출 → LLM 파싱
+- [x] 텍스트 프롬프트 → LLM 파싱
+- [x] 어드민 /admin/ai-plan-import 페이지 구현 (3탭: 텍스트/이미지/파일)
+- [x] 파싱 결과 미리보기 카드 (실제 플랜 카드 스타일)
+- [x] 수정 모드 (EditablePlanForm)
+- [x] 확인 후 플랜 등록 확정 버튼
+- [x] AdminLayout 사이드바에 "AI 플랜 등록" 메뉴 추가
+- [x] App.tsx 라우트 추가
+- [x] aiPlanImport.test.ts 테스트 작성 (45개 전체 통과)
+- [x] 체크포인트 저장
