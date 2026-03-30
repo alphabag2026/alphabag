@@ -195,22 +195,37 @@ export default function SubmitPlan() {
           <p className="text-slate-400 text-sm">PPT, PDF, 이미지를 업로드하면 AI가 자동으로 플랜을 구성합니다</p>
         </div>
 
-        {/* 스텝 인디케이터 */}
-        <div className="flex items-center justify-center gap-1 mb-8">
-          {steps.map((s, i) => (
-            <div key={s.key} className="flex items-center">
-              <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-all ${
-                i < stepIdx ? "bg-amber-500 text-black" :
-                i === stepIdx ? "bg-amber-500 text-black ring-4 ring-amber-500/30" :
-                "bg-slate-700 text-slate-400"
-              }`}>
-                {i < stepIdx ? <CheckCircle className="w-4 h-4" /> : i + 1}
+        {/* 스텝 인디케이터 - 모바일 최적화 */}
+        <div className="mb-8">
+          {/* 모바일: 원형 + 연결선만 */}
+          <div className="flex items-center justify-center gap-0.5 sm:gap-1">
+            {steps.map((s, i) => (
+              <div key={s.key} className="flex items-center">
+                <div className="flex flex-col items-center gap-1">
+                  <div className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs font-bold transition-all ${
+                    i < stepIdx ? "bg-amber-500 text-black" :
+                    i === stepIdx ? "bg-amber-500 text-black ring-4 ring-amber-500/30" :
+                    "bg-slate-700 text-slate-400"
+                  }`}>
+                    {i < stepIdx ? <CheckCircle className="w-3.5 h-3.5" /> : i + 1}
+                  </div>
+                  {/* 레이블: sm 이상에서만 표시 */}
+                  <span className={`hidden sm:block text-xs whitespace-nowrap ${
+                    i === stepIdx ? "text-amber-400 font-medium" : i < stepIdx ? "text-amber-500/70" : "text-slate-500"
+                  }`}>{s.label}</span>
+                </div>
+                {i < steps.length - 1 && (
+                  <div className={`w-5 sm:w-8 h-0.5 mx-0.5 sm:mx-1 mb-3 sm:mb-4 ${
+                    i < stepIdx ? "bg-amber-500" : "bg-slate-700"
+                  }`} />
+                )}
               </div>
-              {i < steps.length - 1 && (
-                <div className={`w-8 h-0.5 mx-1 ${i < stepIdx ? "bg-amber-500" : "bg-slate-700"}`} />
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
+          {/* 모바일: 현재 스텝 레이블 */}
+          <p className="sm:hidden text-center text-amber-400 text-sm font-medium mt-2">
+            {stepIdx + 1}단계: {steps[stepIdx]?.label}
+          </p>
         </div>
 
         {/* Step 1: 신청자 정보 */}

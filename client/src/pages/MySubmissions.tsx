@@ -80,28 +80,35 @@ function SubmissionCard({ submission }: { submission: any }) {
         </div>
 
         {!isRejected && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-1">
+          <div className="space-y-1">
+            <div className="flex items-center gap-0.5">
               {STEPS.map((step, i) => (
                 <div key={step.key} className="flex items-center flex-1">
-                  <div className="flex-1 flex flex-col items-center gap-1">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                  <div className="flex-1 flex flex-col items-center gap-0.5">
+                    <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                       i < stepIdx ? "bg-amber-500 text-black" :
                       i === stepIdx ? "bg-amber-500 text-black ring-2 ring-amber-500/40" :
                       "bg-slate-700 text-slate-500"
                     }`}>
-                      {i < stepIdx ? <CheckCircle className="w-3.5 h-3.5" /> : i + 1}
+                      {i < stepIdx ? <CheckCircle className="w-3 h-3" /> : <span className="text-[10px]">{i + 1}</span>}
                     </div>
-                    <span className={`text-[10px] text-center leading-tight ${i <= stepIdx ? "text-amber-400" : "text-slate-600"}`}>
+                    {/* 레이블: sm 이상에서만 표시 */}
+                    <span className={`hidden sm:block text-[10px] text-center leading-tight ${
+                      i <= stepIdx ? "text-amber-400" : "text-slate-600"
+                    }`}>
                       {step.label}
                     </span>
                   </div>
                   {i < STEPS.length - 1 && (
-                    <div className={`h-0.5 flex-1 mb-4 ${i < stepIdx ? "bg-amber-500" : "bg-slate-700"}`} />
+                    <div className={`h-0.5 flex-1 sm:mb-4 ${i < stepIdx ? "bg-amber-500" : "bg-slate-700"}`} />
                   )}
                 </div>
               ))}
             </div>
+            {/* 모바일: 현재 단계 텍스트 */}
+            <p className="sm:hidden text-xs text-amber-400 text-center">
+              {STEPS[stepIdx]?.label ?? ""} 단계
+            </p>
           </div>
         )}
 
@@ -348,25 +355,25 @@ function RewardsSection() {
 
   return (
     <div className="space-y-4">
-      {/* 보상 요약 카드 */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center">
-          <TrendingUp className="w-5 h-5 text-amber-400 mx-auto mb-2" />
-          <div className="text-slate-400 text-xs mb-1">총 누적 보상</div>
-          <div className="text-white font-bold text-lg">{totalEarned.toFixed(2)}</div>
-          <div className="text-amber-400 text-xs">USDT</div>
+      {/* 보상 요약 카드 - 모바일 최적화 */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-2.5 sm:p-4 text-center">
+          <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 mx-auto mb-1 sm:mb-2" />
+          <div className="text-slate-400 text-[10px] sm:text-xs mb-0.5 sm:mb-1">열 누적 보상</div>
+          <div className="text-white font-bold text-sm sm:text-lg">{totalEarned.toFixed(2)}</div>
+          <div className="text-amber-400 text-[10px] sm:text-xs">USDT</div>
         </div>
-        <div className="bg-slate-800/50 border border-amber-500/30 rounded-xl p-4 text-center">
-          <Coins className="w-5 h-5 text-amber-400 mx-auto mb-2" />
-          <div className="text-slate-400 text-xs mb-1">출금 가능</div>
-          <div className="text-amber-400 font-bold text-lg">{pendingBalance.toFixed(2)}</div>
-          <div className="text-amber-400 text-xs">USDT</div>
+        <div className="bg-slate-800/50 border border-amber-500/30 rounded-xl p-2.5 sm:p-4 text-center">
+          <Coins className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 mx-auto mb-1 sm:mb-2" />
+          <div className="text-slate-400 text-[10px] sm:text-xs mb-0.5 sm:mb-1">출금 가능</div>
+          <div className="text-amber-400 font-bold text-sm sm:text-lg">{pendingBalance.toFixed(2)}</div>
+          <div className="text-amber-400 text-[10px] sm:text-xs">USDT</div>
         </div>
-        <div className="bg-slate-800/50 border border-green-500/30 rounded-xl p-4 text-center">
-          <CheckCircle className="w-5 h-5 text-green-400 mx-auto mb-2" />
-          <div className="text-slate-400 text-xs mb-1">지급 완료</div>
-          <div className="text-green-400 font-bold text-lg">{paidBalance.toFixed(2)}</div>
-          <div className="text-green-400 text-xs">USDT</div>
+        <div className="bg-slate-800/50 border border-green-500/30 rounded-xl p-2.5 sm:p-4 text-center">
+          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 mx-auto mb-1 sm:mb-2" />
+          <div className="text-slate-400 text-[10px] sm:text-xs mb-0.5 sm:mb-1">지급 완료</div>
+          <div className="text-green-400 font-bold text-sm sm:text-lg">{paidBalance.toFixed(2)}</div>
+          <div className="text-green-400 text-[10px] sm:text-xs">USDT</div>
         </div>
       </div>
 
@@ -482,15 +489,15 @@ export default function MySubmissions() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-8 sm:py-12 px-3 sm:px-4">
       <div className="max-w-2xl mx-auto">
         {/* 헤더 */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-1.5 text-amber-400 text-sm font-medium mb-4">
-            <FileText className="w-4 h-4" /> 마이페이지
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 sm:px-4 py-1.5 text-amber-400 text-xs sm:text-sm font-medium mb-3 sm:mb-4">
+            <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> 마이페이지
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">내 활동 현황</h1>
-          <p className="text-slate-400 text-sm">신청 현황과 투표 보상을 한눈에 확인하세요</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">내 활동 현황</h1>
+          <p className="text-slate-400 text-xs sm:text-sm">신청 현황과 투표 보상을 한눈에 확인하세요</p>
         </div>
 
         {/* 탭 */}

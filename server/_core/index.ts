@@ -12,6 +12,7 @@ import { startTrendingAlertScheduler } from "../trendingAlertScheduler";
 import { startTwitterFetchScheduler } from "../twitterFetchScheduler";
 import { registerTelegramWebhook } from "../telegramWebhook";
 import { startPaymentChecker } from "../paymentChecker";
+import { startVoteDeadlineScheduler } from "../voteDeadlineScheduler";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -76,6 +77,8 @@ async function startServer() {
   startTwitterFetchScheduler();
   // Start onchain payment checker
   startPaymentChecker();
+  // Start vote deadline auto-processing scheduler
+  startVoteDeadlineScheduler();
 }
 
 startServer().catch(console.error);

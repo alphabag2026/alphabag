@@ -2394,6 +2394,50 @@ Return ONLY valid JSON.`;
         }
         await database.update(planSubmissions).set(updateData).where(eq(planSubmissions.id, input.submissionId));
         await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_SUBMISSION_STATUS", targetType: "submission", details: { submissionId: input.submissionId, status: input.status } });
+        // 승인/거절 시 신청자에게 이메일 + 텔레그램 알림 발송 (비동기)
+        if (input.status === "approved" || input.status === "rejected") {
+          const [sub] = await database.select().from(planSubmissions).where(eq(planSubmissions.id, input.submissionId));
+          if (sub) {
+            // 직접 인라인으로 알림 발송
+            const planData = (sub.finalPlanData ?? sub.parsedPlanData) as any;
+            const planName = planData?.name ?? `신청 #${sub.id}`;
+            const isApproved = input.status === "approved";
+            const totalVotes = sub.totalVotes ?? 0;
+            const approvePct = totalVotes > 0 ? ((sub.approveVotes ?? 0) / totalVotes * 100) : 0;
+            // 이메일 알림
+            const apiUrl = process.env.BUILT_IN_FORGE_API_URL;
+            const apiKey = process.env.BUILT_IN_FORGE_API_KEY;
+            if (apiUrl && apiKey && sub.applicantEmail) {
+              const subject = isApproved
+                ? `[AlphaBag] 🎉 "${planName}" 플랜 상장 심사 통과 안내`
+                : `[AlphaBag] "${planName}" 플랜 심사 결과 안내`;
+              const body = isApproved
+                ? `안녕하세요, ${sub.applicantName}님!\n\n"${planName}" 플랜이 AlphaBag 상장 심사를 통과하였습니다.\n\n📊 투표 결과\n- 총 투표 수: ${totalVotes}표\n- 찬성 비율: ${approvePct.toFixed(1)}%\n\n마이페이지에서 진행 상황을 확인하세요.\nhttps://alphabagv2-tgrbnq7y.manus.space/my-submissions\n\nAlphaBag 운영팀 드림`
+                : `안녕하세요, ${sub.applicantName}님!\n\n"${planName}" 플랜이 이번 심사에서 상장 기준에 미달하였습니다.\n\n📊 투표 결과\n- 총 투표 수: ${totalVotes}표\n- 찬성 비율: ${approvePct.toFixed(1)}%\n\n플랜을 보완하여 재신청하실 수 있습니다.\nhttps://alphabagv2-tgrbnq7y.manus.space/my-submissions\n\nAlphaBag 운영팀 드림`;
+              fetch(`${apiUrl}/v1/email/send`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+                body: JSON.stringify({ to: sub.applicantEmail, subject, text: body }),
+              }).catch(e => console.warn("[AdminUpdateStatus] Email failed:", e));
+            }
+            // 텔레그램 알림 (신청자가 봇 연동한 경우)
+            const botToken = process.env.TELEGRAM_BOT_TOKEN;
+            if (botToken && sub.applicantEmail) {
+              const { users: usersTable } = await import("../drizzle/schema");
+              const userRows = await database.select({ telegramChatId: usersTable.telegramChatId }).from(usersTable).where(eq(usersTable.email, sub.applicantEmail)).limit(1);
+              const chatId = userRows[0]?.telegramChatId;
+              if (chatId) {
+                const emoji = isApproved ? "🎉" : "📋";
+                const msg = [`${emoji} *투표 결과 안내*`, ``, `"${planName}" 플랜 심사 결과: *${isApproved ? "상장 통과" : "심사 미달"}*`, ``, `마이페이지: https://alphabagv2-tgrbnq7y.manus.space/my-submissions`].join("\n");
+                fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: "Markdown" }),
+                }).catch(() => {});
+              }
+            }
+          }
+        }
         return { success: true };
       }),
 

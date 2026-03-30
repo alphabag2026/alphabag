@@ -90,7 +90,7 @@ function VoteCard({ submission }: { submission: any }) {
 
   return (
     <Card className="bg-slate-800/50 border-slate-700 hover:border-slate-600 transition-colors">
-      <CardContent className="p-5">
+      <CardContent className="p-3.5 sm:p-5">
         {/* 헤더 */}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex-1 min-w-0">
@@ -163,24 +163,24 @@ function VoteCard({ submission }: { submission: any }) {
               </div>
             </div>
 
-            {/* 실시간 카운트다운 타이머 */}
+            {/* 실시간 카운트다운 타이머 - 모바일 최적화 */}
             {isVotingOpen && countdown && (
-              <div className="bg-slate-700/50 border border-amber-500/20 rounded-xl p-3">
+              <div className="bg-slate-700/50 border border-amber-500/20 rounded-xl p-2.5 sm:p-3">
                 <div className="flex items-center gap-1.5 text-amber-400 text-xs font-medium mb-2">
                   <Timer className="w-3.5 h-3.5" /> 투표 마감까지 남은 시간
                 </div>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                   {[
                     { val: countdown.days, unit: "일" },
-                    { val: countdown.hours, unit: "시간" },
+                    { val: countdown.hours, unit: "시" },
                     { val: countdown.minutes, unit: "분" },
                     { val: countdown.seconds, unit: "초" },
                   ].map(({ val, unit }) => (
-                    <div key={unit} className="bg-slate-800 rounded-lg p-2 text-center">
-                      <div className="text-white font-bold text-xl tabular-nums">
+                    <div key={unit} className="bg-slate-800 rounded-lg p-1.5 sm:p-2 text-center">
+                      <div className="text-white font-bold text-lg sm:text-xl tabular-nums leading-none">
                         {String(val).padStart(2, "0")}
                       </div>
-                      <div className="text-slate-500 text-xs">{unit}</div>
+                      <div className="text-slate-500 text-xs mt-0.5">{unit}</div>
                     </div>
                   ))}
                 </div>
@@ -294,29 +294,29 @@ export default function VotePage() {
   const approvedCount = submissions?.filter(s => s.status === "approved" || s.status === "listed").length ?? 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-8 sm:py-12 px-3 sm:px-4">
       <div className="max-w-3xl mx-auto">
         {/* 헤더 */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-4 py-1.5 text-amber-400 text-sm font-medium mb-4">
-            <Star className="w-4 h-4" /> 골든 컬렉션 투표
+        <div className="text-center mb-7 sm:mb-10">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 sm:px-4 py-1.5 text-amber-400 text-xs sm:text-sm font-medium mb-3 sm:mb-4">
+            <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> 골든 콜렉션 투표
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">노드 투표</h1>
-          <p className="text-slate-400 text-sm">알파백 노드 보유자는 신규 플랜 상장에 투표하고 상장비용을 분배받습니다</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">노드 투표</h1>
+          <p className="text-slate-400 text-xs sm:text-sm">알파백 노드 보유자는 신규 플랜 상장에 투표하고 상장비용을 분배받습니다</p>
         </div>
 
         {/* 통계 */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8">
           {[
-            { label: "투표 진행 중", value: votingCount, icon: <Clock className="w-5 h-5" />, color: "text-amber-400" },
-            { label: "상장 승인", value: approvedCount, icon: <CheckCircle className="w-5 h-5" />, color: "text-green-400" },
-            { label: "전체 신청", value: submissions?.length ?? 0, icon: <FileText className="w-5 h-5" />, color: "text-blue-400" },
+            { label: "투표 진행 중", value: votingCount, icon: <Clock className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-amber-400" },
+            { label: "상장 승인", value: approvedCount, icon: <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-green-400" },
+            { label: "전체 신청", value: submissions?.length ?? 0, icon: <FileText className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-blue-400" },
           ].map(stat => (
             <Card key={stat.label} className="bg-slate-800/50 border-slate-700">
-              <CardContent className="p-4 text-center">
-                <div className={`${stat.color} flex justify-center mb-1`}>{stat.icon}</div>
-                <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-                <div className="text-slate-400 text-xs">{stat.label}</div>
+              <CardContent className="p-2.5 sm:p-4 text-center">
+                <div className={`${stat.color} flex justify-center mb-0.5 sm:mb-1`}>{stat.icon}</div>
+                <div className={`text-xl sm:text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+                <div className="text-slate-400 text-xs leading-tight">{stat.label}</div>
               </CardContent>
             </Card>
           ))}
