@@ -1,17 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import {
   ThumbsUp, ThumbsDown, Clock, Users, CheckCircle, XCircle,
-  Star, FileText, Loader2, Lock, ChevronDown, ChevronUp
+  Star, FileText, Loader2, Lock, ChevronDown, ChevronUp, Timer, TrendingUp
 } from "lucide-react";
 import { getLoginUrl } from "@/const";
+
+// 실시간 카운트다운 훅
+function useCountdown(endDate: Date | null) {
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
+
+  useEffect(() => {
+    if (!endDate) return;
+    const tick = () => {
+      const diff = endDate.getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft({ days, hours, minutes, seconds });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [endDate]);
+
+  return timeLeft;
+}
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   draft: { label: "검토 대기", color: "bg-slate-500/20 text-slate-400" },
@@ -45,12 +70,13 @@ function VoteCard({ submission }: { submission: any }) {
   const approveVotes = voteData?.approveVotes ?? 0;
   const rejectVotes = voteData?.rejectVotes ?? 0;
   const approvePct = totalVotes > 0 ? Math.round((approveVotes / totalVotes) * 100) : 0;
+  const THRESHOLD = 60; // 60% 승인 기준
 
   // 투표 마감 여부
   const now = new Date();
   const votingEnd = submission.votingEndAt ? new Date(submission.votingEndAt) : null;
   const isVotingOpen = submission.status === "voting" && (!votingEnd || votingEnd > now);
-  const daysLeft = votingEnd ? Math.max(0, Math.ceil((votingEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : 0;
+  const countdown = useCountdown(isVotingOpen ? votingEnd : null);
 
   const handleVote = async (vote: "approve" | "reject") => {
     if (!user) return toast.error("투표하려면 로그인이 필요합니다.");
@@ -100,20 +126,71 @@ function VoteCard({ submission }: { submission: any }) {
 
         {/* 투표 현황 */}
         {(submission.status === "voting" || submission.status === "approved" || submission.status === "rejected") && (
-          <div className="space-y-2 mb-4">
-            <div className="flex justify-between text-sm">
-              <span className="text-green-400 flex items-center gap-1">
-                <ThumbsUp className="w-3.5 h-3.5" /> 찬성 {approveVotes}표 ({approvePct}%)
-              </span>
-              <span className="text-red-400 flex items-center gap-1">
-                {rejectVotes}표 <ThumbsDown className="w-3.5 h-3.5" /> 반대
-              </span>
+          <div className="space-y-3 mb-4">
+            {/* 승인 비율 프로그레스 바 */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-green-400 flex items-center gap-1 font-medium">
+                  <ThumbsUp className="w-3.5 h-3.5" /> 찬성 {approveVotes}표
+                </span>
+                <span className="text-slate-300 font-bold text-base">{approvePct}%</span>
+                <span className="text-red-400 flex items-center gap-1 font-medium">
+                  반대 {rejectVotes}표 <ThumbsDown className="w-3.5 h-3.5" />
+                </span>
+              </div>
+              {/* 기준선 포함 프로그레스 바 */}
+              <div className="relative h-3 bg-slate-700 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    approvePct >= THRESHOLD ? "bg-green-500" : "bg-amber-500"
+                  }`}
+                  style={{ width: `${approvePct}%` }}
+                />
+                {/* 60% 기준선 */}
+                <div
+                  className="absolute top-0 bottom-0 w-0.5 bg-white/60"
+                  style={{ left: `${THRESHOLD}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">총 {totalVotes}표</span>
+                <span className={`flex items-center gap-1 font-medium ${
+                  approvePct >= THRESHOLD ? "text-green-400" : "text-slate-400"
+                }`}>
+                  <TrendingUp className="w-3 h-3" />
+                  기준 {THRESHOLD}% {approvePct >= THRESHOLD ? "(달성!)" : `(잔여 ${THRESHOLD - approvePct}%)`}
+                </span>
+              </div>
             </div>
-            <Progress value={approvePct} className="h-2 bg-slate-700" />
-            <div className="flex justify-between text-xs text-slate-500">
-              <span>총 {totalVotes}표</span>
-              {isVotingOpen && <span className="flex items-center gap-1 text-amber-400"><Clock className="w-3 h-3" /> {daysLeft}일 남음</span>}
-            </div>
+
+            {/* 실시간 카운트다운 타이머 */}
+            {isVotingOpen && countdown && (
+              <div className="bg-slate-700/50 border border-amber-500/20 rounded-xl p-3">
+                <div className="flex items-center gap-1.5 text-amber-400 text-xs font-medium mb-2">
+                  <Timer className="w-3.5 h-3.5" /> 투표 마감까지 남은 시간
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { val: countdown.days, unit: "일" },
+                    { val: countdown.hours, unit: "시간" },
+                    { val: countdown.minutes, unit: "분" },
+                    { val: countdown.seconds, unit: "초" },
+                  ].map(({ val, unit }) => (
+                    <div key={unit} className="bg-slate-800 rounded-lg p-2 text-center">
+                      <div className="text-white font-bold text-xl tabular-nums">
+                        {String(val).padStart(2, "0")}
+                      </div>
+                      <div className="text-slate-500 text-xs">{unit}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {isVotingOpen && !countdown && (
+              <div className="flex items-center gap-1 text-amber-400 text-xs">
+                <Clock className="w-3 h-3" /> 투표 진행 중
+              </div>
+            )}
           </div>
         )}
 

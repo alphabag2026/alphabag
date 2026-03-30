@@ -2616,8 +2616,50 @@ Return ONLY valid JSON.`;
         if (existingRewards.length > 0) throw new TRPCError({ code: "BAD_REQUEST", message: "이미 보상이 지급되었습니다." });
         const voterPool = listingFee * voterPoolPct;
         const rewardPerVoter = voterPool / votes.length;
+        // 보상 지급 + 투표자 텔레그램 알림
+        const { users: usersTable } = await import("../drizzle/schema");
+        const { inArray } = await import("drizzle-orm");
+        const voterIds = votes.map(v => v.voterId);
+        const voterUsers = voterIds.length > 0
+          ? await database.select({ id: usersTable.id, telegramChatId: usersTable.telegramChatId, name: usersTable.name }).from(usersTable).where(inArray(usersTable.id, voterIds))
+          : [];
+        const planData = (submission.finalPlanData ?? submission.parsedPlanData) as any;
+        const planName = planData?.name ?? `신청 #${submission.id}`;
         for (const vote of votes) {
           await database.insert(voteRewards).values({ userId: vote.voterId, submissionId: input.submissionId, voteId: vote.id, rewardUsdt: String(rewardPerVoter.toFixed(6)), rewardReason: "vote_participation", status: "pending" });
+        }
+        // 텔레그램 알림 발송 (비동기 - 실패해도 보상 지급은 성공)
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        if (botToken) {
+          const sendRewardNotification = async (chatId: string, userName: string) => {
+            const msg = [
+              `🎉 *투표 보상 지급 안내*`,
+              ``,
+              `안녕하세요, ${userName || '노드 보유자'}님!`,
+              `✨ **${planName}** 플랜 투표에 참여해 주셔서 감사합니다.`,
+              ``,
+              `💰 *지급 보상:* ${rewardPerVoter.toFixed(2)} USDT`,
+              `👥 *전체 투표자:* ${votes.length}명`,
+              `📊 *전체 지급액:* ${voterPool.toFixed(2)} USDT`,
+              ``,
+              `🔗 마이페이지에서 출금 신청이 가능합니다.`,
+              `https://alphabag.net/my-submissions`,
+            ].join('\n');
+            try {
+              await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' }),
+              });
+            } catch (e) {
+              console.warn('[RewardNotify] Failed to send telegram to', chatId, e);
+            }
+          };
+          for (const voter of voterUsers) {
+            if (voter.telegramChatId) {
+              sendRewardNotification(voter.telegramChatId, voter.name || '').catch(() => {});
+            }
+          }
         }
         await createAuditLog({ adminId: ctx.user.id, action: "DISTRIBUTE_VOTE_REWARDS", targetType: "submission", targetId: input.submissionId, details: { voterCount: votes.length, rewardPerVoter } });
         return { success: true, voterCount: votes.length, rewardPerVoter, totalDistributed: voterPool };

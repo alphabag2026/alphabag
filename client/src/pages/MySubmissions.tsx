@@ -163,11 +163,33 @@ function SubmissionCard({ submission }: { submission: any }) {
   );
 }
 
+// 지갑 주소 형식 검증 유틸리티
+const WALLET_PATTERNS = {
+  BSC:   { regex: /^0x[0-9a-fA-F]{40}$/, prefix: "0x", label: "BSC (BEP-20)", hint: "0x로 시작하는 42자리 주소" },
+  ERC20: { regex: /^0x[0-9a-fA-F]{40}$/, prefix: "0x", label: "ERC20 (Ethereum)", hint: "0x로 시작하는 42자리 주소" },
+  TRC20: { regex: /^T[0-9a-zA-Z]{33}$/, prefix: "T",  label: "TRC20 (TRON)",    hint: "T로 시작하는 34자리 주소" },
+};
+
+function detectNetwork(addr: string): "BSC" | "TRC20" | "ERC20" | null {
+  if (/^0x[0-9a-fA-F]{40}$/.test(addr)) return "BSC";
+  if (/^T[0-9a-zA-Z]{33}$/.test(addr)) return "TRC20";
+  return null;
+}
+
+function validateWallet(addr: string, net: "BSC" | "TRC20" | "ERC20"): string | null {
+  const p = WALLET_PATTERNS[net];
+  if (!addr) return "지갑 주소를 입력해주세요.";
+  if (!p.regex.test(addr)) return `${p.label} 주소 형식이 올바르지 않습니다. (${p.hint})`;
+  return null;
+}
+
 function WithdrawalDialog({ pendingBalance, onSuccess }: { pendingBalance: number; onSuccess: () => void }) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [wallet, setWallet] = useState("");
   const [network, setNetwork] = useState<"BSC" | "TRC20" | "ERC20">("BSC");
+  const [walletError, setWalletError] = useState<string | null>(null);
+  const [autoDetected, setAutoDetected] = useState<string | null>(null);
 
   const requestWithdrawal = trpc.rewards.requestWithdrawal.useMutation({
     onSuccess: () => {
@@ -180,11 +202,36 @@ function WithdrawalDialog({ pendingBalance, onSuccess }: { pendingBalance: numbe
     onError: (e) => toast.error(e.message),
   });
 
+  const handleWalletChange = (val: string) => {
+    setWallet(val);
+    setWalletError(null);
+    setAutoDetected(null);
+    if (val.length > 5) {
+      const detected = detectNetwork(val);
+      if (detected) {
+        setNetwork(detected);
+        setAutoDetected(WALLET_PATTERNS[detected].label);
+      }
+      const err = validateWallet(val, network);
+      if (err && val.length >= 34) setWalletError(err);
+    }
+  };
+
+  const handleNetworkChange = (v: string) => {
+    setNetwork(v as any);
+    setAutoDetected(null);
+    if (wallet) {
+      const err = validateWallet(wallet, v as any);
+      setWalletError(err);
+    }
+  };
+
   const handleSubmit = () => {
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) return toast.error("출금 금액을 입력해주세요.");
     if (amt > pendingBalance) return toast.error(`미지급 잔액(${pendingBalance.toFixed(2)} USDT)을 초과합니다.`);
-    if (!wallet || wallet.length < 10) return toast.error("지갑 주소를 입력해주세요.");
+    const err = validateWallet(wallet, network);
+    if (err) { setWalletError(err); return toast.error(err); }
     requestWithdrawal.mutate({ amountUsdt: amt, walletAddress: wallet, network });
   };
 
@@ -221,7 +268,7 @@ function WithdrawalDialog({ pendingBalance, onSuccess }: { pendingBalance: numbe
           </div>
           <div className="space-y-2">
             <Label className="text-slate-300">네트워크</Label>
-            <Select value={network} onValueChange={(v) => setNetwork(v as any)}>
+            <Select value={network} onValueChange={handleNetworkChange}>
               <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                 <SelectValue />
               </SelectTrigger>
@@ -233,13 +280,33 @@ function WithdrawalDialog({ pendingBalance, onSuccess }: { pendingBalance: numbe
             </Select>
           </div>
           <div className="space-y-2">
-            <Label className="text-slate-300">수령 지갑 주소</Label>
+            <Label className="text-slate-300 flex items-center justify-between">
+              <span>수령 지갑 주소</span>
+              {autoDetected && (
+                <span className="text-xs text-green-400 flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" /> {autoDetected} 자동 감지
+                </span>
+              )}
+            </Label>
             <Input
               value={wallet}
-              onChange={e => setWallet(e.target.value)}
-              placeholder="0x... 또는 T..."
-              className="bg-slate-700 border-slate-600 text-white font-mono text-sm"
+              onChange={e => handleWalletChange(e.target.value)}
+              placeholder="0x... (BSC/ERC20) 또는 T... (TRC20)"
+              className={`bg-slate-700 border-slate-600 text-white font-mono text-sm ${
+                walletError ? "border-red-500 focus-visible:ring-red-500" :
+                wallet && !walletError && wallet.length >= 34 ? "border-green-500" : ""
+              }`}
             />
+            {walletError && (
+              <p className="text-red-400 text-xs flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" /> {walletError}
+              </p>
+            )}
+            {!walletError && wallet && wallet.length >= 34 && (
+              <p className="text-green-400 text-xs flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" /> 올바른 {WALLET_PATTERNS[network].label} 주소 형식입니다.
+              </p>
+            )}
           </div>
           <div className="bg-slate-700/50 rounded-lg p-3 text-xs text-slate-400 space-y-1">
             <p className="flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5 text-amber-400" /> 출금 신청 후 어드민 검토(1~3 영업일)가 필요합니다.</p>
