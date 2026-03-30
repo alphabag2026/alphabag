@@ -4,7 +4,7 @@ import {
   LayoutDashboard, TrendingUp, FileText, Users, Cpu,
   TicketCheck, Bell, Gift, ShieldCheck, LogOut, Shield,
   ClipboardList, CalendarClock, Image, Zap, FileSearch, Handshake,
-  BarChart2, GitBranch, UserCog, Radio, Sparkles,
+  BarChart2, GitBranch, UserCog, Radio, Sparkles, Star,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
@@ -28,12 +28,13 @@ const NAV_ITEMS = [
   { href: "/admin/partners", label: "Partners", icon: "Handshake" },
   { href: "/admin/sns", label: "SNS 인플루언서", icon: "Radio" },
   { href: "/admin/ai-plan-import", label: "AI 플랜 등록", icon: "Sparkles" },
+  { href: "/admin/submissions", label: "골든 콜렉션 신청", icon: "Star" },
 ];
 
 const ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
   LayoutDashboard, TrendingUp, FileText, Users, Cpu,
   TicketCheck, Bell, Gift, ShieldCheck, ClipboardList, CalendarClock, Image, Zap, FileSearch, Handshake,
-  BarChart2, GitBranch, UserCog, Radio, Sparkles,
+  BarChart2, GitBranch, UserCog, Radio, Sparkles, Star,
 };
 
 interface AdminLayoutProps {

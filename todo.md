@@ -498,3 +498,25 @@
 - [x] App.tsx 라우트 추가
 - [x] aiPlanImport.test.ts 테스트 작성 (45개 전체 통과)
 - [x] 체크포인트 저장
+
+## Phase 44 - 공개 플랜 등록 시스템 (2026-03-30)
+- [ ] DB: planSubmissions 테이블 (신청자 정보, 이메일, 텔레그램, 상태, 파일URL, 파싱결과, 상장비용)
+- [ ] DB: submissionVerifications 테이블 (이메일/텔레그램 인증 코드, 만료시간)
+- [ ] DB: submissionVotes 테이블 (신청ID, 노드보유자ID, 찬반, 투표일시)
+- [ ] DB: submissionFeeDistributions 테이블 (신청ID, 수령자, 금액, 비율, 상태)
+- [ ] DB: submissionSettings 테이블 (상장비용, 투표기간, 상장기준점수, 알파백수수료비율)
+- [ ] 마이그레이션 SQL 실행
+- [ ] 백엔드: 이메일 인증 코드 발송/확인 프로시저
+- [ ] 백엔드: 텔레그램 인증 코드 발송/확인 프로시저
+- [ ] 백엔드: 플랜 신청 CRUD (create, list, getById, cancel)
+- [ ] 백엔드: PPT/PDF/이미지 업로드 + AI 파싱 프로시저
+- [ ] 백엔드: 노드 보유자 투표 프로시저 (vote, getVoteStatus)
+- [ ] 백엔드: 투표 마감 및 상장 결정 스케줄러
+- [ ] 백엔드: 상장비용 분배 프로시저 (노드 60% + 알파백 40%)
+- [ ] 프론트: /submit-plan 공개 신청 페이지 (이메일+텔레그램 인증 → 파일업로드 → AI파싱 → 미리보기 → 상장비용 안내 → 제출)
+- [ ] 프론트: /vote 노드 투표 페이지 (신청 목록, 찬반 투표, 진행 현황)
+- [ ] 프론트: /my-submissions 등록자 마이페이지 (신청 현황, 투표 결과, 분배 내역)
+- [ ] 어드민: /admin/submissions 신청 관리 페이지 (설정, 승인/거절, 분배 실행)
+- [ ] AdminLayout 사이드바에 신청 관리 메뉴 추가
+- [ ] App.tsx 라우트 추가
+- [ ] 테스트 작성 및 체크포인트 저장

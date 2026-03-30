@@ -474,3 +474,93 @@ export const partners = mysqlTable("partners", {
 export type Partner = typeof partners.$inferSelect;
 export type InsertPartner = typeof partners.$inferInsert;
 
+
+// ─── Submission Settings (상장 설정) ──────────────────────────────────────────
+export const submissionSettings = mysqlTable("submissionSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  listingFeeUsdt: decimal("listingFeeUsdt", { precision: 18, scale: 2 }).default("500").notNull(),
+  votingPeriodDays: int("votingPeriodDays").default(7).notNull(),
+  approvalThresholdPct: int("approvalThresholdPct").default(60).notNull(), // 60% 이상 찬성
+  platformFeePct: int("platformFeePct").default(40).notNull(), // 알파백 40%
+  isActive: boolean("isActive").default(true).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type SubmissionSetting = typeof submissionSettings.$inferSelect;
+
+// ─── Plan Submissions (공개 플랜 신청) ────────────────────────────────────────
+export const planSubmissions = mysqlTable("planSubmissions", {
+  id: int("id").autoincrement().primaryKey(),
+  // 신청자 정보
+  applicantName: varchar("applicantName", { length: 100 }).notNull(),
+  applicantEmail: varchar("applicantEmail", { length: 320 }).notNull(),
+  applicantTelegram: varchar("applicantTelegram", { length: 100 }),
+  // 인증 상태
+  emailVerified: boolean("emailVerified").default(false).notNull(),
+  telegramVerified: boolean("telegramVerified").default(false).notNull(),
+  // 파일 및 AI 파싱 결과
+  fileUrl: text("fileUrl"),
+  fileType: varchar("fileType", { length: 20 }), // ppt, pdf, image, text
+  parsedPlanData: json("parsedPlanData"), // AI가 파싱한 플랜 데이터
+  finalPlanData: json("finalPlanData"),  // 신청자가 수정한 최종 데이터
+  // 상장비용
+  listingFeeUsdt: decimal("listingFeeUsdt", { precision: 18, scale: 2 }),
+  feePaymentTxHash: varchar("feePaymentTxHash", { length: 100 }),
+  feePaid: boolean("feePaid").default(false).notNull(),
+  // 투표 관련
+  votingStartAt: timestamp("votingStartAt"),
+  votingEndAt: timestamp("votingEndAt"),
+  totalVotes: int("totalVotes").default(0).notNull(),
+  approveVotes: int("approveVotes").default(0).notNull(),
+  rejectVotes: int("rejectVotes").default(0).notNull(),
+  // 상태: draft → verified → fee_paid → voting → approved → rejected → listed
+  status: mysqlEnum("status", ["draft", "verified", "fee_paid", "voting", "approved", "rejected", "listed"]).default("draft").notNull(),
+  adminNote: text("adminNote"),
+  // 등록된 플랜 ID (상장 후)
+  listedPlanId: int("listedPlanId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type PlanSubmission = typeof planSubmissions.$inferSelect;
+export type InsertPlanSubmission = typeof planSubmissions.$inferInsert;
+
+// ─── Submission Verifications (이메일/텔레그램 인증 코드) ──────────────────────
+export const submissionVerifications = mysqlTable("submissionVerifications", {
+  id: int("id").autoincrement().primaryKey(),
+  submissionId: int("submissionId").notNull(),
+  type: mysqlEnum("type", ["email", "telegram"]).notNull(),
+  target: varchar("target", { length: 320 }).notNull(), // 이메일 주소 또는 텔레그램 핸들
+  code: varchar("code", { length: 10 }).notNull(),
+  verified: boolean("verified").default(false).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type SubmissionVerification = typeof submissionVerifications.$inferSelect;
+
+// ─── Submission Votes (노드 보유자 투표) ──────────────────────────────────────
+export const submissionVotes = mysqlTable("submissionVotes", {
+  id: int("id").autoincrement().primaryKey(),
+  submissionId: int("submissionId").notNull(),
+  voterId: int("voterId").notNull(), // users.id (노드 보유자)
+  voterWallet: varchar("voterWallet", { length: 100 }),
+  vote: mysqlEnum("vote", ["approve", "reject"]).notNull(),
+  comment: text("comment"),
+  nodeCount: int("nodeCount").default(1).notNull(), // 보유 노드 수 (가중치)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type SubmissionVote = typeof submissionVotes.$inferSelect;
+
+// ─── Submission Fee Distributions (상장비용 분배) ─────────────────────────────
+export const submissionFeeDistributions = mysqlTable("submissionFeeDistributions", {
+  id: int("id").autoincrement().primaryKey(),
+  submissionId: int("submissionId").notNull(),
+  recipientType: mysqlEnum("recipientType", ["node_voter", "platform"]).notNull(),
+  recipientId: int("recipientId"), // users.id (노드 보유자) or null for platform
+  recipientWallet: varchar("recipientWallet", { length: 100 }),
+  amountUsdt: decimal("amountUsdt", { precision: 18, scale: 6 }).notNull(),
+  distributionPct: decimal("distributionPct", { precision: 6, scale: 4 }),
+  status: mysqlEnum("status", ["pending", "distributed", "failed"]).default("pending").notNull(),
+  txHash: varchar("txHash", { length: 100 }),
+  distributedAt: timestamp("distributedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type SubmissionFeeDistribution = typeof submissionFeeDistributions.$inferSelect;

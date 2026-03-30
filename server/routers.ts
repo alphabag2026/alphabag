@@ -2088,5 +2088,397 @@ Return ONLY valid JSON.`;
       return { success: true };
     }),
   }),
+
+  // ─── Plan Submissions (공개 플랜 등록 신청) ──────────────────────────────────
+  submissions: router({
+    // 상장 설정 조회 (공개)
+    getSettings: publicProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return { listingFeeUsdt: "500", votingPeriodDays: 7, approvalThresholdPct: 60, platformFeePct: 40 };
+      const { submissionSettings } = await import("../drizzle/schema");
+      const rows = await database.select().from(submissionSettings).limit(1);
+      return rows[0] ?? { listingFeeUsdt: "500", votingPeriodDays: 7, approvalThresholdPct: 60, platformFeePct: 40 };
+    }),
+
+    // 인증 코드 발송 (이메일)
+    sendEmailCode: publicProcedure
+      .input(z.object({ submissionId: z.number().optional(), email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { submissionVerifications } = await import("../drizzle/schema");
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10분
+        await database.insert(submissionVerifications).values({
+          submissionId: input.submissionId ?? 0,
+          type: "email",
+          target: input.email,
+          code,
+          verified: false,
+          expiresAt,
+        });
+        // 이메일 발송 (텔레그램 봇 알림 활용)
+        try {
+          const { notifyOwner } = await import("./_core/notification");
+          await notifyOwner({ title: `[AlphaBag] 이메일 인증 코드: ${code}`, content: `${input.email} 님의 인증 코드: ${code}\n유효시간: 10분` });
+        } catch {}
+        return { success: true, message: "인증 코드가 발송되었습니다. (10분 유효)" };
+      }),
+
+    // 이메일 인증 코드 확인
+    verifyEmailCode: publicProcedure
+      .input(z.object({ submissionId: z.number().optional(), email: z.string().email(), code: z.string() }))
+      .mutation(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { submissionVerifications } = await import("../drizzle/schema");
+        const { and, eq, gt } = await import("drizzle-orm");
+        const rows = await database.select().from(submissionVerifications)
+          .where(and(
+            eq(submissionVerifications.target, input.email),
+            eq(submissionVerifications.type, "email"),
+            eq(submissionVerifications.code, input.code),
+            eq(submissionVerifications.verified, false),
+            gt(submissionVerifications.expiresAt, new Date()),
+          ))
+          .orderBy(submissionVerifications.createdAt)
+          .limit(1);
+        if (!rows.length) throw new TRPCError({ code: "BAD_REQUEST", message: "인증 코드가 올바르지 않거나 만료되었습니다." });
+        await database.update(submissionVerifications)
+          .set({ verified: true })
+          .where(eq(submissionVerifications.id, rows[0].id));
+        return { success: true, verified: true };
+      }),
+
+    // 텔레그램 인증 코드 발송
+    sendTelegramCode: publicProcedure
+      .input(z.object({ submissionId: z.number().optional(), telegram: z.string() }))
+      .mutation(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { submissionVerifications } = await import("../drizzle/schema");
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        await database.insert(submissionVerifications).values({
+          submissionId: input.submissionId ?? 0,
+          type: "telegram",
+          target: input.telegram,
+          code,
+          verified: false,
+          expiresAt,
+        });
+        // 텔레그램 봇으로 코드 발송
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        if (botToken) {
+          try {
+            // 텔레그램 핸들로 직접 발송 (chat_id가 있는 경우)
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: input.telegram.startsWith("@") ? input.telegram : `@${input.telegram}`,
+                text: `🔐 AlphaBag 플랜 등록 인증 코드\n\n코드: *${code}*\n\n유효시간: 10분\n\n이 코드를 AlphaBag 플랜 등록 페이지에 입력해주세요.`,
+                parse_mode: "Markdown",
+              }),
+            });
+          } catch {}
+        }
+        return { success: true, message: "텔레그램으로 인증 코드가 발송되었습니다. (10분 유효)" };
+      }),
+
+    // 텔레그램 인증 코드 확인
+    verifyTelegramCode: publicProcedure
+      .input(z.object({ submissionId: z.number().optional(), telegram: z.string(), code: z.string() }))
+      .mutation(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { submissionVerifications } = await import("../drizzle/schema");
+        const { and, eq, gt } = await import("drizzle-orm");
+        const rows = await database.select().from(submissionVerifications)
+          .where(and(
+            eq(submissionVerifications.target, input.telegram),
+            eq(submissionVerifications.type, "telegram"),
+            eq(submissionVerifications.code, input.code),
+            eq(submissionVerifications.verified, false),
+            gt(submissionVerifications.expiresAt, new Date()),
+          ))
+          .orderBy(submissionVerifications.createdAt)
+          .limit(1);
+        if (!rows.length) throw new TRPCError({ code: "BAD_REQUEST", message: "인증 코드가 올바르지 않거나 만료되었습니다." });
+        await database.update(submissionVerifications)
+          .set({ verified: true })
+          .where(eq(submissionVerifications.id, rows[0].id));
+        return { success: true, verified: true };
+      }),
+
+    // 플랜 신청 생성
+    create: publicProcedure
+      .input(z.object({
+        applicantName: z.string().min(1),
+        applicantEmail: z.string().email(),
+        applicantTelegram: z.string().optional(),
+        emailVerified: z.boolean(),
+        telegramVerified: z.boolean(),
+        fileUrl: z.string().optional(),
+        fileType: z.string().optional(),
+        parsedPlanData: z.any().optional(),
+        finalPlanData: z.any().optional(),
+        listingFeeUsdt: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        if (!input.emailVerified) throw new TRPCError({ code: "BAD_REQUEST", message: "이메일 인증이 필요합니다." });
+        const { planSubmissions } = await import("../drizzle/schema");
+        const settings = await database.select().from((await import("../drizzle/schema")).submissionSettings).limit(1);
+        const fee = settings[0]?.listingFeeUsdt ?? "500";
+        const result = await database.insert(planSubmissions).values({
+          applicantName: input.applicantName,
+          applicantEmail: input.applicantEmail,
+          applicantTelegram: input.applicantTelegram,
+          emailVerified: input.emailVerified,
+          telegramVerified: input.telegramVerified ?? false,
+          fileUrl: input.fileUrl,
+          fileType: input.fileType,
+          parsedPlanData: input.parsedPlanData ?? null,
+          finalPlanData: input.finalPlanData ?? null,
+          listingFeeUsdt: fee,
+          status: "draft",
+        });
+        const id = (result as any).insertId;
+        // 어드민 알림
+        try { await notifyOwner({ title: "새 플랜 등록 신청", content: `${input.applicantName} (${input.applicantEmail}) 님이 플랜 등록을 신청했습니다.` }); } catch {}
+        return { success: true, submissionId: id };
+      }),
+
+    // 신청 목록 (공개 - 투표 진행 중인 것만)
+    listPublic: publicProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return [];
+      const { planSubmissions } = await import("../drizzle/schema");
+      const { inArray } = await import("drizzle-orm");
+      return database.select().from(planSubmissions)
+        .where(inArray(planSubmissions.status, ["voting", "approved", "listed"]))
+        .orderBy(planSubmissions.createdAt);
+    }),
+
+    // 내 신청 목록 (이메일로 조회)
+    listByEmail: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .query(async ({ input }) => {
+        const database = await getDb();
+        if (!database) return [];
+        const { planSubmissions } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        return database.select().from(planSubmissions)
+          .where(eq(planSubmissions.applicantEmail, input.email))
+          .orderBy(planSubmissions.createdAt);
+      }),
+
+    // 신청 상세 조회
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "NOT_FOUND" });
+        const { planSubmissions } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const rows = await database.select().from(planSubmissions).where(eq(planSubmissions.id, input.id)).limit(1);
+        if (!rows.length) throw new TRPCError({ code: "NOT_FOUND" });
+        return rows[0];
+      }),
+
+    // 상장비용 납부 확인 (TxHash 등록)
+    confirmFeePayment: publicProcedure
+      .input(z.object({ submissionId: z.number(), txHash: z.string() }))
+      .mutation(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { planSubmissions } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        await database.update(planSubmissions)
+          .set({ feePaymentTxHash: input.txHash, feePaid: true, status: "fee_paid" })
+          .where(eq(planSubmissions.id, input.submissionId));
+        try { await notifyOwner({ title: "상장비용 납부 확인 요청", content: `신청 #${input.submissionId} TxHash: ${input.txHash}` }); } catch {}
+        return { success: true };
+      }),
+
+    // 투표 (노드 보유자 - 로그인 필요)
+    vote: protectedProcedure
+      .input(z.object({
+        submissionId: z.number(),
+        vote: z.enum(["approve", "reject"]),
+        comment: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { submissionVotes, planSubmissions, nodeOrders } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        // 노드 보유 확인
+        const nodeOrderRows = await database.select().from(nodeOrders)
+          .where(and(eq(nodeOrders.userId, ctx.user.id), eq(nodeOrders.status, "confirmed")));
+        if (!nodeOrderRows.length) throw new TRPCError({ code: "FORBIDDEN", message: "노드 보유자만 투표할 수 있습니다." });
+        // 중복 투표 확인
+        const existing = await database.select().from(submissionVotes)
+          .where(and(eq(submissionVotes.submissionId, input.submissionId), eq(submissionVotes.voterId, ctx.user.id)))
+          .limit(1);
+        if (existing.length) throw new TRPCError({ code: "CONFLICT", message: "이미 투표하셨습니다." });
+        // 투표 등록
+        const nodeCount = nodeOrderRows.reduce((sum, o) => sum + (o.quantity ?? 1), 0);
+        await database.insert(submissionVotes).values({
+          submissionId: input.submissionId,
+          voterId: ctx.user.id,
+          voterWallet: ctx.user.walletAddress ?? undefined,
+          vote: input.vote,
+          comment: input.comment,
+          nodeCount,
+        });
+        // 투표 집계 업데이트
+        const allVotes = await database.select().from(submissionVotes)
+          .where(eq(submissionVotes.submissionId, input.submissionId));
+        const approveVotes = allVotes.filter(v => v.vote === "approve").length;
+        const rejectVotes = allVotes.filter(v => v.vote === "reject").length;
+        await database.update(planSubmissions)
+          .set({ totalVotes: allVotes.length, approveVotes, rejectVotes })
+          .where(eq(planSubmissions.id, input.submissionId));
+        return { success: true };
+      }),
+
+    // 투표 현황 조회
+    getVoteStatus: publicProcedure
+      .input(z.object({ submissionId: z.number() }))
+      .query(async ({ input }) => {
+        const database = await getDb();
+        if (!database) return { totalVotes: 0, approveVotes: 0, rejectVotes: 0, votes: [] };
+        const { submissionVotes } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const votes = await database.select().from(submissionVotes)
+          .where(eq(submissionVotes.submissionId, input.submissionId));
+        return {
+          totalVotes: votes.length,
+          approveVotes: votes.filter(v => v.vote === "approve").length,
+          rejectVotes: votes.filter(v => v.vote === "reject").length,
+          votes,
+        };
+      }),
+
+    // 어드민: 전체 신청 목록
+    adminList: adminProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return [];
+      const { planSubmissions } = await import("../drizzle/schema");
+      return database.select().from(planSubmissions).orderBy(planSubmissions.createdAt);
+    }),
+
+    // 어드민: 신청 상태 변경 (승인/거절/투표시작)
+    adminUpdateStatus: adminProcedure
+      .input(z.object({
+        submissionId: z.number(),
+        status: z.enum(["draft", "verified", "fee_paid", "voting", "approved", "rejected", "listed"]),
+        adminNote: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { planSubmissions, submissionSettings } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const updateData: Record<string, unknown> = { status: input.status };
+        if (input.adminNote) updateData.adminNote = input.adminNote;
+        // 투표 시작 시 기간 설정
+        if (input.status === "voting") {
+          const settings = await database.select().from(submissionSettings).limit(1);
+          const days = settings[0]?.votingPeriodDays ?? 7;
+          updateData.votingStartAt = new Date();
+          updateData.votingEndAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+        }
+        await database.update(planSubmissions).set(updateData).where(eq(planSubmissions.id, input.submissionId));
+        await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_SUBMISSION_STATUS", targetType: "submission", details: { submissionId: input.submissionId, status: input.status } });
+        return { success: true };
+      }),
+
+    // 어드민: 상장비용 분배 실행
+    distributeListingFee: adminProcedure
+      .input(z.object({ submissionId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { planSubmissions, submissionVotes, submissionFeeDistributions, submissionSettings } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const submission = await database.select().from(planSubmissions).where(eq(planSubmissions.id, input.submissionId)).limit(1);
+        if (!submission.length) throw new TRPCError({ code: "NOT_FOUND" });
+        const sub = submission[0];
+        if (!sub.feePaid) throw new TRPCError({ code: "BAD_REQUEST", message: "상장비용이 납부되지 않았습니다." });
+        const totalFee = parseFloat(sub.listingFeeUsdt ?? "500");
+        const settings = await database.select().from(submissionSettings).limit(1);
+        const platformPct = settings[0]?.platformFeePct ?? 40;
+        const nodePct = 100 - platformPct;
+        // 플랫폼 수수료
+        const platformAmount = (totalFee * platformPct / 100).toFixed(6);
+        await database.insert(submissionFeeDistributions).values({
+          submissionId: input.submissionId,
+          recipientType: "platform",
+          amountUsdt: platformAmount,
+          distributionPct: platformPct.toString(),
+          status: "distributed",
+          distributedAt: new Date(),
+        });
+        // 투표 노드 분배
+        const votes = await database.select().from(submissionVotes)
+          .where(eq(submissionVotes.submissionId, input.submissionId));
+        const approveVoters = votes.filter(v => v.vote === "approve");
+        if (approveVoters.length > 0) {
+          const perVoterAmount = (totalFee * nodePct / 100 / approveVoters.length).toFixed(6);
+          for (const voter of approveVoters) {
+            await database.insert(submissionFeeDistributions).values({
+              submissionId: input.submissionId,
+              recipientType: "node_voter",
+              recipientId: voter.voterId,
+              recipientWallet: voter.voterWallet ?? undefined,
+              amountUsdt: perVoterAmount,
+              distributionPct: (nodePct / approveVoters.length).toFixed(4),
+              status: "pending",
+            });
+          }
+        }
+        await createAuditLog({ adminId: ctx.user.id, action: "DISTRIBUTE_LISTING_FEE", targetType: "submission", details: { submissionId: input.submissionId, totalFee, platformAmount } });
+        return { success: true, platformAmount, voterCount: approveVoters.length };
+      }),
+
+    // 어드민: 설정 업데이트
+    adminUpdateSettings: adminProcedure
+      .input(z.object({
+        listingFeeUsdt: z.string().optional(),
+        votingPeriodDays: z.number().optional(),
+        approvalThresholdPct: z.number().optional(),
+        platformFeePct: z.number().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { submissionSettings } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const existing = await database.select().from(submissionSettings).limit(1);
+        if (existing.length) {
+          await database.update(submissionSettings).set(input).where(eq(submissionSettings.id, existing[0].id));
+        } else {
+          await database.insert(submissionSettings).values({ ...input, isActive: true });
+        }
+        await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_SUBMISSION_SETTINGS", targetType: "settings", details: input });
+        return { success: true };
+      }),
+
+    // 분배 내역 조회
+    getFeeDistributions: publicProcedure
+      .input(z.object({ submissionId: z.number() }))
+      .query(async ({ input }) => {
+        const database = await getDb();
+        if (!database) return [];
+        const { submissionFeeDistributions } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        return database.select().from(submissionFeeDistributions)
+          .where(eq(submissionFeeDistributions.submissionId, input.submissionId));
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;

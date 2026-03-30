@@ -37,6 +37,10 @@ import AdminLogin from "./pages/admin/Login";
 import AdminMyAccount from "./pages/admin/MyAccount";
 import AdminSns from "./pages/admin/Sns";
 import AdminAiPlanImport from "./pages/admin/AiPlanImport";
+import SubmitPlan from "./pages/SubmitPlan";
+import VotePage from "./pages/VotePage";
+import MySubmissions from "./pages/MySubmissions";
+import AdminSubmissions from "./pages/admin/Submissions";
 import { WalletConnectModal } from "./components/WalletConnectModal";
 import GoldenPage from "./pages/GoldenPage";
 import SelfPage from "./pages/SelfPage";
@@ -92,6 +96,10 @@ function Router() {
       <Route path="/admin/my-account" component={AdminMyAccount} />
       <Route path="/admin/sns" component={AdminSns} />
       <Route path="/admin/ai-plan-import" component={AdminAiPlanImport} />
+      <Route path="/admin/submissions" component={AdminSubmissions} />
+      <Route path="/submit-plan" component={SubmitPlan} />
+      <Route path="/vote" component={VotePage} />
+      <Route path="/my-submissions" component={MySubmissions} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
