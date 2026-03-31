@@ -576,11 +576,13 @@
 - [x] SubmitPlanPage 모바일 최적화 (스텝 인디케이터, 폼 입력 영역)
 - [x] MySubmissionsPage 모바일 최적화 (카드 레이아웃, 출금 신청 폼)
 
-## Phase 51 - 소메뉴 1page.to 변경 + 코인정보 탭 (2026-03-31)
+## Phase 53 - 멀티 지갑 연결 (MetaMask/TronLink/WalletConnect) [완료]
 
-- [x] 소메뉴 탭 infoweb4 → 1page.to 이름 변경 및 https://1page.to URL 연결
-- [x] 코인정보 탭 추가 (아이콘 + 라벨)
-- [x] CoinGecko API 백엔드 라우터 (코인 목록, 검색, 상세, 차트, 글로벌, 트렌딩)
-- [x] 코인정보 프론트엔드 페이지 /coins (검색바, 코인 목록, 가격/시가총액/등락률)
-- [x] 코인 상세 모달 (설명, 링크, 차트, ATH/ATL, 공급량)
-- [x] 테스트 및 체크포인트
+- [x] DB users 테이블 walletAddress 필드 확인 (기존 데이터 활용)
+- [x] WalletContext.tsx TronLink 연결 감지 및 자동 DB 저장
+- [x] 로그인 후 DB 지갑 주소 자동 복원 표시 (dbWalletAddress)
+- [x] WalletConnectModal 9개 지갑 목록 (MetaMask/TronLink/WalletConnect/TrustWallet/TokenPocket/OKX/Binance/Gate/Coinbase)
+- [x] 헤더 MainNav 지갑 연결 버튼 (이미 구현됨)
+- [x] ProfilePage 지갑 섹션 원클릭 연결 버튼 추가
+- [x] TronLink 연결 시 DB 자동 저장 및 표시
+- [x] 테스트 88개 전체 통과

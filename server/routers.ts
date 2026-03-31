@@ -15,7 +15,6 @@ import { adminAccounts } from "../drizzle/schema";
 import { referralMessages as referralMessagesTable } from "../drizzle/schema.js";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
-import { coinsRouter } from "./routers/coins";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -2529,8 +2528,6 @@ Return ONLY valid JSON.`;
   }),
 
   // ─── Rewards (투표 보상) ─────────────────────────────────────────────────────
-  coins: coinsRouter,
-
   rewards: router({
     // 내 보상 현황
     myRewards: protectedProcedure.query(async ({ ctx }) => {

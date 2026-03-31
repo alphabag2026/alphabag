@@ -10,14 +10,17 @@ import { Link } from "wouter";
 import { toast } from "sonner";
 import {
   ArrowLeft, Loader2, Wallet, User, Shield, Copy,
-  CheckCircle2, AlertCircle, Clock, Send, ExternalLink
+  CheckCircle2, AlertCircle, Clock, Send, ExternalLink, Link2
 } from "lucide-react";
+import { useWallet } from "@/contexts/WalletContext";
 
 export default function ProfilePage() {
   const { user, isAuthenticated, loading } = useAuth({ redirectOnUnauthenticated: true });
   const [walletInput, setWalletInput] = useState("");
   const [referralInput, setReferralInput] = useState("");
   const [telegramInput, setTelegramInput] = useState("");
+  const { isConnected, address: walletAddress, openModal, isTronConnected, tronAddress, signAndAuth } = useWallet();
+  const [signing, setSigning] = useState(false);
 
   const { data: profile, refetch } = trpc.user.profile.useQuery(undefined, { enabled: isAuthenticated });
 
@@ -147,40 +150,102 @@ export default function ProfilePage() {
         <Card className="border-border/40">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Wallet className="w-4 h-4 text-primary" /> Wallet Address
+              <Wallet className="w-4 h-4 text-primary" /> 지갑 연결
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {profile?.walletAddress && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-background/50 border border-border/30">
-                <code className="flex-1 text-sm font-mono text-foreground break-all">{profile.walletAddress}</code>
+            {/* 현재 연결된 지갑 */}
+            {isConnected && walletAddress && (
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-green-400 font-medium mb-0.5">
+                    {isTronConnected ? "TronLink 연결됨 (TRON)" : "지갑 연결됨"}
+                  </p>
+                  <code className="text-xs font-mono text-foreground break-all">{walletAddress}</code>
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   className="h-7 w-7 p-0 flex-shrink-0"
                   onClick={() => {
-                    navigator.clipboard.writeText(profile.walletAddress!);
-                    toast.success("Copied!");
+                    navigator.clipboard.writeText(walletAddress);
+                    toast.success("주소가 복사되었습니다.");
                   }}
                 >
                   <Copy className="w-3 h-3" />
                 </Button>
               </div>
             )}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Enter wallet address (0x...)"
-                value={walletInput}
-                onChange={(e) => setWalletInput(e.target.value)}
-                className="font-mono text-sm bg-background/50"
-              />
+
+            {/* DB 저장된 지갑 주소 */}
+            {profile?.walletAddress && (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-background/50 border border-border/30">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground mb-1">등록된 지갑 주소</p>
+                  <code className="text-sm font-mono text-foreground break-all">{profile.walletAddress}</code>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 flex-shrink-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(profile.walletAddress!);
+                    toast.success("복사되었습니다!");
+                  }}
+                >
+                  <Copy className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
+
+            {/* 지갑 연결 버튼 */}
+            {!isConnected ? (
               <Button
-                onClick={() => walletInput && updateWallet.mutate({ walletAddress: walletInput })}
-                disabled={!walletInput || updateWallet.isPending}
-                className="flex-shrink-0"
+                className="w-full gap-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                onClick={openModal}
               >
-                {updateWallet.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Update"}
+                <Link2 className="w-4 h-4" />
+                지갑 연결하기 (MetaMask / TronLink / WalletConnect)
               </Button>
+            ) : (
+              !isTronConnected && (
+                <Button
+                  className="w-full gap-2"
+                  onClick={async () => {
+                    setSigning(true);
+                    await signAndAuth();
+                    setSigning(false);
+                    refetch();
+                  }}
+                  disabled={signing}
+                >
+                  {signing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  서명으로 계정에 지갑 연결
+                </Button>
+              )
+            )}
+
+            {/* 수동 입력 */}
+            <div className="pt-2 border-t border-border/30">
+              <p className="text-xs text-muted-foreground mb-2">또는 직접 주소 입력</p>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="지갑 주소 입력 (0x... 또는 T...)"
+                  value={walletInput}
+                  onChange={(e) => setWalletInput(e.target.value)}
+                  className="font-mono text-sm bg-background/50"
+                />
+                <Button
+                  onClick={() => walletInput && updateWallet.mutate({ walletAddress: walletInput })}
+                  disabled={!walletInput || updateWallet.isPending}
+                  className="flex-shrink-0"
+                >
+                  {updateWallet.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "저장"}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
