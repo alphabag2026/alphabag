@@ -125,6 +125,7 @@ export const appRouter = router({
       urlId: z.string().optional(),
       sortOrder: z.number().default(0),
       isActive: z.boolean().default(true),
+      isMLM: z.boolean().default(false),
       planType: z.enum(["investment", "staking"]).default("investment"),
       tags: z.array(z.string()).optional(),
     })).mutation(async ({ input, ctx }) => {
@@ -146,6 +147,7 @@ export const appRouter = router({
       urlId: z.string().optional(),
       sortOrder: z.number().optional(),
       isActive: z.boolean().optional(),
+      isMLM: z.boolean().optional(),
       planType: z.enum(["investment", "staking"]).optional(),
       tags: z.array(z.string()).optional(),
     })).mutation(async ({ input, ctx }) => {
@@ -1105,6 +1107,16 @@ export const appRouter = router({
     // 인플루언서 컬렉션
     influencerPlans: publicProcedure.query(async () => {
       return await db.getInvestmentPlans(undefined, "influencer");
+    }),
+    // MLM 플랜 목록
+    mlmPlans: publicProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      const { investmentPlans: plansTable } = await import("../drizzle/schema");
+      const { and: andOp } = await import("drizzle-orm");
+      return await drizzleDb.select().from(plansTable)
+        .where(andOp(eq(plansTable.isMLM, true), eq(plansTable.isActive, true)))
+        .orderBy(plansTable.sortOrder);
     }),
     // 추천글 목록
     referralMessages: publicProcedure.query(async () => {

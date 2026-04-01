@@ -65,6 +65,7 @@ export const investmentPlans = mysqlTable("investmentPlans", {
   badgeLabels: json("badgeLabels"),
   isHighlight: boolean("isHighlight").default(false).notNull(),
   isHidden: boolean("isHidden").default(false).notNull(),
+  isMLM: boolean("isMLM").default(false).notNull(),
   // Extended fields
   videoUrl2: text("videoUrl2"),
   docsUrl2: text("docsUrl2"),
@@ -468,6 +469,7 @@ export const partners = mysqlTable("partners", {
   description: text("description"),
   category: varchar("category", { length: 50 }),
   isHidden: boolean("isHidden").default(false).notNull(),
+  isMLM: boolean("isMLM").default(false).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });

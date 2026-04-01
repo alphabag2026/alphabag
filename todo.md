@@ -619,3 +619,12 @@
 - [x] 모든 페이지 getLoginUrl 교체 완료
 - [x] pnpm build 성공
 - [x] Vultr 서버 (45.76.149.113) 배포 완료
+
+## Phase MLM 배지 및 검색 기능 (2026-04-02)
+- [x] DB: investmentPlans에 isMLM boolean 필드 추가
+- [x] DB: 마이그레이션 SQL 실행 (Vultr MySQL)
+- [x] drizzle/schema.ts에 isMLM 필드 추가
+- [x] 플랜 카드 UI에 MLM 배지 표시 (별도 색상 배지)
+- [x] 검색 기능에 MLM 키워드 연동 (isMLM=true 플랜 검색 결과 포함)
+- [x] 백오피스 플랜 편집에 MLM 토글 추가
+- [x] 빌드 및 Vultr 배포

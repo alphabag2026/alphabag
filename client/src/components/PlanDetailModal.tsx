@@ -213,6 +213,9 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                     {colType.charAt(0).toUpperCase() + colType.slice(1)}
                   </span>
                 )}
+                {(plan as any).isMLM && (
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-purple-500 text-white font-bold">MLM</span>
+                )}
               </div>
 
               {/* 추천금액 */}

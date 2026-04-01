@@ -29,6 +29,7 @@ interface PlanForm {
   urlId: string;
   sortOrder: string;
   isActive: boolean;
+  isMLM: boolean;
   planType: PlanType;
   tags: string;
 }
@@ -37,7 +38,7 @@ const defaultForm: PlanForm = {
   name: "", logoUrl: "", label: "", dailyRate: "0.5",
   minAmount: "100", maxAmount: "", duration: "30",
   totalReturn: "", description: "", urlId: "",
-  sortOrder: "0", isActive: true, planType: "investment", tags: "",
+  sortOrder: "0", isActive: true, isMLM: false, planType: "investment", tags: "",
 };
 
 function PlanCard({ plan, onEdit, onDelete, onToggle, onLogoUpload, uploadingPlanId }: {
@@ -107,6 +108,9 @@ function PlanCard({ plan, onEdit, onDelete, onToggle, onLogoUpload, uploadingPla
         <Badge className={plan.isActive ? "badge-active" : "badge-inactive"}>
           {plan.isActive ? "Active" : "Inactive"}
         </Badge>
+        {plan.isMLM && (
+          <Badge className="bg-purple-500 text-white border-0 text-xs">MLM</Badge>
+        )}
         <button
           onClick={() => onToggle(plan.id, plan.isActive)}
           className="text-muted-foreground hover:text-primary transition-colors"
@@ -195,6 +199,7 @@ export default function Plans() {
       urlId: plan.urlId ?? "",
       sortOrder: plan.sortOrder?.toString() ?? "0",
       isActive: plan.isActive ?? true,
+      isMLM: plan.isMLM ?? false,
       planType: plan.planType ?? activeTab,
       tags: Array.isArray(plan.tags) ? plan.tags.join(", ") : "",
     });
@@ -215,6 +220,7 @@ export default function Plans() {
       urlId: form.urlId || undefined,
       sortOrder: Number(form.sortOrder),
       isActive: form.isActive,
+      isMLM: form.isMLM,
       planType: form.planType,
       tags: form.tags ? form.tags.split(",").map(t => t.trim()).filter(Boolean) : undefined,
     };
@@ -415,6 +421,10 @@ export default function Plans() {
             <div className="col-span-2 flex items-center gap-3">
               <Switch checked={form.isActive} onCheckedChange={v => setForm(f => ({ ...f, isActive: v }))} />
               <Label className="text-sm">Active (visible to users)</Label>
+            </div>
+            <div className="col-span-2 flex items-center gap-3">
+              <Switch checked={form.isMLM} onCheckedChange={v => setForm(f => ({ ...f, isMLM: v }))} />
+              <Label className="text-sm">MLM (다단계 마케팅 플랜으로 표시)</Label>
             </div>
           </div>
           <DialogFooter>

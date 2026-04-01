@@ -86,11 +86,14 @@ function PlanCardA({ plan, collectionColor }: { plan: any; collectionColor: stri
             className="absolute inset-0 w-full h-full object-cover opacity-10 group-hover:opacity-20 transition-opacity duration-300"
           />
         )}
-        {plan.isHighlight && (
-          <div className="absolute top-2 right-2 z-10">
+        <div className="absolute top-2 right-2 z-10 flex flex-col gap-1 items-end">
+          {plan.isHighlight && (
             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold text-black" style={{ background: c.accent }}>HOT</span>
-          </div>
-        )}
+          )}
+          {plan.isMLM && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-purple-500 text-white">MLM</span>
+          )}
+        </div>
 
         <div className="relative z-10 p-4">
           {/* 손글씨 스타일 이니셜 */}
@@ -179,10 +182,15 @@ function PlanCardB({ plan, collectionColor }: { plan: any; collectionColor: stri
           <div className="text-[10px] text-gray-500">Daily</div>
         </div>
 
-        {/* HOT 배지 */}
-        {plan.isHighlight && (
-          <span className="text-[9px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold flex-shrink-0">HOT</span>
-        )}
+        {/* HOT/MLM 배지 */}
+        <div className="flex gap-1 flex-shrink-0">
+          {plan.isHighlight && (
+            <span className="text-[9px] px-1 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold">HOT</span>
+          )}
+          {plan.isMLM && (
+            <span className="text-[9px] px-1 py-0.5 rounded bg-purple-500/20 text-purple-400 font-bold border border-purple-500/30">MLM</span>
+          )}
+        </div>
       </div>
     </Link>
   );
@@ -227,11 +235,14 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
             </div>
           )}
           <div className={`absolute inset-0 bg-gradient-to-t ${c.overlay} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-          {plan.isHighlight && (
-            <div className="absolute top-2 right-2">
+          <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+            {plan.isHighlight && (
               <Badge className="text-[10px] px-1.5 py-0.5 bg-amber-500/90 text-black border-0 font-bold">HOT</Badge>
-            </div>
-          )}
+            )}
+            {plan.isMLM && (
+              <Badge className="text-[10px] px-1.5 py-0.5 bg-purple-500 text-white border-0 font-bold">MLM</Badge>
+            )}
+          </div>
         </div>
         <div className="p-4">
           <div className={`font-bold text-sm truncate mb-1 ${isDark ? "text-white" : "text-gray-900"}`}>{plan.name}</div>
@@ -650,7 +661,8 @@ export default function Home() {
     const results = (allPlans as any[]).filter((p: any) =>
       p.name?.toLowerCase().includes(q) ||
       p.strategy?.toLowerCase().includes(q) ||
-      (Array.isArray(p.badgeLabels) && p.badgeLabels.some((b: string) => b.toLowerCase().includes(q)))
+      (Array.isArray(p.badgeLabels) && p.badgeLabels.some((b: string) => b.toLowerCase().includes(q))) ||
+      (p.isMLM && (q === "mlm" || q.includes("mlm") || "mlm".includes(q)))
     );
     setSearchResults(results.slice(0, 8));
     setShowSearchResults(true);
@@ -868,7 +880,10 @@ export default function Home() {
                       <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 text-xs font-bold">{plan.name.charAt(0)}</div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <HighlightText text={plan.name} query={searchQuery} className={`text-sm font-semibold truncate block ${textPrimary}`} />
+                      <div className="flex items-center gap-1">
+                        <HighlightText text={plan.name} query={searchQuery} className={`text-sm font-semibold truncate block ${textPrimary}`} />
+                        {plan.isMLM && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple-500 text-white font-bold flex-shrink-0">MLM</span>}
+                      </div>
                       {plan.strategy && <HighlightText text={plan.strategy} query={searchQuery} className={`text-xs truncate block ${textSecondary}`} />}
                     </div>
                     <div className="text-amber-400 text-sm font-bold">{Number(plan.dailyRate).toFixed(2)}%</div>
