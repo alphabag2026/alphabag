@@ -724,7 +724,9 @@ export default function Home() {
                   About B-BAG
                   <ChevronDown className="w-3 h-3 group-hover:rotate-180 transition-transform" />
                 </button>
-                <div className={`absolute top-full left-0 mt-1 w-52 rounded-xl border shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all z-50 ${
+                <div className={`absolute top-full left-0 w-52 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all z-50`}>
+                  <div className="pt-1">
+                  <div className={`rounded-xl border shadow-xl ${
                   isDark ? "bg-[#111] border-white/10" : "bg-white border-gray-200"
                 }`}>
                   {[
@@ -740,6 +742,8 @@ export default function Home() {
                       <div className={`px-4 py-2.5 text-xs ${sub.color} font-medium hover:bg-amber-50/50 cursor-pointer first:rounded-t-xl last:rounded-b-xl transition-colors`}>{sub.label}</div>
                     </Link>
                   ))}
+                </div>
+                </div>
                 </div>
               </div>
               <Link href="/airdrop"><button className={`px-3 py-1.5 text-xs ${textSecondary} rounded-lg transition-colors hover:text-emerald-400`}>Airdrop</button></Link>
