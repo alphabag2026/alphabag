@@ -1,17 +1,18 @@
 export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 
-// Generate login URL at runtime so redirect URI reflects the current origin.
+// Manus OAuth 제거 - 지갑 연결 모달 이벤트로 교체
+// 기존 코드 호환성을 위해 함수 시그니처 유지
 export const getLoginUrl = () => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
-  const redirectUri = `${window.location.origin}/api/oauth/callback`;
-  const state = btoa(redirectUri);
+  // 직접 리다이렉트 대신 지갑 연결 모달 이벤트 발생
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("open-wallet-modal"));
+  }
+  return "#wallet-connect";
+};
 
-  const url = new URL(`${oauthPortalUrl}/app-auth`);
-  url.searchParams.set("appId", appId);
-  url.searchParams.set("redirectUri", redirectUri);
-  url.searchParams.set("state", state);
-  url.searchParams.set("type", "signIn");
-
-  return url.toString();
+// 지갑 연결 모달 열기 (명시적 호출용)
+export const openWalletModal = () => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("open-wallet-modal"));
+  }
 };

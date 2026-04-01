@@ -22,7 +22,7 @@ export default function NodesPage() {
 
   const handlePurchase = (nodeId: number, nodeName: string, price: string) => {
     if (!isAuthenticated) {
-      window.location.href = getLoginUrl();
+      window.dispatchEvent(new CustomEvent("open-wallet-modal"));
       return;
     }
     if (!confirm(`Purchase ${nodeName} for $${Number(price).toLocaleString()}?`)) return;
@@ -84,7 +84,7 @@ export default function NodesPage() {
               </Button>
             </Link>
           ) : (
-            <Button size="sm" onClick={() => window.location.href = getLoginUrl()}>
+            <Button size="sm" onClick={() => window.dispatchEvent(new CustomEvent("open-wallet-modal"))}>
               Sign In to Buy
             </Button>
           )}

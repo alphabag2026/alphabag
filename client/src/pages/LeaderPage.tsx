@@ -108,7 +108,7 @@ export default function LeaderPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (!isAuthenticated) { window.location.href = getLoginUrl(); return; }
+                        if (!isAuthenticated) { window.dispatchEvent(new CustomEvent("open-wallet-modal")); return; }
                         toggleFav.mutate({ planId: plan.id });
                       }}
                       className={`absolute bottom-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10 ${

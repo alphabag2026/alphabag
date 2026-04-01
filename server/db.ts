@@ -56,6 +56,28 @@ export async function getUserByOpenId(openId: string) {
   return result[0];
 }
 
+export async function getUserByWalletAddress(walletAddress: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.walletAddress, walletAddress.toLowerCase())).limit(1);
+  return result[0];
+}
+
+export async function createUserByWallet(walletAddress: string): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error('DB not available');
+  // openId = wallet address (unique identifier)
+  const openId = walletAddress.toLowerCase();
+  await db.insert(users).values({
+    openId,
+    walletAddress: walletAddress.toLowerCase(),
+    loginMethod: 'wallet',
+    lastSignedIn: new Date(),
+  }).onDuplicateKeyUpdate({ set: { lastSignedIn: new Date() } });
+  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  return result[0].id;
+}
+
 export async function getAllUsers(
   search?: string,
   page = 1,

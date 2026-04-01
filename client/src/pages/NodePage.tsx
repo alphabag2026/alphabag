@@ -22,7 +22,7 @@ function PlanCard({ plan }: { plan: any }) {
   const handleInvest = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!isConnected) { openModal(); return; }
-    if (!isAuthenticated) { window.location.href = getLoginUrl(); return; }
+    if (!isAuthenticated) { window.dispatchEvent(new CustomEvent("open-wallet-modal")); return; }
     const amount = prompt("Enter investment amount (USDT):");
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return;
     invest.mutate({ planId: plan.id, amount });

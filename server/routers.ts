@@ -42,6 +42,53 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+    // EVM 지갑 로그인 (서명 검증)
+    walletLogin: publicProcedure.input(z.object({
+      walletAddress: z.string().min(10),
+      signature: z.string().min(1),
+      message: z.string().min(1),
+    })).mutation(async ({ input, ctx }) => {
+      const { ethers } = await import('ethers');
+      let recoveredAddress: string;
+      try {
+        recoveredAddress = ethers.verifyMessage(input.message, input.signature);
+      } catch {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Invalid signature' });
+      }
+      if (recoveredAddress.toLowerCase() !== input.walletAddress.toLowerCase()) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Signature mismatch' });
+      }
+      const userId = await db.createUserByWallet(input.walletAddress);
+      const { SignJWT } = await import('jose');
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? 'alphabag-secret-key');
+      const token = await new SignJWT({ userId })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setExpirationTime('30d')
+        .sign(secret);
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: 30 * 24 * 60 * 60 * 1000 });
+      const user = await db.getUserById(userId);
+      return { success: true, user };
+    }),
+    // TronLink 지갑 로그인 (주소만으로)
+    tronLogin: publicProcedure.input(z.object({
+      walletAddress: z.string().min(10),
+    })).mutation(async ({ input, ctx }) => {
+      if (!input.walletAddress.startsWith('T')) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid Tron address' });
+      }
+      const userId = await db.createUserByWallet(input.walletAddress);
+      const { SignJWT } = await import('jose');
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? 'alphabag-secret-key');
+      const token = await new SignJWT({ userId })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setExpirationTime('30d')
+        .sign(secret);
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: 30 * 24 * 60 * 60 * 1000 });
+      const user = await db.getUserById(userId);
+      return { success: true, user };
+    }),
   }),
 
   // ─── Dashboard ─────────────────────────────────────────────────────────────

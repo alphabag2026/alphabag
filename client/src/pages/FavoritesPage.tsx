@@ -113,9 +113,9 @@ export default function FavoritesPage() {
           </div>
           <h2 className="text-2xl font-black text-foreground mb-2">로그인이 필요합니다</h2>
           <p className="text-muted-foreground text-sm mb-6">즐겨찾기 기능을 이용하려면 지갑을 연결해 주세요.</p>
-          <a href={getLoginUrl()} className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl text-sm transition-all">
+          <button onClick={() => window.dispatchEvent(new CustomEvent("open-wallet-modal"))} className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl text-sm transition-all">
             지갑 연결하기
-          </a>
+          </button>
         </div>
       </div>
     );

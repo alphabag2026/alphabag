@@ -81,7 +81,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
 
   const handleInvest = () => {
     if (!isConnected) { openModal(); return; }
-    if (!isAuthenticated) { window.location.href = getLoginUrl(); return; }
+    if (!isAuthenticated) { window.dispatchEvent(new CustomEvent("open-wallet-modal")); return; }
     const amount = prompt("투자 금액을 입력하세요 (USDT):");
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return;
     invest.mutate({ planId, amount });

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import { useConnect, useDisconnect, useAccount, useSignMessage, useSwitchChain } from "wagmi";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -41,16 +41,44 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const { disconnect } = useDisconnect();
   const { signMessageAsync } = useSignMessage();
   const { switchChain: wagmiSwitchChain } = useSwitchChain();
+  const utils = trpc.useUtils();
 
-  const updateWallet = trpc.user.updateWallet.useMutation();
+  const walletLogin = trpc.auth.walletLogin.useMutation();
+  const tronLogin = trpc.auth.tronLogin.useMutation();
+
   // 로그인 후 DB 지갑 주소 조회
   const { data: profile } = trpc.user.profile.useQuery(undefined, {
     retry: false,
-    // 에러 시 조용히 실패
     onError: () => {},
   } as any);
 
   const dbWalletAddress = profile?.walletAddress ?? undefined;
+
+  // EVM 지갑 연결 시 자동 로그인 (서명 요청)
+  const hasAutoLoggedIn = useRef<string | null>(null);
+  useEffect(() => {
+    if (isConnected && address && !profile && hasAutoLoggedIn.current !== address) {
+      hasAutoLoggedIn.current = address;
+      // 자동 서명 로그인
+      const doLogin = async () => {
+        try {
+          const message = `Sign this message to log in to AlphaBag.\n\nWallet: ${address}\nTimestamp: ${Date.now()}`;
+          const signature = await signMessageAsync({ message });
+          await walletLogin.mutateAsync({ walletAddress: address, signature, message });
+          await utils.auth.me.invalidate();
+          await utils.user.profile.invalidate();
+          toast.success("지갑으로 로그인되었습니다!");
+        } catch (err: any) {
+          if (err?.message?.includes("User rejected") || err?.message?.includes("user rejected")) {
+            toast.error("서명을 거부했습니다. 지갑 연결은 유지되지만 로그인은 취소되었습니다.");
+          }
+          // 서명 실패 시 다음 연결 시 재시도 가능하도록 초기화
+          hasAutoLoggedIn.current = null;
+        }
+      };
+      doLogin();
+    }
+  }, [isConnected, address, profile]);
 
   // TronLink 연결 감지
   useEffect(() => {
@@ -62,7 +90,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       }
     };
     checkTron();
-    // TronLink 이벤트 리스닝
     const win = window as any;
     if (win.tronLink?.on) {
       win.tronLink.on("accountsChanged", checkTron);
@@ -77,6 +104,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const openModal = useCallback(() => setIsModalOpen(true), []);
+  // 전역 이벤트로 지갑 모달 열기 지원 (getLoginUrl 대체)
+  useEffect(() => {
+    const handler = () => setIsModalOpen(true);
+    window.addEventListener("open-wallet-modal", handler);
+    return () => window.removeEventListener("open-wallet-modal", handler);
+  }, []);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
 
   const connectWallet = useCallback(async (walletId: string) => {
@@ -89,12 +122,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     } else if (walletOption.connector === "coinbaseWallet") {
       connector = connectors.find(c => c.id === "coinbaseWallet");
     } else {
-      // injected 계열: MetaMask, TrustWallet, OKX, Binance, TokenPocket, Gate
       connector = connectors.find(c => c.id === "injected");
     }
 
     if (!connector) {
-      // Fallback: WalletConnect QR
       const wcConnector = connectors.find(c => c.id === "walletConnect");
       if (wcConnector) {
         connect({ connector: wcConnector });
@@ -112,7 +143,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }, [connect, connectors, closeModal]);
 
-  // TronLink 전용 연결 함수
+  // TronLink 전용 연결 함수 - 연결 즉시 자동 로그인
   const connectTronLink = useCallback(async () => {
     try {
       const win = window as any;
@@ -121,7 +152,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         window.open("https://www.tronlink.org/", "_blank");
         return;
       }
-      // TronLink 활성화 요청
       if (win.tronLink?.request) {
         await win.tronLink.request({ method: "tron_requestAccounts" });
       }
@@ -131,13 +161,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         return;
       }
       setTronAddress(addr);
-      // DB에 저장 (로그인 상태라면)
-      try {
-        await updateWallet.mutateAsync({ walletAddress: addr });
-        toast.success(`TronLink 연결됨: ${addr.slice(0, 8)}...${addr.slice(-6)}`);
-      } catch {
-        toast.success(`TronLink 연결됨: ${addr.slice(0, 8)}...${addr.slice(-6)}`);
-      }
+      // Tron 로그인 (서명 없이 주소만으로)
+      await tronLogin.mutateAsync({ walletAddress: addr });
+      await utils.auth.me.invalidate();
+      await utils.user.profile.invalidate();
+      toast.success(`TronLink 로그인됨: ${addr.slice(0, 8)}...${addr.slice(-6)}`);
       closeModal();
     } catch (err: any) {
       if (err?.message?.includes("User rejected")) {
@@ -146,39 +174,38 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         toast.error(err?.message ?? "TronLink 연결 실패");
       }
     }
-  }, [updateWallet, closeModal]);
+  }, [tronLogin, utils, closeModal]);
 
   const disconnectWallet = useCallback(() => {
     disconnect();
     setTronAddress(undefined);
+    hasAutoLoggedIn.current = null;
+    // 로그아웃 처리
+    utils.auth.me.invalidate();
+    utils.user.profile.invalidate();
     toast.success("지갑 연결이 해제되었습니다.");
-  }, [disconnect]);
+  }, [disconnect, utils]);
 
   const switchChain = useCallback((targetChainId: number) => {
     wagmiSwitchChain({ chainId: targetChainId });
   }, [wagmiSwitchChain]);
 
+  // signAndAuth: 이미 로그인된 경우 재서명 (지갑 주소 업데이트용)
   const signAndAuth = useCallback(async (): Promise<boolean> => {
     if (!address) return false;
     try {
       const message = `Sign this message to verify your wallet ownership for AlphaBag.\n\nWallet: ${address}\nTimestamp: ${Date.now()}`;
-      await signMessageAsync({ message });
-      // 서명 성공 후 DB에 지갑 주소 저장
-      await updateWallet.mutateAsync({ walletAddress: address });
-      toast.success("지갑이 계정에 연결되었습니다!");
+      const signature = await signMessageAsync({ message });
+      await walletLogin.mutateAsync({ walletAddress: address, signature, message });
+      await utils.auth.me.invalidate();
+      await utils.user.profile.invalidate();
+      toast.success("지갑 인증이 완료되었습니다!");
       return true;
     } catch (err) {
       toast.error("지갑 서명에 실패했습니다.");
       return false;
     }
-  }, [address, signMessageAsync, updateWallet]);
-
-  // EVM 지갑 연결 시 자동으로 DB에 저장 (로그인 상태일 때)
-  useEffect(() => {
-    if (isConnected && address && profile && !profile.walletAddress) {
-      updateWallet.mutateAsync({ walletAddress: address }).catch(() => {});
-    }
-  }, [isConnected, address, profile]);
+  }, [address, signMessageAsync, walletLogin, utils]);
 
   const effectiveAddress = address ?? tronAddress;
   const effectiveIsConnected = isConnected || !!tronAddress;

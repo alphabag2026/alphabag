@@ -26,7 +26,7 @@ export default function PlansPage() {
 
   const handleInvest = (planId: number) => {
     if (!isAuthenticated) {
-      window.location.href = getLoginUrl();
+      window.dispatchEvent(new CustomEvent("open-wallet-modal"));
       return;
     }
     const amount = prompt("Enter investment amount (USD):");
@@ -54,7 +54,7 @@ export default function PlansPage() {
               </Button>
             </Link>
           ) : (
-            <Button size="sm" onClick={() => window.location.href = getLoginUrl()}>
+            <Button size="sm" onClick={() => window.dispatchEvent(new CustomEvent("open-wallet-modal"))}>
               Sign In
             </Button>
           )}

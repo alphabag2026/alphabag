@@ -596,3 +596,26 @@
 - [x] 사이드바 외부 클릭 시 자동 닫힌
 - [x] 대시보드 통계 카드 모바일 2열 그리드
 - [x] 테스트 88개 전체 통과 및 체크포인트
+
+## Phase 배포 - Manus OAuth 제거 및 독립 인증 시스템 구축 (2026-04-02)
+
+### 목표: 일반 사용자 = 지갑 로그인, 어드민 = 별도 비밀번호 로그인
+
+- [ ] server/_core/context.ts - Manus SDK 제거, 자체 JWT 검증으로 교체
+- [ ] server/_core/oauth.ts 삭제 또는 비활성화
+- [ ] server/routers.ts - auth.walletLogin 프로시저 추가 (지갑 서명 검증)
+- [ ] server/routers.ts - auth.adminLogin 프로시저 수정 (이미 adminAuth.login 존재)
+- [ ] client/src/const.ts - getLoginUrl() 제거 (Manus OAuth URL 생성 제거)
+- [ ] client/src/_core/hooks/useAuth.ts - 지갑 로그인 지원으로 수정
+- [ ] client/src/components/MainNav.tsx - 지갑 연결 버튼으로 로그인 대체
+- [ ] Vultr 서버 재배포
+
+## Phase 배포 완료 - Manus OAuth 완전 제거 (2026-04-02)
+- [x] client/src/const.ts - getLoginUrl() Manus OAuth → 지갑 모달 이벤트로 교체
+- [x] client/src/main.tsx - Manus OAuth 리다이렉트 제거
+- [x] client/src/_core/hooks/useAuth.ts - Manus OAuth 리다이렉트 제거
+- [x] client/src/components/DashboardLayout.tsx - getLoginUrl 제거
+- [x] client/src/contexts/WalletContext.tsx - open-wallet-modal 전역 이벤트 리스너 추가
+- [x] 모든 페이지 getLoginUrl 교체 완료
+- [x] pnpm build 성공
+- [x] Vultr 서버 (45.76.149.113) 배포 완료

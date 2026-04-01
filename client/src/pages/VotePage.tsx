@@ -252,7 +252,7 @@ function VoteCard({ submission }: { submission: any }) {
                 <Lock className="w-5 h-5 text-slate-400 mx-auto mb-1" />
                 <p className="text-slate-400 text-sm mb-2">노드 보유자만 투표할 수 있습니다</p>
                 <Button
-                  onClick={() => window.location.href = getLoginUrl()}
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-wallet-modal"))}
                   size="sm"
                   className="bg-amber-500 hover:bg-amber-600 text-black font-bold"
                 >
@@ -330,7 +330,7 @@ export default function VotePage() {
               <p className="text-slate-400 text-xs mt-0.5">로그인 후 노드 보유 여부가 확인되면 투표에 참여할 수 있습니다</p>
             </div>
             <Button
-              onClick={() => window.location.href = getLoginUrl()}
+              onClick={() => window.dispatchEvent(new CustomEvent("open-wallet-modal"))}
               size="sm"
               className="bg-amber-500 hover:bg-amber-600 text-black font-bold shrink-0"
             >
