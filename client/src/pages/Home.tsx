@@ -55,6 +55,7 @@ const SUB_MENUS = [
   { id: "news", label: "news", icon: "📰" },
   { id: "contents", label: "콘텐츠", icon: "🎬" },
   { id: "live", label: "Live", icon: "🔴" },
+  { id: "mlm", label: "MLM", icon: "🔗" },
 ];
 
 // ─── 뷰 타입 ──────────────────────────────────────────────────────────────────
@@ -612,6 +613,7 @@ export default function Home() {
   const { data: leaderPlans = [] } = trpc.public.leaderPlans.useQuery();
   const { data: memePlans = [] } = trpc.public.memePlans.useQuery();
   const { data: influencerPlans = [] } = trpc.public.influencerPlans.useQuery();
+  const { data: mlmPlans = [] } = trpc.public.mlmPlans.useQuery();
   const { data: notices = [] } = trpc.public.notices.useQuery();
   const { data: banners = [] } = trpc.public.banners.useQuery();
   const allPlansInput = useMemo(() => ({}), []);
@@ -1416,6 +1418,30 @@ export default function Home() {
                   <Tv className="w-8 h-8 text-gray-500 mx-auto mb-2" />
                   <div className={`text-xs ${textSecondary}`}>라이브 방송 준비 중입니다.</div>
                 </div>
+              </div>
+            )}
+            {activeTab === "mlm" && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className={`text-xs font-bold ${textPrimary} flex items-center gap-1.5`}>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500 text-white font-bold">MLM</span>
+                    MLM 플랜
+                  </div>
+                  <span className={`text-[10px] ${textSecondary}`}>{(mlmPlans as any[]).length}개</span>
+                </div>
+                {(mlmPlans as any[]).length === 0 ? (
+                  <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                    <div className="text-3xl mb-2">🔗</div>
+                    <div className={`text-xs font-semibold ${textPrimary} mb-1`}>MLM 플랜이 없습니다</div>
+                    <div className={`text-[10px] ${textSecondary}`}>백오피스에서 플랜에 MLM 설정을 활성화하세요</div>
+                  </div>
+                ) : (
+                  <div className="space-y-0">
+                    {(mlmPlans as any[]).map((plan: any) => (
+                      <PlanCardB key={plan.id} plan={plan} collectionColor="golden" />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
