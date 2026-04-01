@@ -728,6 +728,7 @@ export default function Home() {
                   isDark ? "bg-[#111] border-white/10" : "bg-white border-gray-200"
                 }`}>
                   {[
+                    { href: "/introduction", label: "📖 AlphaBag 소개", color: "text-amber-400" },
                     { href: "/golden", label: "🏆 Golden Collection", color: "text-amber-500" },
                     { href: "/self", label: "⚡ Self Collection", color: "text-blue-500" },
                     { href: "/leader", label: "👑 Leader Collection", color: "text-emerald-500" },
@@ -814,6 +815,7 @@ export default function Home() {
               {mobileAboutOpen && (
                 <div className="pl-4 space-y-0.5 mt-1">
                   {[
+                    { href: "/introduction", label: "📖 AlphaBag 소개", color: "text-amber-400" },
                     { href: "/golden", label: "🏆 Golden Collection", color: "text-amber-500" },
                     { href: "/self", label: "⚡ Self Collection", color: "text-blue-500" },
                     { href: "/leader", label: "👑 Leader Collection", color: "text-emerald-500" },

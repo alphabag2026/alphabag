@@ -634,3 +634,9 @@
 - [x] mlmPlans 쿼리 추가
 - [x] MLM 탭 콘텐츠 섹션 구현
 - [x] 빌드 및 Vultr 배포
+
+## Introduction 소개 페이지 추가
+- [ ] Introduction.tsx 페이지 생성 (이전 버전 내용 카피)
+- [ ] App.tsx에 /introduction 라우트 추가
+- [ ] 상단 네비게이션에 About B-BAG 드롭다운에 소개 링크 추가
+- [ ] 빌드 및 Vultr 배포

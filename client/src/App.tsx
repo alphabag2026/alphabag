@@ -52,6 +52,7 @@ import InfluencerPage from "./pages/InfluencerPage";
 import PlanDetailPage from "./pages/PlanDetailPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import About from "./pages/About";
+import Introduction from "./pages/Introduction";
 
 function Router() {
   return (
@@ -104,6 +105,7 @@ function Router() {
       <Route path="/vote" component={VotePage} />
       <Route path="/my-submissions" component={MySubmissions} />
       <Route path="/about" component={About} />
+      <Route path="/introduction" component={Introduction} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
