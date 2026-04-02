@@ -109,7 +109,7 @@ export const appRouter = router({
 
   // ─── Investment Plans ───────────────────────────────────────────────────────
   plans: router({
-    list: adminProcedure.input(z.object({ planType: z.enum(["investment", "staking"]).optional() })).query(async ({ input }) => {
+    list: adminProcedure.input(z.object({ planType: z.enum(["investment", "staking", "golden", "self", "node", "leader", "meme", "influencer"]).optional() })).query(async ({ input }) => {
       return await db.getInvestmentPlans(input.planType);
     }),
     create: superAdminProcedure.input(z.object({
@@ -126,7 +126,7 @@ export const appRouter = router({
       sortOrder: z.number().default(0),
       isActive: z.boolean().default(true),
       isMLM: z.boolean().default(false),
-      planType: z.enum(["investment", "staking"]).default("investment"),
+      planType: z.enum(["investment", "staking", "golden", "self", "node", "leader", "meme", "influencer"]).default("investment"),
       tags: z.array(z.string()).optional(),
     })).mutation(async ({ input, ctx }) => {
       await db.createInvestmentPlan({ ...input, tags: input.tags ?? null });
@@ -148,7 +148,7 @@ export const appRouter = router({
       sortOrder: z.number().optional(),
       isActive: z.boolean().optional(),
       isMLM: z.boolean().optional(),
-      planType: z.enum(["investment", "staking"]).optional(),
+      planType: z.enum(["investment", "staking", "golden", "self", "node", "leader", "meme", "influencer"]).optional(),
       tags: z.array(z.string()).optional(),
     })).mutation(async ({ input, ctx }) => {
       const { id, ...data } = input;
@@ -2113,7 +2113,7 @@ Return ONLY valid JSON.`;
       badgeLabels: z.array(z.string()).optional(),
       tags: z.array(z.string()).optional(),
       description: z.string().optional(),
-      planType: z.enum(["investment", "staking"]).default("investment"),
+      planType: z.enum(["investment", "staking", "golden", "self", "node", "leader", "meme", "influencer"]).default("investment"),
       yieldInfo: z.string().optional(),
       ratioInfo: z.string().optional(),
       rating: z.number().optional(),

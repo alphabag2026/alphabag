@@ -704,3 +704,5 @@
 - [x] main.tsx에 I18nextProvider 추가
 - [x] Docker 컨테이너 내부 /app/dist에 최신 빌드 tar 해제 (경로 수정)
 - [x] 언어 변경 시 리렌더링 정상 작동 확인 (영어 선택 시 전체 UI 영어로 변경)
+- [x] 백오피스 Plans 편집 다이얼로그에 planType 섹션 변경 드롭다운 추가 (golden/self/node/leader/meme/influencer)
+- [x] plans.update 라우터에 planType 필드 지원 확인
