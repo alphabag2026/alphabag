@@ -70,7 +70,6 @@ export const investmentPlans = mysqlTable("investmentPlans", {
   videoUrl2: text("videoUrl2"),
   docsUrl2: text("docsUrl2"),
   infoweb4Url: text("infoweb4Url"),
-  onepageUrl: text("onepageUrl"),
   thumbnailImages: json("thumbnailImages"),
   ratioInfo: varchar("ratioInfo", { length: 100 }),
   yieldInfo: varchar("yieldInfo", { length: 100 }),

@@ -127,13 +127,6 @@
       "when": 1774858925032,
       "tag": "0017_curious_daimon_hellstrom",
       "breakpoints": true
-    },
-    {
-      "idx": 18,
-      "version": "5",
-      "when": 1775109637258,
-      "tag": "0018_tough_the_call",
-      "breakpoints": true
     }
   ]
 }

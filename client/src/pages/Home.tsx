@@ -614,7 +614,7 @@ export default function Home() {
   const { data: leaderPlans = [] } = trpc.public.leaderPlans.useQuery();
   const { data: memePlans = [] } = trpc.public.memePlans.useQuery();
   const { data: influencerPlans = [] } = trpc.public.influencerPlans.useQuery();
-  const { data: mlmPlans = [] } = trpc.public.memePlans.useQuery();
+  const { data: mlmPlans = [] } = trpc.public.mlmPlans.useQuery();
   const { data: notices = [] } = trpc.public.notices.useQuery();
   const { data: banners = [] } = trpc.public.banners.useQuery();
   const allPlansInput = useMemo(() => ({}), []);
