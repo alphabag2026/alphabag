@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useWallet } from "@/contexts/WalletContext";
@@ -10,7 +9,6 @@ import { toast } from "sonner";
 const ALPHABAG_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/alphabag-logo_df90878d.png";
 
 export function MainNav() {
-  const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -43,7 +41,7 @@ export function MainNav() {
   const handleCopyAddress = () => {
     if (address) {
       navigator.clipboard.writeText(address);
-      toast.success(t("home.walletConnect") + " copied");
+      toast.success("주소가 복사되었습니다.");
     }
   };
 
@@ -127,7 +125,7 @@ export function MainNav() {
                           <User className="w-5 h-5 text-black" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-xs text-muted-foreground">{t("home.connectWallet")}</div>
+                          <div className="text-xs text-muted-foreground">연결된 지갑</div>
                           <div className="font-mono text-sm text-foreground truncate">
                             {address?.slice(0, 10)}...{address?.slice(-8)}
                           </div>
@@ -137,7 +135,7 @@ export function MainNav() {
 
                     <div className="px-4 py-2.5 border-b border-border">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">{t("home.tabs.recommend")}</span>
+                        <span className="text-xs text-muted-foreground">네트워크</span>
                         <div className="flex items-center gap-1.5">
                           <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
                           <span className="text-xs text-green-600 font-medium">{getChainName(chainId)}</span>
@@ -151,7 +149,7 @@ export function MainNav() {
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                       >
                         <Copy className="w-4 h-4 text-muted-foreground" />
-                        {t("home.copyAddress")}
+                        주소 복사
                       </button>
                       <a
                         href={`https://etherscan.io/address/${address}`}
@@ -161,7 +159,7 @@ export function MainNav() {
                         onClick={() => setProfileOpen(false)}
                       >
                         <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                        {t("home.viewExplorer")}
+                        Explorer에서 보기
                       </a>
                       {isAuthenticated && (
                         <>
@@ -171,7 +169,7 @@ export function MainNav() {
                               onClick={() => setProfileOpen(false)}
                             >
                               <BarChart3 className="w-4 h-4 text-muted-foreground" />
-                              {t("home.dashboard")}
+                              대시보드
                             </button>
                           </Link>
                           <Link href="/favorites">
@@ -180,7 +178,7 @@ export function MainNav() {
                               onClick={() => setProfileOpen(false)}
                             >
                               <Heart className="w-4 h-4 text-red-400" />
-                              {t("home.tabs.favorites")}
+                              즐겨찾기
                             </button>
                           </Link>
                         </>
@@ -193,7 +191,7 @@ export function MainNav() {
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
-                        {t("home.disconnectWallet")}
+                        지갑 연결 해제
                       </button>
                     </div>
                   </div>
@@ -205,14 +203,14 @@ export function MainNav() {
                 className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold transition-all"
               >
                 <Wallet className="w-3.5 h-3.5" />
-                {t("home.connectWallet")}
+                지갑 연결
               </button>
             )}
 
             <Link href="/cart">
               <button className="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 text-xs font-medium hover:bg-amber-100 transition-all">
                 <ShoppingCart className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{t("home.cart")}</span>
+                <span className="hidden sm:inline">장바구니</span>
               </button>
             </Link>
 
@@ -261,14 +259,14 @@ export function MainNav() {
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
                 >
                   <Copy className="w-4 h-4" />
-                  {t("home.copyAddress")}
+                  주소 복사
                 </button>
                 <button
                   onClick={() => { handleDisconnect(); setMobileMenuOpen(false); }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  {t("home.disconnectWallet")}
+                  지갑 연결 해제
                 </button>
               </div>
             ) : (
@@ -277,7 +275,7 @@ export function MainNav() {
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
               >
                 <Wallet className="w-4 h-4" />
-                {t("home.connectWallet")}
+                지갑 연결
               </button>
             )}
           </div>
