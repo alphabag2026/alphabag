@@ -658,3 +658,7 @@
 - [ ] About B-BAG 드롭다운 하위 메뉴 클릭 버그 수정
 - [ ] 페이지 진입 시 지갑 연결 모달 자동 팝업 제거
 - [ ] WALLX/NGP/PINDEX/LTF 플랜 로고 이미지 추가
+
+## 베타테스트 공지 팝업
+- [x] 세련된 베타테스트 공지 팝업 컴포넌트 제작 (BetaNoticeModal.tsx)
+- [x] Home.tsx에 팝업 적용 (최초 방문 시 1회 표시, localStorage로 닫기 상태 저장)

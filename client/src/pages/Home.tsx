@@ -18,6 +18,7 @@ import {
 import { PlanDetailModal } from "@/components/PlanDetailModal";
 import { ReferralMessageModal } from "@/components/ReferralMessageModal";
 import { MeetingNoticeModal } from "@/components/MeetingNoticeModal";
+import BetaNoticeModal from "@/components/BetaNoticeModal";
 import { useTheme } from "@/contexts/ThemeContext";
 
 // CDN URLs
@@ -701,6 +702,8 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen ${bg} ${textPrimary} transition-colors duration-300`}>
+      {/* ─── 베타테스트 공지 팝업 ─── */}
+      <BetaNoticeModal />
       {/* ─── 상단 네비게이션 ─── */}
       <nav className={`sticky top-0 z-50 backdrop-blur-xl border-b ${navBg}`}>
         <div className="max-w-7xl mx-auto px-3">
