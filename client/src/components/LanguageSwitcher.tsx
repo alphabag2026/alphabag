@@ -18,7 +18,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
 
   const handleChange = (code: string) => {
     i18n.changeLanguage(code);
-    localStorage.setItem("alphabag-lang", code);
+    // i18n LanguageDetector automatically saves to localStorage with key "i18nextLng"
   };
 
   return (

@@ -680,3 +680,27 @@
 - [x] PlanDetailModal에 1page 보기 버튼 추가 (개요 탭 + 하단 액션바)
 - [x] drizzle schema에 onepageUrl 컬럼 추가 및 마이그레이션
 - [x] Vultr 서버 배포 완료
+
+## Phase 51 - 언어 변경 기능 완전 수정 (2026-04-02)
+- [ ] 언어 드롭다운 선택 시 번역 적용 안 되는 문제 수정
+- [ ] 컴포넌트 하드코딩 한국어 → t() 키로 교체 (Home.tsx, MainNav.tsx 등)
+- [ ] 한국어 5번째 순서 확인
+- [ ] Vultr 배포
+
+## Phase 51 (계속) - 언어 변경 미작동 문제 분석 (2026-04-02)
+- [x] i18n.ts에 21개 언어 home 섹션 완성 (searchPlaceholder: "Search AlphaBag plans, strategies..." 등)
+- [x] Home.tsx에서 `t("home.searchPlaceholder")` 사용 확인
+- [x] main.tsx에 I18nextProvider 추가
+- [x] Vultr 서버 배포 완료
+- [ ] **문제:** localStorage.i18nextLng = "en"인데도 화면은 한국어로 표시됨
+- [ ] **원인:** `t()` 함수가 `en` 번역을 찾지 못하고 `ko`로 fallback
+- [ ] **해결 필요:** i18n 초기화 시 언어 리소스 로드 실패 또는 useTranslation 훅 리렌더링 문제
+
+## Phase 51 - 언어 변경 기능 완전 수정 (2026-04-02)
+- [x] 한국어 5번째 순서 (en, zh, ja, vi, ko, th...)
+- [x] i18n.ts에 21개 언어 home 섹션 추가 (searchPlaceholder, tabs, tabTitles 등)
+- [x] Home.tsx 하드코딩 한국어 → t() 키로 교체
+- [x] MainNav.tsx 하드코딩 한국어 → t() 키로 교체
+- [x] main.tsx에 I18nextProvider 추가
+- [x] Docker 컨테이너 내부 /app/dist에 최신 빌드 tar 해제 (경로 수정)
+- [x] 언어 변경 시 리렌더링 정상 작동 확인 (영어 선택 시 전체 UI 영어로 변경)
