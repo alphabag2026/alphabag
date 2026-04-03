@@ -662,3 +662,45 @@
 ## 베타테스트 공지 팝업
 - [x] 세련된 베타테스트 공지 팝업 컴포넌트 제작 (BetaNoticeModal.tsx)
 - [x] Home.tsx에 팝업 적용 (최초 방문 시 1회 표시, localStorage로 닫기 상태 저장)
+
+## Phase 50 - 1page.to 연동 + 모달 이미지 짤림 수정 (2026-04-02)
+- [ ] 플랜 상세 모달 이미지 짤림 수정 (스크롤 가능하도록 개선)
+- [ ] DB plans 테이블에 onepageUrl 컬럼 추가
+- [ ] 1page.to 10개 프로젝트 URL DB 업데이트
+- [ ] 플랜 카드 "상세페이지 보기" → "1page 보기" 버튼으로 교체 (onepageUrl 있는 경우)
+- [ ] 플랜 상세 모달에 "1page 보기" 버튼 추가
+- [ ] Vultr 서버 빌드 및 배포
+
+## Phase 50 - 1page.to 연동 + 모달 이미지 짤림 수정 (2026-04-02)
+- [x] 모달 이미지 짤림 수정 (overflow-y-auto + min-h-0 적용)
+- [x] DB onepageUrl 컬럼 추가 (investmentPlans 테이블)
+- [x] 1page.to 10개 프로젝트 로고 CDN 업로드
+- [x] 7개 신규 프로젝트 DB 삽입 (XPLAY, OpenOcto, NEXUS 2140, BENEFER, HABIBIDECK, SquidVerse, ARAI Systems)
+- [x] 기존 3개 플랜 onepageUrl 연결 (NICE, B BAG LOOMX, PINDEX)
+- [x] PlanDetailModal에 1page 보기 버튼 추가 (개요 탭 + 하단 액션바)
+- [x] drizzle schema에 onepageUrl 컬럼 추가 및 마이그레이션
+- [x] Vultr 서버 배포 완료
+
+## Phase 51 - 언어 변경 기능 완전 수정 (2026-04-02)
+- [ ] 언어 드롭다운 선택 시 번역 적용 안 되는 문제 수정
+- [ ] 컴포넌트 하드코딩 한국어 → t() 키로 교체 (Home.tsx, MainNav.tsx 등)
+- [ ] 한국어 5번째 순서 확인
+- [ ] Vultr 배포
+
+## Phase 51 (계속) - 언어 변경 미작동 문제 분석 (2026-04-02)
+- [x] i18n.ts에 21개 언어 home 섹션 완성 (searchPlaceholder: "Search AlphaBag plans, strategies..." 등)
+- [x] Home.tsx에서 `t("home.searchPlaceholder")` 사용 확인
+- [x] main.tsx에 I18nextProvider 추가
+- [x] Vultr 서버 배포 완료
+- [ ] **문제:** localStorage.i18nextLng = "en"인데도 화면은 한국어로 표시됨
+- [ ] **원인:** `t()` 함수가 `en` 번역을 찾지 못하고 `ko`로 fallback
+- [ ] **해결 필요:** i18n 초기화 시 언어 리소스 로드 실패 또는 useTranslation 훅 리렌더링 문제
+
+## Phase 51 - 언어 변경 기능 완전 수정 (2026-04-02)
+- [x] 한국어 5번째 순서 (en, zh, ja, vi, ko, th...)
+- [x] i18n.ts에 21개 언어 home 섹션 추가 (searchPlaceholder, tabs, tabTitles 등)
+- [x] Home.tsx 하드코딩 한국어 → t() 키로 교체
+- [x] MainNav.tsx 하드코딩 한국어 → t() 키로 교체
+- [x] main.tsx에 I18nextProvider 추가
+- [x] Docker 컨테이너 내부 /app/dist에 최신 빌드 tar 해제 (경로 수정)
+- [x] 언어 변경 시 리렌더링 정상 작동 확인 (영어 선택 시 전체 UI 영어로 변경)

@@ -18,7 +18,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
 
   const handleChange = (code: string) => {
     i18n.changeLanguage(code);
-    localStorage.setItem("alphabag-lang", code);
+    // i18n LanguageDetector automatically saves to localStorage with key "i18nextLng"
   };
 
   return (
@@ -35,7 +35,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
             <span className="text-base leading-none">{currentLang.flag}</span>
           )}
           {!compact && (
-            <span className="text-xs font-medium hidden sm:inline">{currentLang.nativeName}</span>
+            <span className="text-xs font-medium hidden sm:inline">{currentLang.label}</span>
           )}
           <ChevronDown className="w-3 h-3 opacity-60" />
         </Button>
@@ -59,8 +59,8 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
               >
                 <span className="text-lg leading-none w-6 text-center">{lang.flag}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{lang.nativeName}</p>
-                  <p className="text-xs text-muted-foreground truncate">{lang.name}</p>
+                  <p className="text-sm font-medium truncate">{lang.label}</p>
+                  <p className="text-xs text-muted-foreground truncate">{lang.code.toUpperCase()}</p>
                 </div>
                 {lang.code === i18n.language && (
                   <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />

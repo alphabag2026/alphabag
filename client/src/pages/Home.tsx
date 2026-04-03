@@ -46,15 +46,15 @@ function HighlightText({ text, query, className }: { text: string; query: string
 
 // ─── 소메뉴 탭 정의 ──────────────────────────────────────────────────────────
 const SUB_MENUS = [
-  { id: "recommend", label: "추천", icon: "⭐" },
+  { id: "recommend", label: "recommend", icon: "⭐" },
   { id: "bbag", label: "B bag", icon: "💰" },
   { id: "infoweb4", label: "infoweb4", icon: "🌐" },
   { id: "sns", label: "SNS", icon: "📱" },
-  { id: "trending", label: "급등토큰", icon: "🚀" },
-  { id: "airdrop", label: "에어드랍", icon: "🎁" },
-  { id: "favorites", label: "즐겨찾기", icon: "❤️" },
+  { id: "trending", label: "trending", icon: "🚀" },
+  { id: "airdrop", label: "airdrop", icon: "🎁" },
+  { id: "favorites", label: "favorites", icon: "❤️" },
   { id: "news", label: "news", icon: "📰" },
-  { id: "contents", label: "콘텐츠", icon: "🎬" },
+  { id: "contents", label: "contents", icon: "🎬" },
   { id: "live", label: "Live", icon: "🔴" },
   { id: "mlm", label: "MLM", icon: "🔗" },
 ];
@@ -284,6 +284,7 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
 
 // ─── 금융 위젯 ────────────────────────────────────────────────────────────────
 function MarketWidget({ isDark, sidebar = false, mobileInline = false }: { isDark: boolean; sidebar?: boolean; mobileInline?: boolean }) {
+  const { t } = useTranslation();
   const { data: marketData, isLoading, refetch } = trpc.market.prices.useQuery(undefined, {
     refetchInterval: 60000,
     staleTime: 30000,
@@ -299,7 +300,7 @@ function MarketWidget({ isDark, sidebar = false, mobileInline = false }: { isDar
       <div className={`rounded-xl p-4 border ${bgCard} ${sidebar ? "" : "mb-4"}`}>
         <div className="flex items-center gap-2 mb-3">
           <TrendingUp className="w-4 h-4 text-amber-400" />
-          <span className={`text-sm font-bold ${textPrimary}`}>금융 시장</span>
+          <span className={`text-sm font-bold ${textPrimary}`}>{t("nav.plans")}</span>
         </div>
         <div className="animate-pulse space-y-2">
           {[1, 2].map(i => <div key={i} className="h-10 bg-white/5 rounded-lg" />)}
@@ -344,7 +345,7 @@ function MarketWidget({ isDark, sidebar = false, mobileInline = false }: { isDar
             {t.label}
           </button>
         ))}
-        <span className={`text-[9px] ml-auto ${textSecondary}`}>코인 선택</span>
+        <span className={`text-[9px] ml-auto ${textSecondary}`}>{t("home.tabs.recommend")}</span>
       </div>
       {/* 암호화폐 가격 */}
       <div className="px-3 pb-2">
@@ -435,6 +436,7 @@ function MobileMarketBar({ isDark }: { isDark: boolean }) {
 
 // ─── 오늘의 추천 플랜 사이드바 위젯 ─────────────────────────────────────────
 function TodayRecommendWidget({ isDark, onSelectPlan }: { isDark: boolean; onSelectPlan: (id: number) => void }) {
+  const { t } = useTranslation();
   const { data: plans } = trpc.public.plans.useQuery({ limit: 3, highlightOnly: true });
   const bgCard = isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200 shadow-sm";
   const textPrimary = isDark ? "text-white" : "text-gray-900";
@@ -444,7 +446,7 @@ function TodayRecommendWidget({ isDark, onSelectPlan }: { isDark: boolean; onSel
     <div className={`rounded-xl border overflow-hidden ${bgCard}`}>
       <div className={`px-4 py-3 border-b ${isDark ? "border-white/5" : "border-gray-100"} flex items-center gap-2`}>
         <span className="text-amber-400">⭐</span>
-        <span className={`text-sm font-bold ${textPrimary}`}>오늘의 추천 플랜</span>
+        <span className={`text-sm font-bold ${textPrimary}`}>{t("home.recommendedPlans")}</span>
       </div>
       <div className="divide-y divide-gray-100/10">
         {plans.slice(0, 3).map((plan: any) => (
@@ -524,6 +526,7 @@ function CollectionSection({
   color: string; href: string; icon: React.ReactNode;
   viewType: ViewType; isDark: boolean;
 }) {
+  const { t } = useTranslation();
   const colorMap: Record<string, { title: string; dot: string; btn: string }> = {
     golden: { title: "text-amber-400", dot: "bg-amber-400", btn: "text-amber-400 border-amber-400/30 hover:bg-amber-400/10" },
     self: { title: "text-blue-400", dot: "bg-blue-400", btn: "text-blue-400 border-blue-400/30 hover:bg-blue-400/10" },
@@ -562,7 +565,7 @@ function CollectionSection({
         </div>
         <Link href={href}>
           <button className={`flex items-center gap-1 text-xs border rounded-lg px-2.5 py-1 transition-colors ${c.btn}`}>
-            전체보기 <ChevronRight className="w-3 h-3" />
+            {t("home.viewAll")} <ChevronRight className="w-3 h-3" />
           </button>
         </Link>
       </div>
@@ -614,7 +617,7 @@ export default function Home() {
   const { data: leaderPlans = [] } = trpc.public.leaderPlans.useQuery();
   const { data: memePlans = [] } = trpc.public.memePlans.useQuery();
   const { data: influencerPlans = [] } = trpc.public.influencerPlans.useQuery();
-  const { data: mlmPlans = [] } = trpc.public.mlmPlans.useQuery();
+  const { data: mlmPlans = [] } = trpc.public.memePlans.useQuery();
   const { data: notices = [] } = trpc.public.notices.useQuery();
   const { data: banners = [] } = trpc.public.banners.useQuery();
   const allPlansInput = useMemo(() => ({}), []);
@@ -754,7 +757,7 @@ export default function Home() {
               <Link href="/notices"><button className={`px-3 py-1.5 text-xs ${textSecondary} rounded-lg transition-colors`}>Notices</button></Link>
               <Link href="/listing"><button className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                 isDark ? "text-amber-400 hover:bg-amber-400/10" : "text-amber-600 hover:bg-amber-50"
-              }`}>리스팅 신청</button></Link>
+              }`}>{t("home.listingMenu")}</button></Link>
             </div>
 
             {/* 우측 액션 */}
@@ -765,7 +768,7 @@ export default function Home() {
               <button
                 onClick={toggleTheme}
                 className={`p-2 rounded-lg transition-colors ${isDark ? "text-gray-400 hover:text-amber-400 hover:bg-amber-400/10" : "text-gray-500 hover:text-amber-500 hover:bg-amber-50"}`}
-                title={isDark ? "라이트 모드" : "다크 모드"}
+                title={isDark ? t("home.lightMode") : t("home.darkMode")}
               >
                 {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
@@ -785,7 +788,7 @@ export default function Home() {
                   className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold transition-all"
                 >
                   <Wallet className="w-3 h-3" />
-                  <span className="hidden sm:inline">지갑 연결</span>
+                  <span className="hidden sm:inline">{t("home.connectWallet")}</span>
                 </button>
               )}
 
@@ -862,7 +865,7 @@ export default function Home() {
             <img src={ALPHABAG_LOGO} alt="α" className="w-5 h-5 rounded object-contain bg-black flex-shrink-0" />
             <input
               type="text"
-              placeholder="AlphaBag 플랜, 전략 검색..."
+              placeholder={t("home.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => searchQuery && setShowSearchResults(true)}
@@ -905,7 +908,7 @@ export default function Home() {
           )}
           {showSearchResults && searchResults.length === 0 && searchQuery.trim().length > 0 && (
             <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border shadow-xl z-50 px-4 py-3 text-sm ${textSecondary} ${isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200"}`}>
-              "{searchQuery}" 검색 결과가 없습니다.
+              {`"${searchQuery}" ${t("home.searchNoResult")}`}
             </div>
           )}
         </div>
@@ -915,7 +918,7 @@ export default function Home() {
           {/* 공지 박스 */}
           <div className={`lg:col-span-2 rounded-xl border p-4 ${cardBg}`}>
             <div className="flex items-center justify-between mb-3">
-              <span className={`font-bold text-sm ${textPrimary}`}>공지</span>
+              <span className={`font-bold text-sm ${textPrimary}`}>{t("home.notices")}</span>
               <Badge className={`text-[10px] px-2 py-0.5 ${isDark ? "bg-amber-500/20 text-amber-300 border-amber-500/30" : "bg-amber-100 text-amber-700 border-amber-300"}`}>NOTICE</Badge>
             </div>
             {(notices as any[]).length > 0 ? (
@@ -938,16 +941,16 @@ export default function Home() {
               </div>
             )}
             <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
-              <Link href="/golden"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>골든 컬렉션</button></Link>
-              <Link href="/notices"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>커뮤니티</button></Link>
+              <Link href="/golden"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>{t("home.goldenCollection")}</button></Link>
+              <Link href="/notices"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>{t("home.community")}</button></Link>
               <button onClick={() => {
                 const meeting = (notices as any[]).find((n: any) => n.type === "meeting" && n.isActive);
                 setMeetingNotice(meeting || { id: 0, title: "온라인 회의 안내", content: "현재 예정된 온라인 회의가 없습니다.", meetingPlatform: "zoom" });
               }} className={`flex items-center gap-1 text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>
-                <Video className="w-3 h-3" /> 줌/온라인 회의
+                <Video className="w-3 h-3" /> {t("home.zoomMeeting")}
               </button>
               <button onClick={() => setShowReferralModal(true)} className={`flex items-center gap-1 text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>
-                <MessageSquare className="w-3 h-3" /> 추천글 선택
+                <MessageSquare className="w-3 h-3" /> {t("home.selectReferral")}
               </button>
             </div>
           </div>
@@ -980,7 +983,7 @@ export default function Home() {
                 }`}
               >
                 <span className="text-base">{menu.icon}</span>
-                <span>{menu.label}</span>
+                <span>{t(`home.tabs.${menu.id}`) || menu.label}</span>
               </button>
             ))}
           </div>
@@ -989,20 +992,20 @@ export default function Home() {
           <div className="p-4">
             {activeTab === "recommend" && (
               <div>
-                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>⭐ 추천 플랜</div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>{t("home.tabTitles.recommend")}</div>
                 <div className="space-y-0">
                   {(goldenPlans as any[]).filter((p: any) => p.isHighlight).slice(0, 4).map((plan: any) => (
                     <PlanCardB key={plan.id} plan={plan} collectionColor="golden" />
                   ))}
                   {(goldenPlans as any[]).filter((p: any) => p.isHighlight).length === 0 && (
-                    <div className={`text-xs ${textSecondary} text-center py-4`}>추천 플랜이 없습니다.</div>
+                    <div className={`text-xs ${textSecondary} text-center py-4`}>{t("home.noPlans")}</div>
                   )}
                 </div>
               </div>
             )}
             {activeTab === "bbag" && (
               <div>
-                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>💰 B Bag 컬렉션</div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>{t("home.tabTitles.bbag")}</div>
                 <div className="space-y-0">
                   {(goldenPlans as any[]).slice(0, 5).map((plan: any) => (
                     <PlanCardB key={plan.id} plan={plan} collectionColor="golden" />
@@ -1012,13 +1015,13 @@ export default function Home() {
             )}
             {activeTab === "infoweb4" && (
               <div>
-                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>🌐 InfoWeb4 플랜</div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>{t("home.tabTitles.infoweb4")}</div>
                 <div className="space-y-0">
                   {(allPlans as any[]).filter((p: any) => p.infoweb4Url).slice(0, 5).map((plan: any) => (
                     <PlanCardB key={plan.id} plan={plan} collectionColor="self" />
                   ))}
                   {(allPlans as any[]).filter((p: any) => p.infoweb4Url).length === 0 && (
-                    <div className={`text-xs ${textSecondary} text-center py-4`}>infoweb4 연동 플랜이 없습니다.</div>
+                    <div className={`text-xs ${textSecondary} text-center py-4`}>{t("home.noPlans")}</div>
                   )}
                 </div>
               </div>
@@ -1089,7 +1092,7 @@ export default function Home() {
 
                 {/* 포스트 피드 */}
                 {snsPostsLoading ? (
-                  <div className={`text-xs ${textSecondary} text-center py-8`}>로딩 중...</div>
+                  <div className={`text-xs ${textSecondary} text-center py-8`}>{t("home.loading")}</div>
                 ) : filteredSnsPosts.length === 0 ? (
                   <div className={`text-center py-8`}>
                     <div className="text-3xl mb-2">📱</div>
@@ -1165,7 +1168,7 @@ export default function Home() {
             )}
             {activeTab === "news" && (
               <div>
-                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>📰 최신 뉴스</div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>{t("home.tabTitles.news")}</div>
                 <div className="space-y-3">
                   {[
                     { title: "AlphaBag 새로운 Golden Collection 출시", time: "2시간 전", category: "공지" },
@@ -1188,7 +1191,7 @@ export default function Home() {
             )}
             {activeTab === "contents" && (
               <div>
-                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>🎬 콘텐츠</div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>{t("home.tabTitles.contents")}</div>
                 <div className="grid grid-cols-2 gap-3">
                   {(allPlans as any[]).filter((p: any) => p.videoUrl).slice(0, 4).map((plan: any) => (
                     <a key={plan.id} href={plan.videoUrl} target="_blank" rel="noopener noreferrer">
@@ -1212,7 +1215,7 @@ export default function Home() {
                     </a>
                   ))}
                   {(allPlans as any[]).filter((p: any) => p.videoUrl).length === 0 && (
-                    <div className={`col-span-2 text-xs ${textSecondary} text-center py-4`}>콘텐츠가 없습니다.</div>
+                    <div className={`col-span-2 text-xs ${textSecondary} text-center py-4`}>{t("home.noContents")}</div>
                   )}
                 </div>
               </div>
@@ -1220,13 +1223,13 @@ export default function Home() {
             {activeTab === "trending" && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className={`text-xs font-bold ${textPrimary}`}>🚀 급등 토큰 감지</div>
-                  <span className={`text-[10px] ${textSecondary}`}>CoinGecko · 24h +5%이상</span>
+                  <div className={`text-xs font-bold ${textPrimary}`}>{t("home.tabTitles.trending")}</div>
+                  <span className={`text-[10px] ${textSecondary}`}>{t("home.trendingDesc")}</span>
                 </div>
                 {trendingLoading ? (
-                  <div className={`text-xs ${textSecondary} text-center py-6`}>데이터 로딩 중...</div>
+                  <div className={`text-xs ${textSecondary} text-center py-6`}>{t("home.dataLoading")}</div>
                 ) : trendingTokens.length === 0 ? (
-                  <div className={`text-xs ${textSecondary} text-center py-6`}>현재 급등 토큰이 없습니다.</div>
+                  <div className={`text-xs ${textSecondary} text-center py-6`}>{t("home.noTrending")}</div>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
                     {(trendingTokens as any[]).map((token: any) => (
@@ -1259,7 +1262,7 @@ export default function Home() {
                 )}
                 {/* 트렌딩 코인 섯션 */}
                 <div className="mt-4">
-                  <div className={`text-xs font-bold mb-2 ${textPrimary}`}>🔥 트렌딩 코인</div>
+                  <div className={`text-xs font-bold mb-2 ${textPrimary}`}>{t("home.tabTitles.trendingCoins")}</div>
                   {trendingCoinsLoading ? (
                     <div className={`text-xs ${textSecondary} text-center py-3`}>로딩 중...</div>
                   ) : (
@@ -1295,16 +1298,16 @@ export default function Home() {
             {activeTab === "airdrop" && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className={`text-xs font-bold ${textPrimary}`}>🎁 에어드랍</div>
-                  <span className={`text-[10px] ${textSecondary}`}>활성 에어드랍</span>
+                  <div className={`text-xs font-bold ${textPrimary}`}>{t("home.tabTitles.airdrop")}</div>
+                  <span className={`text-[10px] ${textSecondary}`}>{t("home.activeAirdrops")}</span>
                 </div>
                 {airdropList.length === 0 ? (
                   <div className={`rounded-xl border p-8 text-center ${
                     isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"
                   }`}>
                     <div className="text-3xl mb-2">🎁</div>
-                    <div className={`text-xs font-semibold ${textPrimary} mb-1`}>예정된 에어드랍이 없습니다</div>
-                    <div className={`text-[10px] ${textSecondary}`}>새로운 에어드랍이 등록되면 알림을 드립니다</div>
+                    <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{t("home.noAirdrop")}</div>
+                    <div className={`text-[10px] ${textSecondary}`}>{t("home.noAirdrop")}</div>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -1336,7 +1339,7 @@ export default function Home() {
                           {drop.participateUrl && (
                             <a href={drop.participateUrl} target="_blank" rel="noopener noreferrer"
                               className="mt-2 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 transition-colors">
-                              🎁 에어드랍 참여하기
+                              {t("home.participateAirdrop")}
                             </a>
                           )}
                         </div>
@@ -1349,13 +1352,13 @@ export default function Home() {
             {activeTab === "favorites" && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <div className={`text-xs font-bold ${textPrimary}`}>❤️ 즐겨찾기 콜렉션</div>
-                  <span className={`text-[10px] ${textSecondary}`}>{favoritesList.length}개 저장됨</span>
+                  <div className={`text-xs font-bold ${textPrimary}`}>{t("home.tabTitles.favorites")}</div>
+                  <span className={`text-[10px] ${textSecondary}`}>{favoritesList.length} {t("home.savedCount")}</span>
                 </div>
                 {!isAuthenticated ? (
                   <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
                     <div className="text-3xl mb-2">❤️</div>
-                    <div className={`text-xs font-semibold ${textPrimary} mb-1`}>로그인이 필요합니다</div>
+                    <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{t("home.loginRequired")}</div>
                     <div className={`text-[10px] ${textSecondary}`}>즐겨찾기를 사용하려면 로그인하세요</div>
                   </div>
                 ) : favoritesList.length === 0 ? (
@@ -1425,7 +1428,7 @@ export default function Home() {
                 </div>
                 <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
                   <Tv className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-                  <div className={`text-xs ${textSecondary}`}>라이브 방송 준비 중입니다.</div>
+                  <div className={`text-xs ${textSecondary}`}>{t("home.liveComingSoon")}</div>
                 </div>
               </div>
             )}
@@ -1434,14 +1437,14 @@ export default function Home() {
                 <div className="flex items-center justify-between mb-3">
                   <div className={`text-xs font-bold ${textPrimary} flex items-center gap-1.5`}>
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500 text-white font-bold">MLM</span>
-                    MLM 플랜
+                    {t("home.tabs.mlm")}
                   </div>
-                  <span className={`text-[10px] ${textSecondary}`}>{(mlmPlans as any[]).length}개</span>
+                  <span className={`text-[10px] ${textSecondary}`}>{(mlmPlans as any[]).length} {t("home.mlmCount")}</span>
                 </div>
                 {(mlmPlans as any[]).length === 0 ? (
                   <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
                     <div className="text-3xl mb-2">🔗</div>
-                    <div className={`text-xs font-semibold ${textPrimary} mb-1`}>MLM 플랜이 없습니다</div>
+                    <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{t("home.noMlm")}</div>
                     <div className={`text-[10px] ${textSecondary}`}>백오피스에서 플랜에 MLM 설정을 활성화하세요</div>
                   </div>
                 ) : (
@@ -1458,7 +1461,7 @@ export default function Home() {
 
         {/* ─── 뷰 타입 선택 + 통계 ─── */}
         <div className="flex items-center justify-between mb-4">
-          <div className={`text-xs font-bold ${textPrimary}`}>투자 플랜</div>
+          <div className={`text-xs font-bold ${textPrimary}`}>{t("home.investmentPlans")}</div>
           <div className={`flex items-center gap-1 rounded-xl p-1 ${isDark ? "bg-[#111111] border border-white/10" : "bg-gray-100 border border-gray-200"}`}>
             {([
               { type: "A" as ViewType, label: "A", title: "손글씨" },
@@ -1487,19 +1490,19 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <div className="text-3xl">🏆</div>
               <div>
-                <div className={`text-sm font-bold mb-0.5 ${isDark ? "text-amber-300" : "text-amber-700"}`}>골든 컬렉션 상장 신청</div>
-                <div className={`text-xs ${isDark ? "text-amber-400/70" : "text-amber-600/80"}`}>알파백 노드 투표로 선정 · 상장비용 500 USDT · 투표 노드에 수익 분배</div>
+                <div className={`text-sm font-bold mb-0.5 ${isDark ? "text-amber-300" : "text-amber-700"}`}>{t("home.goldenListing")}</div>
+                <div className={`text-xs ${isDark ? "text-amber-400/70" : "text-amber-600/80"}`}>{t("home.goldenListingDesc")} 수익 분배</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Link href="/vote">
                 <button className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${isDark ? "border-amber-500/40 text-amber-400 hover:bg-amber-500/10" : "border-amber-400 text-amber-700 hover:bg-amber-100"}`}>
-                  투표 참여
+                  {t("home.voteParticipate")}
                 </button>
               </Link>
               <Link href="/submit-plan">
                 <button className="text-xs px-4 py-1.5 rounded-lg bg-amber-500 text-black font-bold hover:bg-amber-400 transition-all shadow-sm">
-                  상장 신청하기 →
+                  {t("home.listingApply")} →
                 </button>
               </Link>
             </div>
@@ -1513,9 +1516,9 @@ export default function Home() {
         <CollectionSection title="Golden Collection" subtitle="BINANCE Alpha · Insurance(Hedge) · Daily Returns" plans={goldenPlans as any[]} color="golden" href="/golden" icon={<span>🏆</span>} viewType={viewType} isDark={isDark} />
         <CollectionSection title="Self Collection" subtitle="Custom Strategy · Flexible · Self-managed" plans={selfPlans as any[]} color="self" href="/self" icon={<span>⚡</span>} viewType={viewType} isDark={isDark} />
         <CollectionSection title="Node Products" subtitle="Node Infrastructure · Deposit · External DApp" plans={nodePlans as any[]} color="node" href="/node" icon={<span>🔷</span>} viewType={viewType} isDark={isDark} />
-        <CollectionSection title="Leader Collection" subtitle="리더 추천 · 검증된 전략 · 커뮤니티 선택" plans={leaderPlans as any[]} color="leader" href="/leader" icon={<span>👑</span>} viewType={viewType} isDark={isDark} />
-        <CollectionSection title="Meme Token" subtitle="밈토큰 · 고수익 · 커뮤니티 드리븐" plans={memePlans as any[]} color="meme" href="/meme" icon={<span>🚀</span>} viewType={viewType} isDark={isDark} />
-        <CollectionSection title="Influencer" subtitle="인플루언서 추천 · 트렌딩 · 소셜 검증" plans={influencerPlans as any[]} color="influencer" href="/influencer" icon={<span>⭐</span>} viewType={viewType} isDark={isDark} />
+        <CollectionSection title="Leader Collection" subtitle={t("home.leaderSection")} plans={leaderPlans as any[]} color="leader" href="/leader" icon={<span>👑</span>} viewType={viewType} isDark={isDark} />
+        <CollectionSection title="Meme Token" subtitle={t("home.memeSection")} plans={memePlans as any[]} color="meme" href="/meme" icon={<span>🚀</span>} viewType={viewType} isDark={isDark} />
+        <CollectionSection title="Influencer" subtitle={t("home.influencerSection")} plans={influencerPlans as any[]} color="influencer" href="/influencer" icon={<span>⭐</span>} viewType={viewType} isDark={isDark} />
 
         {/* ─── 특징 섹션 ─── */}
         <section className="mt-4 mb-10">
