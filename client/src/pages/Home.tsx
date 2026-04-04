@@ -57,6 +57,8 @@ const SUB_MENUS = [
   { id: "contents", label: "contents", icon: "🎬" },
   { id: "live", label: "Live", icon: "🔴" },
   { id: "mlm", label: "MLM", icon: "🔗" },
+  { id: "meetup", label: "Meetup", icon: "🤝" },
+  { id: "expo", label: "Expo", icon: "🏛️" },
 ];
 
 // ─── 뷰 타입 ──────────────────────────────────────────────────────────────────
@@ -1015,15 +1017,74 @@ export default function Home() {
             )}
             {activeTab === "infoweb4" && (
               <div>
-                <div className={`text-xs font-bold mb-3 ${textPrimary}`}>{t("home.tabTitles.infoweb4")}</div>
-                <div className="space-y-0">
-                  {(allPlans as any[]).filter((p: any) => p.infoweb4Url).slice(0, 5).map((plan: any) => (
-                    <PlanCardB key={plan.id} plan={plan} collectionColor="self" />
-                  ))}
-                  {(allPlans as any[]).filter((p: any) => p.infoweb4Url).length === 0 && (
-                    <div className={`text-xs ${textSecondary} text-center py-4`}>{t("home.noPlans")}</div>
-                  )}
+                {/* 1page.to 헤더 */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className={`text-xs font-bold ${textPrimary} flex items-center gap-1.5`}>
+                    <span>🌐</span>
+                    <span>1page.to Projects</span>
+                  </div>
+                  <a
+                    href="https://1page.to"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`text-[10px] px-2 py-0.5 rounded-full border transition-all ${
+                      isDark
+                        ? "border-sky-500/40 text-sky-400 hover:bg-sky-500/10"
+                        : "border-sky-400 text-sky-600 hover:bg-sky-50"
+                    }`}
+                  >
+                    1page.to →
+                  </a>
                 </div>
+                {/* 설명 */}
+                <div className={`text-[10px] ${textSecondary} mb-3 px-2 py-1.5 rounded-lg ${
+                  isDark ? "bg-white/5" : "bg-gray-50"
+                }`}>
+                  프로젝트 원페이지 · 다국어 지원 · 추천 레퍼럴 · AI 추천문구
+                </div>
+                {/* 프로젝트 카드 그리드 */}
+                <div className="grid grid-cols-2 gap-2">
+                  {(allPlans as any[]).filter((p: any) => p.onepageUrl).map((plan: any) => (
+                    <a
+                      key={plan.id}
+                      href={plan.onepageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border transition-all hover:scale-105 ${
+                        isDark
+                          ? "bg-white/5 border-white/10 hover:bg-white/10 hover:border-sky-500/40"
+                          : "bg-white border-gray-200 hover:border-sky-400 shadow-sm"
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-black/10 flex items-center justify-center flex-shrink-0">
+                        {plan.logoUrl ? (
+                          <img
+                            src={plan.logoUrl}
+                            alt={plan.name}
+                            className="w-full h-full object-contain"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <span className="text-lg">🌐</span>
+                        )}
+                      </div>
+                      <div className="text-center w-full">
+                        <div className={`text-[11px] font-bold ${textPrimary} leading-tight truncate`}>{plan.name}</div>
+                        <div className={`text-[9px] ${textSecondary} mt-0.5 truncate`}>
+                          {plan.onepageUrl?.replace('https://', '').replace('http://', '').replace(/\/$/, '')}
+                        </div>
+                      </div>
+                      <div className={`text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                        isDark ? "bg-sky-500/20 text-sky-400" : "bg-sky-100 text-sky-600"
+                      }`}>
+                        1page.to
+                      </div>
+                    </a>
+                  ))}
+                </div>
+                {(allPlans as any[]).filter((p: any) => p.onepageUrl).length === 0 && (
+                  <div className={`text-xs ${textSecondary} text-center py-4`}>등록된 1page.to 프로젝트가 없습니다</div>
+                )}
               </div>
             )}
             {activeTab === "sns" && (
@@ -1455,10 +1516,61 @@ export default function Home() {
                   </div>
                 )}
               </div>
+             )}
+
+            {/* ─── 밋업 탭 ─── */}
+            {activeTab === "meetup" && (
+              <div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary} flex items-center gap-1.5`}>
+                  🤝 Meetup
+                </div>
+                <div className={`rounded-xl border p-4 mb-3 ${cardBg}`}>
+                  <div className={`text-xs font-semibold ${textPrimary} mb-2`}>예정된 밋업</div>
+                  <div className={`text-[11px] ${textSecondary}`}>현재 등록된 밋업 일정이 없습니다. 곧 업데이트됩니다.</div>
+                </div>
+              </div>
+            )}
+
+            {/* ─── 엑스포 탭 ─── */}
+            {activeTab === "expo" && (
+              <div>
+                <div className={`text-xs font-bold mb-3 ${textPrimary} flex items-center gap-1.5`}>
+                  🏛️ Expo &amp; Conference
+                </div>
+                {/* NEXUS 2140 베트남 행사 카드 */}
+                <a href="https://nexus2140.org/" target="_blank" rel="noopener noreferrer" className="block">
+                  <div className={`rounded-xl border overflow-hidden mb-3 cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg ${isDark ? "border-purple-500/30 bg-purple-900/10" : "border-purple-200 bg-purple-50"}`}>
+                    {/* 배너 이미지 */}
+                    <div className="relative h-32 overflow-hidden">
+                      <img
+                        src="https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/nexus2140-banner-en-ekn9NJTBoRGqyBfj6jKYUJ.webp"
+                        alt="NEXUS 2140 Vietnam"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                      <div className="absolute bottom-2 left-3">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500 text-white font-bold">OFFICIAL SPONSOR</span>
+                      </div>
+                    </div>
+                    <div className="p-3">
+                      <div className={`font-bold text-sm ${textPrimary} mb-1`}>NEXUS 2140 · AI×WEB4 글로벌 포럼</div>
+                      <div className={`text-[11px] ${textSecondary} mb-2`}>📅 2026년 5월 12일 &nbsp;|&nbsp; 📍 베트남 하롱베이</div>
+                      <div className={`text-[11px] ${textSecondary} mb-2`}>전 세계 16개국 블록체인·AI 리더 참여 · AlphaBag 공식 스폰서</div>
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {["HUAWEI", "DWF LABS", "Binance", "Coinbase", "Bitget"].map(p => (
+                          <span key={p} className={`text-[9px] px-1.5 py-0.5 rounded border ${isDark ? "border-white/20 text-gray-400" : "border-gray-300 text-gray-500"}`}>{p}</span>
+                        ))}
+                      </div>
+                      <div className={`flex items-center gap-1 text-[11px] text-purple-400 font-semibold`}>
+                        <ExternalLink className="w-3 h-3" /> nexus2140.org 방문하기
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
             )}
           </div>
         </div>
-
         {/* ─── 뷰 타입 선택 + 통계 ─── */}
         <div className="flex items-center justify-between mb-4">
           <div className={`text-xs font-bold ${textPrimary}`}>{t("home.investmentPlans")}</div>

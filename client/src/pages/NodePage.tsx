@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Star, Filter } from "lucide-react";
+import { Loader2, Star, Filter, ShoppingCart, Globe } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useWallet } from "@/contexts/WalletContext";
 import { getLoginUrl } from "@/const";
@@ -35,12 +35,12 @@ function PlanCard({ plan }: { plan: any }) {
     <Link href={`/plan/${plan.id}`}>
       <div className="relative bg-[#0d0d0d] border border-purple-500/20 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/40 hover:border-purple-400/60 group flex flex-col">
         {/* 카드 이미지 영역 */}
-        <div className="relative h-40 overflow-hidden">
+        <div className="relative h-40 overflow-hidden bg-[#050505]">
           {plan.logoUrl ? (
             <img
               src={plan.logoUrl}
               alt={plan.name}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              className="w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-purple-900/40 to-purple-600/20 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
@@ -94,14 +94,44 @@ function PlanCard({ plan }: { plan: any }) {
             <span className="text-xs text-gray-500 ml-1">{rating.toFixed(1)}</span>
           </div>
 
-          <button
-            onClick={handleInvest}
-            disabled={invest.isPending}
-            className="w-full py-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 text-sm font-semibold transition-all"
-          >
-            {invest.isPending ? <Loader2 className="w-4 h-4 animate-spin inline mr-2" /> : null}
-            Invest Now
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleInvest}
+              disabled={invest.isPending}
+              className="flex-1 py-2.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 text-sm font-semibold transition-all"
+            >
+              {invest.isPending ? <Loader2 className="w-4 h-4 animate-spin inline mr-2" /> : null}
+              View Details →
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                const cart = JSON.parse(localStorage.getItem("alphabag_cart") || "[]");
+                if (!cart.find((item: any) => item.id === plan.id)) {
+                  cart.push({ id: plan.id, name: plan.name, logoUrl: plan.logoUrl, dailyRate: plan.dailyRate, addedAt: Date.now() });
+                  localStorage.setItem("alphabag_cart", JSON.stringify(cart));
+                  window.dispatchEvent(new Event("cart-updated"));
+                }
+                toast.success("장바구니에 추가되었습니다!");
+              }}
+              className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 flex items-center justify-center transition-all flex-shrink-0 border border-purple-500/30"
+              title="장바구니에 담기"
+            >
+              <ShoppingCart className="w-4 h-4" />
+            </button>
+          </div>
+          {plan.onepageUrl && (
+            <a
+              href={plan.onepageUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="mt-2 w-full py-1.5 rounded-xl bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 text-xs font-semibold transition-all flex items-center justify-center gap-1 border border-amber-500/20"
+            >
+              <Globe className="w-3 h-3" />
+              1page.to 보기
+            </a>
+          )}
         </div>
       </div>
     </Link>

@@ -118,7 +118,8 @@ const en = {
     tabs: {
       recommend: "Recommend", bbag: "B bag", infoweb4: "infoweb4", sns: "SNS",
       trending: "Trending", airdrop: "Airdrop", favorites: "Favorites",
-      news: "News", contents: "Contents", live: "Live", mlm: "MLM"
+      news: "News", contents: "Contents", live: "Live", mlm: "MLM",
+      meetup: "Meetup", expo: "Expo"
     },
     tabTitles: {
       recommend: "⭐ Recommended Plans", bbag: "💰 B Bag Collection",

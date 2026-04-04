@@ -1,0 +1,1 @@
+ALTER TABLE `investmentPlans` ADD `onepageUrl` text;

@@ -1171,6 +1171,47 @@ export const appRouter = router({
       const { airdrops } = await import("../drizzle/schema");
       return drizzleDb.select().from(airdrops).where(eq(airdrops.status, "active")).orderBy(airdrops.sortOrder);
     }),
+
+    // 추천문구 자동생성 (LLM)
+    generateRecommendText: publicProcedure.input(z.object({
+      planId: z.number(),
+      lang: z.string().default("ko"),
+    })).mutation(async ({ input }) => {
+      const plan = await db.getInvestmentPlanById(input.planId);
+      if (!plan) throw new TRPCError({ code: "NOT_FOUND" });
+      const { invokeLLM } = await import("./_core/llm");
+      const langMap: Record<string, string> = {
+        ko: "한국어", en: "English", zh: "中文", ja: "日本語",
+        vi: "Tiếng Việt", th: "ภาษาไทย", id: "Bahasa Indonesia",
+      };
+      const langName = langMap[input.lang] || "한국어";
+      const dailyRate = Number((plan as any).dailyRate || 0).toFixed(2);
+      const minAmount = (plan as any).minAmount ? `$${Number((plan as any).minAmount).toLocaleString()} USDT` : "";
+      const description = (plan as any).description || "";
+      const collectionType = (plan as any).collectionType || "self";
+      const prompt = `당신은 투자 플랫폼 AlphaBag의 마케팅 전문가입니다.
+다음 프로젝트 정보를 바탕으로 ${langName}로 추천 문구 3가지를 작성해주세요.
+각 문구는 SNS 공유나 지인 추천에 적합한 짧고 임팩트 있는 문장으로, 이모지를 적절히 포함해주세요.
+
+프로젝트명: ${plan.name}
+컬렉션: ${collectionType}
+일일 수익률: ${dailyRate}%
+최소 투자: ${minAmount}
+설명: ${description}
+
+출력 형식 (JSON):
+{"texts": ["문구1", "문구2", "문구3"]}`;
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are a professional investment marketing copywriter. Always respond in valid JSON format." },
+          { role: "user", content: prompt },
+        ],
+        response_format: { type: "json_schema", json_schema: { name: "recommend_texts", strict: true, schema: { type: "object", properties: { texts: { type: "array", items: { type: "string" } } }, required: ["texts"], additionalProperties: false } } },
+      });
+      const content = response?.choices?.[0]?.message?.content || "{}";
+      const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
+      return { texts: parsed.texts || [] };
+    }),
   }),
   // 리스팅 신청
   listing: router({

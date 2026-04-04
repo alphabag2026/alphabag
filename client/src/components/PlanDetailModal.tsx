@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useWallet } from "@/contexts/WalletContext";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -6,7 +6,8 @@ import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import {
   X, Star, Play, FileText, ExternalLink, Share2,
-  Eye, Plus, Check, Globe, Heart, ChevronLeft, ChevronRight, ZoomIn
+  Eye, Plus, Check, Globe, Heart, ChevronLeft, ChevronRight, ZoomIn,
+  MessageCircle, Twitter, Send, ShoppingCart, Sparkles, Copy, RefreshCw
 } from "lucide-react";
 
 interface PlanDetailModalProps {
@@ -34,17 +35,47 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
   const [referralCode, setReferralCode] = useState("");
   const [referralSaved, setReferralSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const shareRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (shareRef.current && !shareRef.current.contains(e.target as Node)) {
+        setShareOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const [isFavorite, setIsFavorite] = useState(() => {
     const favs = JSON.parse(localStorage.getItem("alphabag_favorites") || "[]");
     return favs.includes(planId);
   });
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [recommendTexts, setRecommendTexts] = useState<string[]>([]);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [recommendLang, setRecommendLang] = useState("ko");
 
   const { isAuthenticated } = useAuth();
   const { isConnected, openModal } = useWallet();
 
   const { data: plan, isLoading } = trpc.public.planDetail.useQuery({ id: planId });
+
+  const generateRecommend = trpc.public.generateRecommendText.useMutation({
+    onSuccess: (data) => {
+      setRecommendTexts(data.texts);
+      toast.success("추천문구가 생성되었습니다!");
+    },
+    onError: () => toast.error("추천문구 생성에 실패했습니다."),
+  });
+
+  const handleCopyRecommend = async (text: string, idx: number) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+    toast.success("복사되었습니다!");
+  };
 
   const toggleFavorite = useCallback(() => {
     const favs: number[] = JSON.parse(localStorage.getItem("alphabag_favorites") || "[]");
@@ -87,10 +118,14 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
     invest.mutate({ planId, amount });
   };
 
-  const handleShare = async () => {
+  const getShareUrl = () => {
     const url = `${window.location.origin}/plan/${planId}`;
     const refCode = localStorage.getItem(`referral_${planId}`) || "";
-    const shareUrl = refCode ? `${url}?ref=${refCode}` : url;
+    return refCode ? `${url}?ref=${refCode}` : url;
+  };
+
+  const handleShare = async () => {
+    const shareUrl = getShareUrl();
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
@@ -99,6 +134,26 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
     } catch {
       toast.error("복사 실패");
     }
+  };
+
+  const handleShareTelegram = () => {
+    const shareUrl = getShareUrl();
+    const text = encodeURIComponent(`${plan?.name} - AlphaBag\n${Number((plan as any)?.dailyRate || 0).toFixed(2)}% Daily Return\n\n`);
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${text}`, "_blank");
+    setShareOpen(false);
+  };
+
+  const handleShareTwitter = () => {
+    const shareUrl = getShareUrl();
+    const text = encodeURIComponent(`${plan?.name} - ${Number((plan as any)?.dailyRate || 0).toFixed(2)}% Daily Return on AlphaBag`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(shareUrl)}`, "_blank");
+    setShareOpen(false);
+  };
+
+  const handleShareKakao = () => {
+    const shareUrl = getShareUrl();
+    window.open(`https://story.kakao.com/share?url=${encodeURIComponent(shareUrl)}`, "_blank");
+    setShareOpen(false);
   };
 
   const handleGo = () => {
@@ -181,9 +236,9 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
             <div className="md:w-[340px] flex-shrink-0 p-5 border-r border-border/40 space-y-4 overflow-y-auto">
               {/* 플랜 정보 */}
               <div className="flex items-start gap-3">
-                <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-muted">
+                <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-gray-950">
                   {(plan as any).logoUrl ? (
-                    <img src={(plan as any).logoUrl} alt={plan.name} className="w-full h-full object-cover" />
+                    <img src={(plan as any).logoUrl} alt={plan.name} className="w-full h-full object-contain p-1" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-2xl font-black text-muted-foreground">
                       {plan.name.charAt(0)}
@@ -313,9 +368,69 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
             <div className="flex-1 p-5">
               {activeTab === "overview" && (
                 <div className="space-y-4">
+                  {/* 텍스트 요약 */}
                   {plan.description && (
-                    <p className="text-sm text-muted-foreground leading-relaxed">{plan.description}</p>
+                    <div className="bg-gradient-to-br from-muted/60 to-muted/30 rounded-xl p-4 border border-border/40">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-base">📋</span>
+                        <span className="text-xs font-bold text-foreground uppercase tracking-wide">프로젝트 요약</span>
+                      </div>
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{plan.description}</p>
+                    </div>
                   )}
+
+                  {/* 추천문구 자동생성 */}
+                  <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 rounded-xl p-4 border border-amber-400/30">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-500" />
+                        <span className="text-xs font-bold text-foreground">AI 추천문구 생성</span>
+                      </div>
+                      <select
+                        value={recommendLang}
+                        onChange={(e) => setRecommendLang(e.target.value)}
+                        className="text-xs bg-background border border-border rounded-lg px-2 py-1 text-foreground focus:outline-none focus:border-amber-400"
+                      >
+                        <option value="ko">🇰🇷 한국어</option>
+                        <option value="en">🇺🇸 English</option>
+                        <option value="zh">🇨🇳 中文</option>
+                        <option value="ja">🇯🇵 日本語</option>
+                        <option value="vi">🇻🇳 Tiếng Việt</option>
+                        <option value="th">🇹🇭 ภาษาไทย</option>
+                        <option value="id">🇮🇩 Bahasa</option>
+                      </select>
+                    </div>
+                    <button
+                      onClick={() => generateRecommend.mutate({ planId, lang: recommendLang })}
+                      disabled={generateRecommend.isPending}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black text-sm font-bold transition-all"
+                    >
+                      {generateRecommend.isPending ? (
+                        <><RefreshCw className="w-4 h-4 animate-spin" /> 생성 중...</>
+                      ) : (
+                        <><Sparkles className="w-4 h-4" /> 추천문구 생성하기</>
+                      )}
+                    </button>
+                    {recommendTexts.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {recommendTexts.map((text, idx) => (
+                          <div key={idx} className="flex items-start gap-2 bg-background/60 rounded-lg p-3 border border-border/40">
+                            <p className="flex-1 text-sm text-foreground leading-relaxed">{text}</p>
+                            <button
+                              onClick={() => handleCopyRecommend(text, idx)}
+                              className="flex-shrink-0 p-1.5 rounded-md hover:bg-muted transition-colors"
+                            >
+                              {copiedIdx === idx ? (
+                                <Check className="w-3.5 h-3.5 text-green-500" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Ratio / Yield 박스 */}
                   <div className="grid grid-cols-2 gap-3">
@@ -536,13 +651,48 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
             {isFavorite ? "저장됨" : "저장"}
           </button>
 
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground border border-border/40 hover:border-border transition-all"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Share2 className="w-3.5 h-3.5" />}
-            {copied ? "복사됨" : "공유"}
-          </button>
+          {/* 공유 드롭다운 */}
+          <div className="relative" ref={shareRef}>
+            <button
+              onClick={() => setShareOpen(!shareOpen)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground border border-border/40 hover:border-border transition-all"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Share2 className="w-3.5 h-3.5" />}
+              {copied ? "복사됨" : "공유"}
+            </button>
+            {shareOpen && (
+              <div className="absolute bottom-full mb-2 left-0 bg-background border border-border rounded-xl shadow-xl p-2 min-w-[160px] z-10">
+                <button
+                  onClick={handleShare}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-muted transition-colors text-left"
+                >
+                  <Check className="w-3.5 h-3.5 text-green-600" />
+                  링크 복사
+                </button>
+                <button
+                  onClick={handleShareTelegram}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-muted transition-colors text-left"
+                >
+                  <Send className="w-3.5 h-3.5 text-blue-500" />
+                  텔레그램 공유
+                </button>
+                <button
+                  onClick={handleShareTwitter}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-muted transition-colors text-left"
+                >
+                  <Twitter className="w-3.5 h-3.5 text-sky-500" />
+                  X(트위터) 공유
+                </button>
+                <button
+                  onClick={handleShareKakao}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-muted transition-colors text-left"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 text-yellow-500" />
+                  카카오스토리
+                </button>
+              </div>
+            )}
+          </div>
 
           <div className="flex-1" />
 
