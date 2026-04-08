@@ -24,6 +24,8 @@ export const users = mysqlTable("users", {
   kycStatus: mysqlEnum("kycStatus", ["pending", "approved", "rejected", "none"]).default("none").notNull(),
   kycData: json("kycData"),
   telegramChatId: varchar("telegramChatId", { length: 64 }),
+  qnaNotifyTelegram: boolean("qnaNotifyTelegram").default(true).notNull(),
+  qnaNotifyEmail: boolean("qnaNotifyEmail").default(true).notNull(),
   totalInvested: decimal("totalInvested", { precision: 18, scale: 2 }).default("0"),
   totalNodes: decimal("totalNodes", { precision: 18, scale: 2 }).default("0"),
   isActive: boolean("isActive").default(true).notNull(),

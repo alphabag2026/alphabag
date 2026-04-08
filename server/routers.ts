@@ -356,6 +356,20 @@ export const appRouter = router({
       await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_TELEGRAM_CHAT_ID", targetType: "user", targetId: input.userId, details: { telegramChatId: input.telegramChatId } });
       return { success: true };
     }),
+    // Q&A 알림 설정 업데이트
+    updateQnaNotification: protectedProcedure.input(z.object({
+      qnaNotifyTelegram: z.boolean().optional(),
+      qnaNotifyEmail: z.boolean().optional(),
+    })).mutation(async ({ input, ctx }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { users } = await import("../drizzle/schema");
+      const updateData: Record<string, boolean> = {};
+      if (input.qnaNotifyTelegram !== undefined) updateData.qnaNotifyTelegram = input.qnaNotifyTelegram;
+      if (input.qnaNotifyEmail !== undefined) updateData.qnaNotifyEmail = input.qnaNotifyEmail;
+      await database.update(users).set(updateData as any).where(eq(users.id, ctx.user.id));
+      return { success: true };
+    }),
     broadcastTelegram: adminProcedure.input(z.object({
       message: z.string().min(1).max(4096),
       filter: z.object({
@@ -835,6 +849,49 @@ Return this exact JSON structure:
       return drizzleDb.select().from(qnaQuestions)
         .where(eq(qnaQuestions.userId, ctx.user.id))
         .orderBy(qnaQuestions.createdAt);
+    }),
+    deleteMine: protectedProcedure.input(z.object({
+      id: z.number(),
+    })).mutation(async ({ ctx, input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { qnaQuestions } = await import("../drizzle/schema");
+      const { eq, and } = await import("drizzle-orm");
+      const rows = await drizzleDb.select().from(qnaQuestions)
+        .where(and(eq(qnaQuestions.id, input.id), eq(qnaQuestions.userId, ctx.user.id)));
+      if (!rows.length) throw new TRPCError({ code: 'NOT_FOUND' });
+      if (rows[0].answer) throw new TRPCError({ code: 'FORBIDDEN', message: '이미 답변된 질문은 삭제할 수 없습니다.' });
+      await drizzleDb.delete(qnaQuestions).where(eq(qnaQuestions.id, input.id));
+      return { success: true };
+    }),
+    updateMine: protectedProcedure.input(z.object({
+      id: z.number(),
+      question: z.string().min(1).max(2000),
+      isPrivate: z.boolean().optional(),
+      category: z.string().optional(),
+    })).mutation(async ({ ctx, input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { qnaQuestions } = await import("../drizzle/schema");
+      const { eq, and } = await import("drizzle-orm");
+      const rows = await drizzleDb.select().from(qnaQuestions)
+        .where(and(eq(qnaQuestions.id, input.id), eq(qnaQuestions.userId, ctx.user.id)));
+      if (!rows.length) throw new TRPCError({ code: 'NOT_FOUND' });
+      if (rows[0].answer) throw new TRPCError({ code: 'FORBIDDEN', message: '이미 답변된 질문은 수정할 수 없습니다.' });
+      let translationData: Record<string, string> = {};
+      try {
+        const translations = await translateToAllLanguages(input.question);
+        for (const [lang, val] of Object.entries(translations)) {
+          translationData[`question${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = val;
+        }
+      } catch (e) { console.warn('[QnA translate]', e); }
+      await drizzleDb.update(qnaQuestions).set({
+        question: input.question,
+        ...(input.isPrivate !== undefined ? { isPrivate: input.isPrivate } : {}),
+        ...(input.category ? { category: input.category } : {}),
+        ...translationData,
+      } as any).where(eq(qnaQuestions.id, input.id));
+      return { success: true };
     }),
     ask: publicProcedure.input(z.object({
       question: z.string().min(1).max(2000),

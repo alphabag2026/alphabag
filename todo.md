@@ -766,3 +766,11 @@
 - [x] 서버 qna.listMine 프로시저 확인 (이미 구현됨)
 - [x] 마이페이지(ProfilePage.tsx)에 '내 Q&A' 섹션 추가 (아코디언 펼치기, 비밀글 잠금 아이콘, 답변완료/답변대기 배지)
 - [x] 질문 클릭 시 질문+답변 상세 표시 (답변 시간 포함)
+
+## Phase 64 - Q&A 삭제/수정 + 알림 설정 토글 (2026-04-08)
+- [ ] 서버 qna.deleteMine 프로시저 (답변 전 본인 질문 삭제)
+- [ ] 서버 qna.updateMine 프로시저 (답변 전 본인 질문 수정)
+- [ ] DB users 테이블에 qnaNotifyTelegram, qnaNotifyEmail 컬럼 추가
+- [ ] 서버 user.updateQnaNotification 프로시저 추가
+- [ ] 마이페이지 내 Q&A - 삭제/수정 버튼 UI 추가
+- [ ] 마이페이지 - Q&A 알림 설정 토글 (텔레그램/이메일 선택)

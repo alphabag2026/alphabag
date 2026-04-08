@@ -6,12 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import {
   ArrowLeft, Loader2, Wallet, User, Shield, Copy,
   CheckCircle2, AlertCircle, Clock, Send, ExternalLink, Link2,
-  MessageSquare, Lock, ChevronDown, ChevronUp
+  MessageSquare, Lock, ChevronDown, ChevronUp, Trash2, Pencil, Bell
 } from "lucide-react";
 import { useWallet } from "@/contexts/WalletContext";
 
@@ -53,8 +55,44 @@ export default function ProfilePage() {
   });
 
   // 내 Q&A
+  const utils = trpc.useUtils();
   const { data: myQna, isLoading: qnaLoading } = trpc.qna.listMine.useQuery(undefined, { enabled: isAuthenticated });
   const [expandedQna, setExpandedQna] = useState<number | null>(null);
+  const [editingQnaId, setEditingQnaId] = useState<number | null>(null);
+  const [editQuestion, setEditQuestion] = useState("");
+  const [editIsPrivate, setEditIsPrivate] = useState(false);
+  const [editCategory, setEditCategory] = useState("general");
+  const [deletingQnaId, setDeletingQnaId] = useState<number | null>(null);
+
+  const deleteQna = trpc.qna.deleteMine.useMutation({
+    onSuccess: () => {
+      toast.success("질문이 삭제되었습니다.");
+      setDeletingQnaId(null);
+      utils.qna.listMine.invalidate();
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "삭제에 실패했습니다.");
+      setDeletingQnaId(null);
+    },
+  });
+
+  const updateQna = trpc.qna.updateMine.useMutation({
+    onSuccess: () => {
+      toast.success("질문이 수정되었습니다.");
+      setEditingQnaId(null);
+      utils.qna.listMine.invalidate();
+    },
+    onError: (err: any) => toast.error(err.message || "수정에 실패했습니다."),
+  });
+
+  // Q&A 알림 설정
+  const updateQnaNotification = trpc.users.updateQnaNotification.useMutation({
+    onSuccess: () => {
+      toast.success("알림 설정이 저장되었습니다.");
+      refetch();
+    },
+    onError: (err: any) => toast.error(err.message || "알림 설정 저장에 실패했습니다."),
+  });
 
   const generateCode = trpc.user.generateReferralCode.useMutation({
     onSuccess: (data) => {
@@ -72,6 +110,19 @@ export default function ProfilePage() {
 
   const kycStatus = profile?.kycStatus ?? "none";
   const kycCfg = kycStatusConfig[kycStatus];
+
+  const categoryLabel = (cat: string) => {
+    const map: Record<string, string> = { general: '일반', investment: '투자', account: '계정', payment: '결제', technical: '기술' };
+    return map[cat] ?? cat;
+  };
+
+  const startEdit = (q: { id: number; question: string; isPrivate: boolean; category: string }) => {
+    setEditingQnaId(q.id);
+    setEditQuestion(q.question);
+    setEditIsPrivate(q.isPrivate);
+    setEditCategory(q.category);
+    setExpandedQna(q.id);
+  };
 
   if (loading) {
     return (
@@ -376,6 +427,7 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
+
         {/* 내 Q&A */}
         <Card className="border-border/40">
           <CardHeader className="pb-3">
@@ -386,7 +438,38 @@ export default function ProfilePage() {
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {/* Q&A 알림 설정 */}
+            <div className="p-3 rounded-lg bg-muted/20 border border-border/30 space-y-3">
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-foreground">Q&A 답변 알림 설정</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-foreground">텔레그램 알림</p>
+                  <p className="text-xs text-muted-foreground">답변 시 텔레그램 DM으로 알림</p>
+                </div>
+                <Switch
+                  checked={profile?.qnaNotifyTelegram ?? true}
+                  onCheckedChange={(checked) => updateQnaNotification.mutate({ qnaNotifyTelegram: checked })}
+                  disabled={updateQnaNotification.isPending}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-foreground">이메일 알림</p>
+                  <p className="text-xs text-muted-foreground">답변 시 이메일로 알림</p>
+                </div>
+                <Switch
+                  checked={profile?.qnaNotifyEmail ?? true}
+                  onCheckedChange={(checked) => updateQnaNotification.mutate({ qnaNotifyEmail: checked })}
+                  disabled={updateQnaNotification.isPending}
+                />
+              </div>
+            </div>
+
+            {/* Q&A 목록 */}
             {qnaLoading ? (
               <div className="flex justify-center py-6">
                 <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
@@ -403,15 +486,19 @@ export default function ProfilePage() {
                     key={q.id}
                     className="rounded-lg border border-border/40 bg-background/50 overflow-hidden"
                   >
+                    {/* 헤더 버튼 */}
                     <button
                       className="w-full flex items-start gap-3 p-3 text-left hover:bg-muted/20 transition-colors"
-                      onClick={() => setExpandedQna(expandedQna === q.id ? null : q.id)}
+                      onClick={() => {
+                        if (editingQnaId === q.id) return;
+                        setExpandedQna(expandedQna === q.id ? null : q.id);
+                      }}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           {q.isPrivate && <Lock className="w-3 h-3 text-muted-foreground flex-shrink-0" />}
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                            {q.category === 'general' ? '일반' : q.category === 'investment' ? '투자' : q.category === 'account' ? '계정' : q.category === 'payment' ? '결제' : q.category === 'technical' ? '기술' : q.category}
+                            {categoryLabel(q.category ?? 'general')}
                           </Badge>
                           {q.answer ? (
                             <Badge className="text-[10px] px-1.5 py-0 bg-green-500/20 text-green-400 border-green-500/30">답변완료</Badge>
@@ -430,26 +517,132 @@ export default function ProfilePage() {
                         <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                       )}
                     </button>
+
+                    {/* 펼쳐진 내용 */}
                     {expandedQna === q.id && (
                       <div className="px-3 pb-3 space-y-2 border-t border-border/30 pt-3">
-                        <div className="p-3 rounded-lg bg-muted/20">
-                          <p className="text-xs text-muted-foreground mb-1 font-medium">질문</p>
-                          <p className="text-sm text-foreground whitespace-pre-wrap">{q.question}</p>
-                        </div>
-                        {q.answer ? (
-                          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-                            <p className="text-xs text-primary mb-1 font-medium">관리자 답변</p>
-                            <p className="text-sm text-foreground whitespace-pre-wrap">{q.answer}</p>
-                            {q.answeredAt && (
-                              <p className="text-[10px] text-muted-foreground mt-2">
-                                {new Date(q.answeredAt).toLocaleString()}
-                              </p>
-                            )}
+                        {/* 수정 폼 */}
+                        {editingQnaId === q.id ? (
+                          <div className="space-y-3">
+                            <div>
+                              <Label className="text-xs text-muted-foreground mb-1 block">질문 수정</Label>
+                              <Textarea
+                                value={editQuestion}
+                                onChange={(e) => setEditQuestion(e.target.value)}
+                                className="text-sm bg-background/50 min-h-[80px]"
+                                placeholder="질문 내용을 입력하세요"
+                              />
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-2">
+                                <Label className="text-xs text-muted-foreground">카테고리</Label>
+                                <select
+                                  value={editCategory}
+                                  onChange={(e) => setEditCategory(e.target.value)}
+                                  className="text-xs bg-background border border-border/40 rounded px-2 py-1 text-foreground"
+                                >
+                                  <option value="general">일반</option>
+                                  <option value="investment">투자</option>
+                                  <option value="account">계정</option>
+                                  <option value="payment">결제</option>
+                                  <option value="technical">기술</option>
+                                </select>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Label className="text-xs text-muted-foreground">비밀글</Label>
+                                <Switch
+                                  checked={editIsPrivate}
+                                  onCheckedChange={setEditIsPrivate}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => updateQna.mutate({ id: q.id, question: editQuestion, isPrivate: editIsPrivate, category: editCategory })}
+                                disabled={updateQna.isPending || !editQuestion.trim()}
+                                className="gap-1"
+                              >
+                                {updateQna.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                                저장
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setEditingQnaId(null)}
+                                disabled={updateQna.isPending}
+                              >
+                                취소
+                              </Button>
+                            </div>
                           </div>
                         ) : (
-                          <div className="p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/20">
-                            <p className="text-xs text-yellow-400">아직 답변이 등록되지 않았습니다. 답변 시 텔레그램/이메일로 알림을 받으실 수 있습니다.</p>
-                          </div>
+                          <>
+                            <div className="p-3 rounded-lg bg-muted/20">
+                              <p className="text-xs text-muted-foreground mb-1 font-medium">질문</p>
+                              <p className="text-sm text-foreground whitespace-pre-wrap">{q.question}</p>
+                            </div>
+                            {q.answer ? (
+                              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                                <p className="text-xs text-primary mb-1 font-medium">관리자 답변</p>
+                                <p className="text-sm text-foreground whitespace-pre-wrap">{q.answer}</p>
+                                {q.answeredAt && (
+                                  <p className="text-[10px] text-muted-foreground mt-2">
+                                    {new Date(q.answeredAt).toLocaleString()}
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/20">
+                                <p className="text-xs text-yellow-400">아직 답변이 등록되지 않았습니다. 답변 시 텔레그램/이메일로 알림을 받으실 수 있습니다.</p>
+                              </div>
+                            )}
+                            {/* 수정/삭제 버튼 (답변 전에만 표시) */}
+                            {!q.answer && (
+                              <div className="flex gap-2 pt-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-1 text-xs h-7"
+                                  onClick={() => startEdit({ id: q.id, question: q.question ?? '', isPrivate: q.isPrivate, category: q.category ?? 'general' })}
+                                >
+                                  <Pencil className="w-3 h-3" /> 수정
+                                </Button>
+                                {deletingQnaId === q.id ? (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-muted-foreground">정말 삭제하시겠습니까?</span>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      className="gap-1 text-xs h-7"
+                                      onClick={() => deleteQna.mutate({ id: q.id })}
+                                      disabled={deleteQna.isPending}
+                                    >
+                                      {deleteQna.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "확인"}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="text-xs h-7"
+                                      onClick={() => setDeletingQnaId(null)}
+                                      disabled={deleteQna.isPending}
+                                    >
+                                      취소
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="gap-1 text-xs h-7 text-red-400 border-red-400/30 hover:bg-red-500/10"
+                                    onClick={() => setDeletingQnaId(q.id)}
+                                  >
+                                    <Trash2 className="w-3 h-3" /> 삭제
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     )}

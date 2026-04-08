@@ -162,6 +162,13 @@
       "when": 1775653479542,
       "tag": "0022_ambitious_johnny_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "5",
+      "when": 1775664090201,
+      "tag": "0023_yellow_christian_walker",
+      "breakpoints": true
     }
   ]
 }
