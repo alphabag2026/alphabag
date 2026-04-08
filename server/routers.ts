@@ -818,12 +818,35 @@ Return this exact JSON structure:
           }
         } catch (e) { console.warn('[QnA answer translate]', e); }
       }
+      // 답변 저장 전 질문 조회 (텔레그램 알림용)
+      const [qna] = await drizzleDb.select().from(qnaQuestions).where(eq(qnaQuestions.id, input.id));
       await drizzleDb.update(qnaQuestions).set({
         answer: input.answer,
         answeredBy: ctx.user.id,
         answeredAt: new Date(),
         ...translationData,
       } as any).where(eq(qnaQuestions.id, input.id));
+      // 텔레그램 알림 - 질문자가 userId를 가지고 있고 telegramChatId가 등록된 경우
+      if (qna?.userId) {
+        try {
+          const { users } = await import("../drizzle/schema");
+          const [questioner] = await drizzleDb.select({ telegramChatId: users.telegramChatId })
+            .from(users).where(eq(users.id, qna.userId));
+          if (questioner?.telegramChatId) {
+            const botToken = process.env.TELEGRAM_BOT_TOKEN;
+            if (botToken) {
+              const shortQ = qna.question.length > 100 ? qna.question.substring(0, 100) + '...' : qna.question;
+              const shortA = input.answer.length > 200 ? input.answer.substring(0, 200) + '...' : input.answer;
+              const msg = `✅ <b>Q&A 답변이 등록되었습니다</b>\n\n❓ <b>질문:</b> ${shortQ}\n\n💬 <b>답변:</b> ${shortA}`;
+              await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: questioner.telegramChatId, text: msg, parse_mode: 'HTML' }),
+              }).catch(e => console.warn('[QnA notify]', e));
+            }
+          }
+        } catch (e) { console.warn('[QnA notify error]', e); }
+      }
       return { success: true };
     }),
     delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {

@@ -78,6 +78,11 @@ export default function FaqQnaPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const filteredFaqs = faqs?.filter((f: any) => selectedCategory === "all" || f.category === selectedCategory) ?? [];
 
+  const getCategoryLabel = (cat: string) => {
+    const map: Record<string, string> = { general: "일반", investment: "투자", account: "계정", payment: "결제", technical: "기술" };
+    return map[cat] ?? cat;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <MainNav />
@@ -118,7 +123,7 @@ export default function FaqQnaPage() {
                     onClick={() => setSelectedCategory(cat)}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedCategory === cat ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
                   >
-                    {cat}
+                    {getCategoryLabel(cat)}
                   </button>
                 ))}
               </div>
@@ -182,7 +187,7 @@ export default function FaqQnaPage() {
           {/* ── Q&A 탭 ── */}
           <TabsContent value="qna">
             <div className="flex justify-between items-center mb-5">
-              <p className="text-sm text-muted-foreground">궁금한 점을 질문해보세요</p>
+              <p className="text-sm text-muted-foreground">궁금한 점을 질문해보세요 {user?.telegramChatId && <span className="text-xs text-blue-400 ml-1">텔레그램 답변 알림 활성화</span>}</p>
               <Button size="sm" className="gap-2" onClick={() => setAskDialogOpen(true)}>
                 <Plus className="w-4 h-4" />
                 질문하기
@@ -344,6 +349,12 @@ export default function FaqQnaPage() {
                 </p>
               </div>
             </div>
+            {user && (
+              <p className="text-xs text-blue-400/80 flex items-center gap-1.5 px-1">
+                <MessageSquare className="w-3 h-3" />
+                텔레그램 연동 시 답변이 등록되면 텔레그램으로 자동 알림을 받습니다
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAskDialogOpen(false)}>취소</Button>

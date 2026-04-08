@@ -712,3 +712,11 @@
 - [x] PINDEX 로고 이미지 업데이트 (id=16)
 - [x] LTF 로고 이미지 업데이트 (id=17)
 - [x] AWS Lightsail 서버 배포 (alphabag.net)
+
+## Phase 55 - FAQ/Q&A 기능 강화 (2026-04-08)
+- [x] Q&A 답변 시 텔레그램 알림 (qna.answer 프로시저에 텔레그램 DM 발송)
+- [x] 관리자 Content 페이지 FAQ 카테고리 필터 (일반/투자/계정/결제/기술)
+- [x] 관리자 Content 페이지 Q&A 상태 필터 (전체/미답변/답변완료)
+- [x] 사용자 FAQ 페이지 카테고리 한국어 표시 (getCategoryLabel)
+- [x] 사용자 Q&A 탭 텔레그램 알림 안내 메시지 추가
+- [x] FAQ/Q&A 테스트 8개 추가 (총 96개 통과)

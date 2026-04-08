@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -25,10 +25,12 @@ export default function Content() {
   const [answerTarget, setAnswerTarget] = useState<any>(null);
   const [answerText, setAnswerText] = useState("");
   const [translatingId, setTranslatingId] = useState<number | null>(null);
+  const [faqCategoryFilter, setFaqCategoryFilter] = useState<string>("all");
+  const [qnaStatusFilter, setQnaStatusFilter] = useState<string>("all");
 
   const utils = trpc.useUtils();
 
-  // ── 기존 데이터 쿼리 ──────────────────────────────────────────────────────────
+  // ── 기존 데이터 쿼리 ────────────────────────────────────────────────────
   const { data: notices } = trpc.content.notices.list.useQuery();
   const { data: announcements } = trpc.content.announcements.list.useQuery();
   const { data: banners } = trpc.content.eventBanners.list.useQuery();
@@ -37,6 +39,25 @@ export default function Content() {
   // ── FAQ / Q&A 데이터 쿼리 ────────────────────────────────────────────────────
   const { data: faqs, refetch: refetchFaqs } = trpc.faq.listAdmin.useQuery();
   const { data: qnaList, refetch: refetchQna } = trpc.qna.listAdmin.useQuery();
+
+  // ── FAQ 카테고리 목록 (동적 추출) ────────────────────────────────────────────
+  const faqCategories = useMemo(() => {
+    if (!faqs) return [];
+    return Array.from(new Set(faqs.map((f: any) => f.category).filter(Boolean))) as string[];
+  }, [faqs]);
+
+  const filteredFaqs = useMemo(() => {
+    if (!faqs) return [];
+    if (faqCategoryFilter === "all") return faqs;
+    return faqs.filter((f: any) => f.category === faqCategoryFilter);
+  }, [faqs, faqCategoryFilter]);
+
+  const filteredQna = useMemo(() => {
+    if (!qnaList) return [];
+    if (qnaStatusFilter === "pending") return qnaList.filter((q: any) => !q.answer);
+    if (qnaStatusFilter === "answered") return qnaList.filter((q: any) => q.answer);
+    return qnaList;
+  }, [qnaList, qnaStatusFilter]);
 
   // ── 기존 Mutations ────────────────────────────────────────────────────────────
   const createNotice = trpc.content.notices.create.useMutation({ onSuccess: () => { toast.success("공지 생성 완료"); utils.content.notices.list.invalidate(); setDialogOpen(false); } });
@@ -322,9 +343,33 @@ export default function Content() {
           <TabsContent value="faqs" className="mt-4">
             <Card className="border-border/40">
               <CardContent className="p-4">
-                {faqs && faqs.length > 0 ? (
+                {/* 카테고리 필터 */}
+                {faqCategories.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-4 pb-3 border-b border-border/30">
+                    <button
+                      onClick={() => setFaqCategoryFilter("all")}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                        faqCategoryFilter === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      }`}
+                    >
+                      전체 ({faqs?.length ?? 0})
+                    </button>
+                    {faqCategories.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setFaqCategoryFilter(cat)}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                          faqCategoryFilter === cat ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        }`}
+                      >
+                        {{ general: "일반", investment: "투자", account: "계정", payment: "결제", technical: "기술" }[cat] ?? cat} ({faqs?.filter((f: any) => f.category === cat).length ?? 0})
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {filteredFaqs.length > 0 ? (
                   <div className="space-y-2">
-                    {faqs.map((item: any) => (
+                    {filteredFaqs.map((item: any) => (
                       <FaqRow key={item.id} item={item} />
                     ))}
                   </div>
@@ -346,35 +391,29 @@ export default function Content() {
           <TabsContent value="qna" className="mt-4">
             <Card className="border-border/40">
               <CardContent className="p-4">
-                {qnaList && qnaList.length > 0 ? (
+                {/* 상태 필터 */}
+                <div className="flex flex-wrap gap-1.5 mb-4 pb-3 border-b border-border/30">
+                  {[
+                    { value: "all", label: `전체 (${qnaList?.length ?? 0})` },
+                    { value: "pending", label: `미답변 (${qnaList?.filter((q: any) => !q.answer).length ?? 0})` },
+                    { value: "answered", label: `답변완료 (${qnaList?.filter((q: any) => q.answer).length ?? 0})` },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setQnaStatusFilter(opt.value)}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                        qnaStatusFilter === opt.value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                {filteredQna.length > 0 ? (
                   <div className="space-y-2">
-                    {/* 미답변 먼저 */}
-                    {qnaList.filter((q: any) => !q.answer).length > 0 && (
-                      <div className="mb-3">
-                        <p className="text-xs font-medium text-amber-400 mb-2 flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          미답변 ({qnaList.filter((q: any) => !q.answer).length}건)
-                        </p>
-                        <div className="space-y-2">
-                          {qnaList.filter((q: any) => !q.answer).map((item: any) => (
-                            <QnaRow key={item.id} item={item} />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {qnaList.filter((q: any) => q.answer).length > 0 && (
-                      <div>
-                        <p className="text-xs font-medium text-emerald-400 mb-2 flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" />
-                          답변 완료 ({qnaList.filter((q: any) => q.answer).length}건)
-                        </p>
-                        <div className="space-y-2">
-                          {qnaList.filter((q: any) => q.answer).map((item: any) => (
-                            <QnaRow key={item.id} item={item} />
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    {filteredQna.map((item: any) => (
+                      <QnaRow key={item.id} item={item} />
+                    ))}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
