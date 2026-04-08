@@ -229,16 +229,32 @@ export default function Content() {
         {item.isPinned && <Badge className="badge-pending text-xs">Pinned</Badge>}
         <Badge className={item.isActive ? "badge-active" : "badge-inactive"}>{item.isActive ? "Active" : "Off"}</Badge>
         {(type === "notices" || type === "faqs") && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-6 px-2 text-xs gap-1"
-            disabled={translatingId === item.id}
-            onClick={() => handleTranslate(item.id, type, item)}
-          >
-            <Languages className="w-3 h-3" />
-            {translatingId === item.id ? "번역중..." : "번역"}
-          </Button>
+          <>
+            {((type === "notices" && item.titleZh) || (type === "faqs" && item.questionZh)) && (
+              <span className="text-[10px] text-emerald-400 flex items-center gap-0.5 border border-emerald-500/30 rounded px-1.5 py-0.5">
+                <Globe className="w-2.5 h-2.5" />번역됨
+              </span>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              className={`h-6 px-2 text-xs gap-1 ${
+                translatingId === item.id ? "opacity-60" :
+                ((type === "notices" && item.titleZh) || (type === "faqs" && item.questionZh))
+                  ? "border-emerald-500/40 text-emerald-400 hover:text-emerald-300 hover:border-emerald-400"
+                  : "border-amber-500/40 text-amber-400 hover:text-amber-300 hover:border-amber-400"
+              }`}
+              disabled={translatingId === item.id}
+              onClick={() => handleTranslate(item.id, type, item)}
+            >
+              {translatingId === item.id ? (
+                <><span className="inline-block animate-spin">&#8635;</span> 번역중...</>
+              ) : (
+                <><Languages className="w-3 h-3" />
+                {((type === "notices" && item.titleZh) || (type === "faqs" && item.questionZh)) ? "재번역" : "번역"}</>
+              )}
+            </Button>
+          </>
         )}
         <button onClick={() => handleToggle(item.id, type, item.isActive)} className="text-muted-foreground hover:text-primary transition-colors">
           {item.isActive ? <ToggleRight className="w-5 h-5 text-emerald-400" /> : <ToggleLeft className="w-5 h-5" />}

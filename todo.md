@@ -740,3 +740,8 @@
 - [x] Home.tsx 공지 목록 번역 필드 적용 (getLocalizedField 헬퍼)
 - [x] NoticeDetailModal.tsx 번역 필드 적용 (title/content 언어별 표시)
 - [x] Home.tsx FAQ/Q&A 탭에서 trpc.faq.list, trpc.qna.listPublic 데이터 로드
+
+## Phase 60 - 번역 UX 개선 + 공지 박스 높이 고정 (2026-04-08)
+- [x] 관리자 Content 공지사항 탭 - 번역 버튼 상태(번역중/완료/재번역) 표시 + 번역됨 배지
+- [x] 관리자 Content FAQ 탭 - 번역 버튼 상태(번역중/완료/재번역) 표시 + 번역됨 배지
+- [x] 홈페이지 공지 박스 min-h-[200px] 고정 (탭 전환 시 레이아웃 안정화)

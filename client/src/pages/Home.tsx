@@ -933,7 +933,7 @@ export default function Home() {
         {/* ─── 공지 + 광고 슬라이더 ─── */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
           {/* 공지 박스 */}
-          <div className={`lg:col-span-2 rounded-xl border p-4 ${cardBg}`}>
+          <div className={`lg:col-span-2 rounded-xl border p-4 ${cardBg} min-h-[200px]`}>
             {/* 탭 헤더 */}
             <div className="flex items-center gap-1 mb-3">
               {(["notice", "faq", "qna"] as const).map((tab) => {
