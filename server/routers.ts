@@ -895,23 +895,41 @@ Return this exact JSON structure:
         answeredAt: new Date(),
         ...translationData,
       } as any).where(eq(qnaQuestions.id, input.id));
-      // 텔레그램 알림 - 질문자가 userId를 가지고 있고 telegramChatId가 등록된 경우
+      // 텔레그램 + 이메일 알림 - 질문자가 userId를 가지고 있는 경우
       if (qna?.userId) {
         try {
           const { users } = await import("../drizzle/schema");
-          const [questioner] = await drizzleDb.select({ telegramChatId: users.telegramChatId })
-            .from(users).where(eq(users.id, qna.userId));
+          const [questioner] = await drizzleDb.select({
+            telegramChatId: users.telegramChatId,
+            email: users.email,
+            name: users.name,
+          }).from(users).where(eq(users.id, qna.userId));
+          const shortQ = qna.question.length > 100 ? qna.question.substring(0, 100) + '...' : qna.question;
+          const shortA = input.answer.length > 200 ? input.answer.substring(0, 200) + '...' : input.answer;
+          // 텔레그램 알림
           if (questioner?.telegramChatId) {
             const botToken = process.env.TELEGRAM_BOT_TOKEN;
             if (botToken) {
-              const shortQ = qna.question.length > 100 ? qna.question.substring(0, 100) + '...' : qna.question;
-              const shortA = input.answer.length > 200 ? input.answer.substring(0, 200) + '...' : input.answer;
               const msg = `✅ <b>Q&A 답변이 등록되었습니다</b>\n\n❓ <b>질문:</b> ${shortQ}\n\n💬 <b>답변:</b> ${shortA}`;
-              await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+              fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ chat_id: questioner.telegramChatId, text: msg, parse_mode: 'HTML' }),
-              }).catch(e => console.warn('[QnA notify]', e));
+              }).catch(e => console.warn('[QnA telegram notify]', e));
+            }
+          }
+          // 이메일 알림 (질문자 이메일이 있는 경우)
+          if (questioner?.email) {
+            const apiUrl = process.env.BUILT_IN_FORGE_API_URL;
+            const apiKey = process.env.BUILT_IN_FORGE_API_KEY;
+            if (apiUrl && apiKey) {
+              const subject = `[AlphaBag] Q&A 답변이 등록되었습니다`;
+              const body = `안녕하세요${questioner.name ? `, ${questioner.name}님` : ''}!\n\nQ&A 질문에 답변이 등록되었습니다.\n\n❓ 질문: ${shortQ}\n\n💬 답변: ${shortA}\n\n자세한 내용은 AlphaBag 사이트에서 확인하세요.\n\nAlphaBag 운영팀 드림`;
+              fetch(`${apiUrl}/v1/email/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+                body: JSON.stringify({ to: questioner.email, subject, text: body }),
+              }).catch(e => console.warn('[QnA email notify]', e));
             }
           }
         } catch (e) { console.warn('[QnA notify error]', e); }

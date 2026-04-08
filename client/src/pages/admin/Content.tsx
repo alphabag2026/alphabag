@@ -386,23 +386,36 @@ export default function Content() {
             </TabsList>
             <div className="flex items-center gap-2">
               {(activeTab === "notices" || activeTab === "faqs") && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 text-xs border-amber-500/40 text-amber-400 hover:text-amber-300 hover:border-amber-400"
-                  disabled={isBulkTranslating}
-                  onClick={() => {
-                    setIsBulkTranslating(true);
-                    if (activeTab === "notices") translateAllNotices.mutate();
-                    else translateAllFaqs.mutate();
-                  }}
-                >
-                  {isBulkTranslating ? (
-                    <><span className="inline-block animate-spin">↻</span> 번역중...</>
-                  ) : (
-                    <><Languages className="w-3.5 h-3.5" /> 미번역 일괄 번역</>
+                <div className="flex items-center gap-2">
+                  {/* 번역 완료 수 / 전체 수 표시 */}
+                  {activeTab === "notices" && notices && (
+                    <span className="text-[10px] text-gray-500">
+                      번역됨 <span className="text-amber-400 font-bold">{notices.filter((n: any) => n.titleZh).length}</span>/{notices.length}
+                    </span>
                   )}
-                </Button>
+                  {activeTab === "faqs" && faqs && (
+                    <span className="text-[10px] text-gray-500">
+                      번역됨 <span className="text-amber-400 font-bold">{faqs.filter((f: any) => f.questionZh).length}</span>/{faqs.length}
+                    </span>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-xs border-amber-500/40 text-amber-400 hover:text-amber-300 hover:border-amber-400"
+                    disabled={isBulkTranslating}
+                    onClick={() => {
+                      setIsBulkTranslating(true);
+                      if (activeTab === "notices") translateAllNotices.mutate();
+                      else translateAllFaqs.mutate();
+                    }}
+                  >
+                    {isBulkTranslating ? (
+                      <><span className="inline-block animate-spin">↻</span> 번역중...</>
+                    ) : (
+                      <><Languages className="w-3.5 h-3.5" /> 미번역 일괄 번역</>
+                    )}
+                  </Button>
+                </div>
               )}
               {activeTab !== "qna" && (
                 <Button onClick={() => openCreate(activeTab)} className="gap-2">

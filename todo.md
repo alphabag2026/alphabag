@@ -756,3 +756,8 @@
 - [x] 관리자 Content 공지/FAQ 탭 - 미번역 일괄 번역 버튼 추가 (translateAll 프로시저)
 - [x] 홈 공지 박스 탭 라벨 i18n 다국어화 (21개 언어 tabNotice/tabFaq/tabQna 키 추가)
 - [x] Q&A 탭 미답변 카운트 빨간 배지 (미답변 수 실시간 표시)
+
+## Phase 62 - 번역 UX 개선 + Q&A 이메일 알림 (2026-04-08)
+- [x] 관리자 Content 공지/FAQ 탭 번역 완료 수/전체 수 표시 (번역됨 N/M 형식)
+- [x] Q&A 답변 시 이메일 알림 기능 (BUILT_IN_FORGE_API /v1/email/send 활용)
+- [x] Q&A 답변 시 텔레그램 + 이메일 동시 알림 (둘 다 지원)
