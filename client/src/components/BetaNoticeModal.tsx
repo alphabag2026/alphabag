@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const STORAGE_KEY = "alphabag_beta_notice_closed_v1";
 
 export default function BetaNoticeModal() {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     const closed = localStorage.getItem(STORAGE_KEY);
     if (!closed) {
-      // 약간의 딜레이 후 표시 (페이지 로드 완료 후)
       const timer = setTimeout(() => setVisible(true), 800);
       return () => clearTimeout(timer);
     }
@@ -47,7 +48,7 @@ export default function BetaNoticeModal() {
           boxShadow: "0 0 60px rgba(255, 185, 0, 0.15), 0 25px 50px rgba(0,0,0,0.5)",
         }}
       >
-        {/* 상단 골드 글로우 라인 */}
+        {/* Top gold glow line */}
         <div
           style={{
             position: "absolute",
@@ -60,7 +61,7 @@ export default function BetaNoticeModal() {
           }}
         />
 
-        {/* 배경 장식 원 */}
+        {/* Background decoration circle */}
         <div
           style={{
             position: "absolute",
@@ -75,7 +76,7 @@ export default function BetaNoticeModal() {
         />
 
         <div className="p-8 pt-10">
-          {/* 베타 배지 */}
+          {/* Beta badge */}
           <div className="flex justify-center mb-5">
             <span
               style={{
@@ -93,7 +94,7 @@ export default function BetaNoticeModal() {
             </span>
           </div>
 
-          {/* 메인 타이틀 */}
+          {/* Main title */}
           <div className="text-center mb-6">
             <div className="flex items-center justify-center gap-3 mb-3">
               <div style={{ width: "40px", height: "1px", background: "linear-gradient(90deg, transparent, rgba(255,185,0,0.5))" }} />
@@ -112,14 +113,14 @@ export default function BetaNoticeModal() {
                 marginBottom: "8px",
               }}
             >
-              AlphaBag 베타 오픈
+              {t("beta.title")}
             </h2>
             <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", letterSpacing: "1px" }}>
-              Beta Testing in Progress
+              {t("beta.subtitle")}
             </p>
           </div>
 
-          {/* 구분선 */}
+          {/* Divider */}
           <div
             style={{
               height: "1px",
@@ -128,7 +129,7 @@ export default function BetaNoticeModal() {
             }}
           />
 
-          {/* 본문 내용 */}
+          {/* Body content */}
           <div className="space-y-4 mb-8">
             <p
               style={{
@@ -138,9 +139,9 @@ export default function BetaNoticeModal() {
                 textAlign: "center",
               }}
             >
-              현재 <strong style={{ color: "#FFB900" }}>AlphaBag</strong>는 베타 테스트 단계로 운영 중입니다.
+              {t("beta.desc1")}
               <br />
-              일부 기능이 변경되거나 제한될 수 있습니다.
+              {t("beta.desc2")}
             </p>
 
             <div
@@ -154,15 +155,15 @@ export default function BetaNoticeModal() {
               <div className="flex items-start gap-3">
                 <span style={{ fontSize: "18px", marginTop: "2px" }}>✨</span>
                 <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "14px", lineHeight: 1.7 }}>
-                  베타 테스트 완료 후 <strong style={{ color: "#FFD700" }}>정식 오픈</strong>될 예정입니다.
+                  {t("beta.desc3")}
                   <br />
-                  소중한 피드백으로 더 나은 플랫폼을 만들어 가겠습니다.
+                  {t("beta.desc4")}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* 버튼 */}
+          {/* Buttons */}
           <div className="flex flex-col gap-3">
             <button
               onClick={handleClose}
@@ -189,7 +190,7 @@ export default function BetaNoticeModal() {
                 (e.target as HTMLButtonElement).style.boxShadow = "0 4px 20px rgba(255,185,0,0.3)";
               }}
             >
-              AlphaBag 탐색하기
+              {t("beta.explore")}
             </button>
             <button
               onClick={handleClose}
@@ -214,12 +215,12 @@ export default function BetaNoticeModal() {
                 (e.target as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.1)";
               }}
             >
-              닫기
+              {t("beta.close")}
             </button>
           </div>
         </div>
 
-        {/* 하단 골드 글로우 라인 */}
+        {/* Bottom gold glow line */}
         <div
           style={{
             position: "absolute",

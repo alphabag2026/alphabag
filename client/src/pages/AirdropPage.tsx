@@ -1,8 +1,10 @@
 import { trpc } from "@/lib/trpc";
 import { MainNav } from "@/components/MainNav";
 import { Gift, ExternalLink, Clock, Users, Zap, Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function AirdropPage() {
+  const { t } = useTranslation();
   const { data: airdrops = [], isLoading } = trpc.public.airdrops.useQuery();
 
   const statusColor: Record<string, string> = {
@@ -15,7 +17,7 @@ export default function AirdropPage() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
       <MainNav />
 
-      {/* 히어로 */}
+      {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-10 right-20 w-72 h-72 rounded-full bg-white/20 blur-3xl" />
@@ -30,17 +32,16 @@ export default function AirdropPage() {
           </div>
           <h1 className="text-4xl md:text-5xl font-black mb-4">
             🎁 Airdrop
-            <span className="block text-emerald-200 text-2xl font-medium mt-1">Free Token Distribution Events</span>
+            <span className="block text-emerald-200 text-2xl font-medium mt-1">{t("airdrop.subtitle")}</span>
           </h1>
           <p className="text-white/80 text-lg max-w-2xl mb-8">
-            AlphaBag 파트너 프로젝트의 에어드랍 이벤트에 참여하고 무료 토큰을 받으세요.
-            검증된 프로젝트만 엄선하여 제공합니다.
+            {t("airdrop.heroDesc")}
           </p>
           <div className="flex flex-wrap gap-4">
             {[
-              { icon: <Zap className="w-4 h-4" />, label: "검증된 프로젝트" },
-              { icon: <Users className="w-4 h-4" />, label: "커뮤니티 참여" },
-              { icon: <Clock className="w-4 h-4" />, label: "실시간 업데이트" },
+              { icon: <Zap className="w-4 h-4" />, label: t("airdrop.verified") },
+              { icon: <Users className="w-4 h-4" />, label: t("airdrop.community") },
+              { icon: <Clock className="w-4 h-4" />, label: t("airdrop.realtime") },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full text-sm">
                 {item.icon}
@@ -51,11 +52,11 @@ export default function AirdropPage() {
         </div>
       </div>
 
-      {/* 에어드랍 목록 */}
+      {/* Airdrop list */}
       <div className="max-w-6xl mx-auto px-4 py-10">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">진행 중인 에어드랍</h2>
-          <span className="text-sm text-gray-500">총 {airdrops.length}개</span>
+          <h2 className="text-xl font-bold text-gray-900">{t("airdrop.activeTitle")}</h2>
+          <span className="text-sm text-gray-500">{t("airdrop.total")} {airdrops.length}</span>
         </div>
 
         {isLoading ? (
@@ -67,8 +68,8 @@ export default function AirdropPage() {
         ) : airdrops.length === 0 ? (
           <div className="text-center py-24">
             <Gift className="w-16 h-16 text-emerald-200 mx-auto mb-4" />
-            <p className="text-gray-400 text-lg">현재 진행 중인 에어드랍이 없습니다</p>
-            <p className="text-gray-300 text-sm mt-2">곧 새로운 에어드랍이 추가될 예정입니다</p>
+            <p className="text-gray-400 text-lg">{t("airdrop.empty")}</p>
+            <p className="text-gray-300 text-sm mt-2">{t("airdrop.emptyDesc")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -88,7 +89,7 @@ export default function AirdropPage() {
                     <div className="flex flex-col gap-1 items-end">
                       {airdrop.isHot && <span className="px-2 py-0.5 bg-orange-100 text-orange-600 text-xs font-bold rounded-full">HOT</span>}
                       <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${statusColor[airdrop.status] || statusColor.active}`}>
-                        {airdrop.status === "active" ? "진행중" : airdrop.status === "upcoming" ? "예정" : "종료"}
+                        {airdrop.status === "active" ? t("airdrop.statusActive") : airdrop.status === "upcoming" ? t("airdrop.statusUpcoming") : t("airdrop.statusEnded")}
                       </span>
                     </div>
                   </div>
@@ -98,7 +99,7 @@ export default function AirdropPage() {
                   <div className="flex items-center justify-between text-xs text-gray-500 mt-3 pt-3 border-t border-gray-100">
                     <div className="flex items-center gap-1">
                       <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                      <span>AlphaBag 검증</span>
+                      <span>{t("airdrop.alphabagVerified")}</span>
                     </div>
                     {airdrop.participateUrl ? (
                       <a
@@ -108,10 +109,10 @@ export default function AirdropPage() {
                         onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1 text-emerald-600 hover:text-emerald-700 font-medium"
                       >
-                        참여하기 <ExternalLink className="w-3 h-3" />
+                        {t("airdrop.participate")} <ExternalLink className="w-3 h-3" />
                       </a>
                     ) : (
-                      <span className="text-gray-400">상세 정보 확인</span>
+                      <span className="text-gray-400">{t("airdrop.details")}</span>
                     )}
                   </div>
                 </div>

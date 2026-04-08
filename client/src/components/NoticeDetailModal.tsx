@@ -1,4 +1,5 @@
 import { X, Bell, Calendar, ExternalLink } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface Notice {
   id: number;
@@ -17,9 +18,11 @@ interface NoticeDetailModalProps {
 }
 
 export function NoticeDetailModal({ notice, onClose, isDark = true }: NoticeDetailModalProps) {
+  const { t, i18n } = useTranslation();
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return null;
-    return new Date(date).toLocaleString("ko-KR", {
+    const locale = i18n.language || "en";
+    return new Date(date).toLocaleString(locale, {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -51,7 +54,7 @@ export function NoticeDetailModal({ notice, onClose, isDark = true }: NoticeDeta
               <Bell className="w-4 h-4 text-amber-400" />
             </div>
             <div>
-              <div className="text-xs text-amber-400 font-medium">공지사항</div>
+              <div className="text-xs text-amber-400 font-medium">{t("notice.noticeLabel")}</div>
               <div className={`font-bold text-sm ${textPrimary}`}>{notice.title}</div>
             </div>
           </div>
@@ -88,7 +91,7 @@ export function NoticeDetailModal({ notice, onClose, isDark = true }: NoticeDeta
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm transition-all"
             >
-              자세히 보기
+              {t("plans.viewAll")}
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           )}
@@ -97,7 +100,7 @@ export function NoticeDetailModal({ notice, onClose, isDark = true }: NoticeDeta
             onClick={onClose}
             className={`w-full py-2.5 rounded-xl border text-sm transition-colors ${closeBtnStyle}`}
           >
-            닫기
+            {t("notice.close")}
           </button>
         </div>
       </div>

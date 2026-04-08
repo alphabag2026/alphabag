@@ -11,6 +11,7 @@ import {
   Star, FileText, Loader2, Lock, ChevronDown, ChevronUp, Timer, TrendingUp
 } from "lucide-react";
 import { getLoginUrl } from "@/const";
+import { useTranslation } from "react-i18next";
 
 // 실시간 카운트다운 훅
 function useCountdown(endDate: Date | null) {
@@ -38,27 +39,28 @@ function useCountdown(endDate: Date | null) {
   return timeLeft;
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  draft: { label: "검토 대기", color: "bg-slate-500/20 text-slate-400" },
-  verified: { label: "인증 완료", color: "bg-blue-500/20 text-blue-400" },
-  fee_paid: { label: "비용 납부", color: "bg-purple-500/20 text-purple-400" },
-  voting: { label: "투표 진행 중", color: "bg-amber-500/20 text-amber-400" },
-  approved: { label: "상장 승인", color: "bg-green-500/20 text-green-400" },
-  rejected: { label: "상장 거절", color: "bg-red-500/20 text-red-400" },
-  listed: { label: "상장 완료", color: "bg-emerald-500/20 text-emerald-400" },
-};
-
 function VoteCard({ submission }: { submission: any }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [expanded, setExpanded] = useState(false);
   const [comment, setComment] = useState("");
   const [voting, setVoting] = useState(false);
 
+  const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+    draft: { label: t("vote.draft"), color: "bg-slate-500/20 text-slate-400" },
+    verified: { label: t("vote.verified"), color: "bg-blue-500/20 text-blue-400" },
+    fee_paid: { label: t("vote.feePaid"), color: "bg-purple-500/20 text-purple-400" },
+    voting: { label: t("vote.voting"), color: "bg-amber-500/20 text-amber-400" },
+    approved: { label: t("vote.approved"), color: "bg-green-500/20 text-green-400" },
+    rejected: { label: t("vote.rejected"), color: "bg-red-500/20 text-red-400" },
+    listed: { label: t("vote.listed"), color: "bg-emerald-500/20 text-emerald-400" },
+  };
+
   const voteStatus = trpc.submissions.getVoteStatus.useQuery({ submissionId: submission.id });
   const voteMutation = trpc.submissions.vote.useMutation({
     onSuccess: () => {
       voteStatus.refetch();
-      toast.success("투표가 완료되었습니다!");
+      toast.success(t("vote.voteSuccess"));
       setComment("");
     },
     onError: (e) => toast.error(e.message),
@@ -70,16 +72,15 @@ function VoteCard({ submission }: { submission: any }) {
   const approveVotes = voteData?.approveVotes ?? 0;
   const rejectVotes = voteData?.rejectVotes ?? 0;
   const approvePct = totalVotes > 0 ? Math.round((approveVotes / totalVotes) * 100) : 0;
-  const THRESHOLD = 60; // 60% 승인 기준
+  const THRESHOLD = 60;
 
-  // 투표 마감 여부
   const now = new Date();
   const votingEnd = submission.votingEndAt ? new Date(submission.votingEndAt) : null;
   const isVotingOpen = submission.status === "voting" && (!votingEnd || votingEnd > now);
   const countdown = useCountdown(isVotingOpen ? votingEnd : null);
 
   const handleVote = async (vote: "approve" | "reject") => {
-    if (!user) return toast.error("투표하려면 로그인이 필요합니다.");
+    if (!user) return toast.error(t("vote.loginRequired"));
     setVoting(true);
     try {
       await voteMutation.mutateAsync({ submissionId: submission.id, vote, comment: comment || undefined });
@@ -91,26 +92,26 @@ function VoteCard({ submission }: { submission: any }) {
   return (
     <Card className="bg-slate-800/50 border-slate-700 hover:border-slate-600 transition-colors">
       <CardContent className="p-3.5 sm:p-5">
-        {/* 헤더 */}
+        {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <h3 className="text-white font-bold text-lg truncate">
-                {planData?.name ?? `신청 #${submission.id}`}
+                {planData?.name ?? `#${submission.id}`}
               </h3>
               <Badge className={STATUS_LABELS[submission.status]?.color ?? "bg-slate-500/20 text-slate-400"}>
                 {STATUS_LABELS[submission.status]?.label ?? submission.status}
               </Badge>
             </div>
             <p className="text-slate-400 text-sm">{planData?.label ?? ""}</p>
-            <p className="text-slate-500 text-xs mt-1">신청자: {submission.applicantName}</p>
+            <p className="text-slate-500 text-xs mt-1">{t("vote.applicant")}: {submission.applicantName}</p>
           </div>
           {planData?.logoUrl && (
             <img src={planData.logoUrl} alt="" className="w-12 h-12 rounded-full shrink-0" />
           )}
         </div>
 
-        {/* 플랜 정보 */}
+        {/* Plan info */}
         {planData && (
           <div className="grid grid-cols-2 gap-2 mb-4">
             <div className="bg-slate-700/50 rounded-lg p-2.5 text-center">
@@ -118,27 +119,25 @@ function VoteCard({ submission }: { submission: any }) {
               <div className="text-amber-400 font-bold">{planData.dailyRate ?? "0"}%</div>
             </div>
             <div className="bg-slate-700/50 rounded-lg p-2.5 text-center">
-              <div className="text-slate-400 text-xs mb-0.5">최소 투자</div>
+              <div className="text-slate-400 text-xs mb-0.5">{t("vote.minInvestment")}</div>
               <div className="text-white font-bold">{planData.minAmount ?? "0"} USDT</div>
             </div>
           </div>
         )}
 
-        {/* 투표 현황 */}
+        {/* Vote status */}
         {(submission.status === "voting" || submission.status === "approved" || submission.status === "rejected") && (
           <div className="space-y-3 mb-4">
-            {/* 승인 비율 프로그레스 바 */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-green-400 flex items-center gap-1 font-medium">
-                  <ThumbsUp className="w-3.5 h-3.5" /> 찬성 {approveVotes}표
+                  <ThumbsUp className="w-3.5 h-3.5" /> {t("vote.approve")} {approveVotes}
                 </span>
                 <span className="text-slate-300 font-bold text-base">{approvePct}%</span>
                 <span className="text-red-400 flex items-center gap-1 font-medium">
-                  반대 {rejectVotes}표 <ThumbsDown className="w-3.5 h-3.5" />
+                  {t("vote.reject")} {rejectVotes} <ThumbsDown className="w-3.5 h-3.5" />
                 </span>
               </div>
-              {/* 기준선 포함 프로그레스 바 */}
               <div className="relative h-3 bg-slate-700 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
@@ -146,35 +145,34 @@ function VoteCard({ submission }: { submission: any }) {
                   }`}
                   style={{ width: `${approvePct}%` }}
                 />
-                {/* 60% 기준선 */}
                 <div
                   className="absolute top-0 bottom-0 w-0.5 bg-white/60"
                   style={{ left: `${THRESHOLD}%` }}
                 />
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-slate-500">총 {totalVotes}표</span>
+                <span className="text-slate-500">{t("vote.totalVotes").replace("{n}", String(totalVotes))}</span>
                 <span className={`flex items-center gap-1 font-medium ${
                   approvePct >= THRESHOLD ? "text-green-400" : "text-slate-400"
                 }`}>
                   <TrendingUp className="w-3 h-3" />
-                  기준 {THRESHOLD}% {approvePct >= THRESHOLD ? "(달성!)" : `(잔여 ${THRESHOLD - approvePct}%)`}
+                  {t("vote.threshold").replace("{n}", String(THRESHOLD))} {approvePct >= THRESHOLD ? t("vote.thresholdReached") : t("vote.remaining").replace("{n}", String(THRESHOLD - approvePct))}
                 </span>
               </div>
             </div>
 
-            {/* 실시간 카운트다운 타이머 - 모바일 최적화 */}
+            {/* Countdown timer */}
             {isVotingOpen && countdown && (
               <div className="bg-slate-700/50 border border-amber-500/20 rounded-xl p-2.5 sm:p-3">
                 <div className="flex items-center gap-1.5 text-amber-400 text-xs font-medium mb-2">
-                  <Timer className="w-3.5 h-3.5" /> 투표 마감까지 남은 시간
+                  <Timer className="w-3.5 h-3.5" /> {t("vote.voteUntil")}
                 </div>
                 <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                   {[
-                    { val: countdown.days, unit: "일" },
-                    { val: countdown.hours, unit: "시" },
-                    { val: countdown.minutes, unit: "분" },
-                    { val: countdown.seconds, unit: "초" },
+                    { val: countdown.days, unit: t("vote.days") },
+                    { val: countdown.hours, unit: t("vote.hours") },
+                    { val: countdown.minutes, unit: t("vote.minutes") },
+                    { val: countdown.seconds, unit: t("vote.seconds") },
                   ].map(({ val, unit }) => (
                     <div key={unit} className="bg-slate-800 rounded-lg p-1.5 sm:p-2 text-center">
                       <div className="text-white font-bold text-lg sm:text-xl tabular-nums leading-none">
@@ -188,19 +186,19 @@ function VoteCard({ submission }: { submission: any }) {
             )}
             {isVotingOpen && !countdown && (
               <div className="flex items-center gap-1 text-amber-400 text-xs">
-                <Clock className="w-3 h-3" /> 투표 진행 중
+                <Clock className="w-3 h-3" /> {t("vote.voting")}
               </div>
             )}
           </div>
         )}
 
-        {/* 상세 토글 */}
+        {/* Details toggle */}
         <button
           onClick={() => setExpanded(!expanded)}
           className="flex items-center gap-1 text-slate-400 hover:text-slate-300 text-sm transition-colors mb-3"
         >
           {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          {expanded ? "상세 정보 접기" : "상세 정보 보기"}
+          {expanded ? t("vote.detailsHide") : t("vote.detailsShow")}
         </button>
 
         {expanded && planData?.description && (
@@ -216,7 +214,7 @@ function VoteCard({ submission }: { submission: any }) {
           </div>
         )}
 
-        {/* 투표 버튼 */}
+        {/* Vote buttons */}
         {isVotingOpen && (
           <div className="space-y-3">
             {user ? (
@@ -224,7 +222,7 @@ function VoteCard({ submission }: { submission: any }) {
                 <Textarea
                   value={comment}
                   onChange={e => setComment(e.target.value)}
-                  placeholder="투표 의견 (선택사항)"
+                  placeholder={t("vote.voteComment")}
                   className="bg-slate-700 border-slate-600 text-white text-sm resize-none h-16"
                 />
                 <div className="flex gap-2">
@@ -234,7 +232,7 @@ function VoteCard({ submission }: { submission: any }) {
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                   >
                     {voting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <ThumbsUp className="w-4 h-4 mr-1" />}
-                    찬성
+                    {t("vote.approve")}
                   </Button>
                   <Button
                     onClick={() => handleVote("reject")}
@@ -243,20 +241,20 @@ function VoteCard({ submission }: { submission: any }) {
                     className="flex-1 border-red-500/50 text-red-400 hover:bg-red-500/10"
                   >
                     {voting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <ThumbsDown className="w-4 h-4 mr-1" />}
-                    반대
+                    {t("vote.reject")}
                   </Button>
                 </div>
               </>
             ) : (
               <div className="bg-slate-700/50 rounded-lg p-3 text-center">
                 <Lock className="w-5 h-5 text-slate-400 mx-auto mb-1" />
-                <p className="text-slate-400 text-sm mb-2">노드 보유자만 투표할 수 있습니다</p>
+                <p className="text-slate-400 text-sm mb-2">{t("vote.nodeHolderOnly")}</p>
                 <Button
                   onClick={() => window.dispatchEvent(new CustomEvent("open-wallet-modal"))}
                   size="sm"
                   className="bg-amber-500 hover:bg-amber-600 text-black font-bold"
                 >
-                  로그인하여 투표
+                  {t("vote.loginToVote")}
                 </Button>
               </div>
             )}
@@ -265,12 +263,12 @@ function VoteCard({ submission }: { submission: any }) {
 
         {submission.status === "approved" && (
           <div className="flex items-center gap-2 text-green-400 text-sm bg-green-500/10 rounded-lg p-2.5">
-            <CheckCircle className="w-4 h-4" /> 상장 승인 완료
+            <CheckCircle className="w-4 h-4" /> {t("vote.approvalComplete")}
           </div>
         )}
         {submission.status === "rejected" && (
           <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 rounded-lg p-2.5">
-            <XCircle className="w-4 h-4" /> 상장 거절
+            <XCircle className="w-4 h-4" /> {t("vote.rejectionComplete")}
             {submission.adminNote && <span className="text-slate-400">: {submission.adminNote}</span>}
           </div>
         )}
@@ -280,6 +278,7 @@ function VoteCard({ submission }: { submission: any }) {
 }
 
 export default function VotePage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [filter, setFilter] = useState<"all" | "voting" | "approved" | "rejected">("all");
 
@@ -296,21 +295,21 @@ export default function VotePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-8 sm:py-12 px-3 sm:px-4">
       <div className="max-w-3xl mx-auto">
-        {/* 헤더 */}
+        {/* Header */}
         <div className="text-center mb-7 sm:mb-10">
           <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-full px-3 sm:px-4 py-1.5 text-amber-400 text-xs sm:text-sm font-medium mb-3 sm:mb-4">
-            <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> 골든 콜렉션 투표
+            <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Golden Collection
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">노드 투표</h1>
-          <p className="text-slate-400 text-xs sm:text-sm">알파백 노드 보유자는 신규 플랜 상장에 투표하고 상장비용을 분배받습니다</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{t("vote.header")}</h1>
+          <p className="text-slate-400 text-xs sm:text-sm">{t("vote.headerDesc")}</p>
         </div>
 
-        {/* 통계 */}
+        {/* Stats */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8">
           {[
-            { label: "투표 진행 중", value: votingCount, icon: <Clock className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-amber-400" },
-            { label: "상장 승인", value: approvedCount, icon: <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-green-400" },
-            { label: "전체 신청", value: submissions?.length ?? 0, icon: <FileText className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-blue-400" },
+            { label: t("vote.inVoting"), value: votingCount, icon: <Clock className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-amber-400" },
+            { label: t("vote.approvedCount"), value: approvedCount, icon: <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-green-400" },
+            { label: t("vote.totalSubmissions"), value: submissions?.length ?? 0, icon: <FileText className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-blue-400" },
           ].map(stat => (
             <Card key={stat.label} className="bg-slate-800/50 border-slate-700">
               <CardContent className="p-2.5 sm:p-4 text-center">
@@ -322,30 +321,30 @@ export default function VotePage() {
           ))}
         </div>
 
-        {/* 노드 보유자 안내 */}
+        {/* Node holder notice */}
         {!user && (
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6 flex items-center justify-between gap-4">
             <div>
-              <p className="text-amber-300 font-medium text-sm">노드 보유자 전용 투표</p>
-              <p className="text-slate-400 text-xs mt-0.5">로그인 후 노드 보유 여부가 확인되면 투표에 참여할 수 있습니다</p>
+              <p className="text-amber-300 font-medium text-sm">{t("vote.nodeHolderOnly")}</p>
+              <p className="text-slate-400 text-xs mt-0.5">{t("vote.nodeHolderDesc")}</p>
             </div>
             <Button
               onClick={() => window.dispatchEvent(new CustomEvent("open-wallet-modal"))}
               size="sm"
               className="bg-amber-500 hover:bg-amber-600 text-black font-bold shrink-0"
             >
-              로그인
+              {t("vote.login")}
             </Button>
           </div>
         )}
 
-        {/* 필터 탭 */}
+        {/* Filter tabs */}
         <div className="flex gap-2 mb-6 flex-wrap">
           {[
-            { key: "all", label: "전체" },
-            { key: "voting", label: "투표 중" },
-            { key: "approved", label: "승인됨" },
-            { key: "rejected", label: "거절됨" },
+            { key: "all", label: t("vote.filterAll") },
+            { key: "voting", label: t("vote.filterVoting") },
+            { key: "approved", label: t("vote.filterApproved") },
+            { key: "rejected", label: t("vote.filterRejected") },
           ].map(f => (
             <button
               key={f.key}
@@ -361,22 +360,22 @@ export default function VotePage() {
           ))}
         </div>
 
-        {/* 신청 목록 */}
+        {/* Submission list */}
         {isLoading ? (
           <div className="text-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-amber-400 mx-auto mb-3" />
-            <p className="text-slate-400">로딩 중...</p>
+            <p className="text-slate-400">{t("vote.loading")}</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">
             <Users className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-400">현재 투표 가능한 신청이 없습니다</p>
-            <p className="text-slate-500 text-sm mt-1">새로운 플랜을 신청해보세요!</p>
+            <p className="text-slate-400">{t("vote.noSubmissions")}</p>
+            <p className="text-slate-500 text-sm mt-1">{t("vote.noSubmissionsDesc")}</p>
             <Button
               onClick={() => window.location.href = "/submit-plan"}
               className="mt-4 bg-amber-500 hover:bg-amber-600 text-black font-bold"
             >
-              플랜 신청하기
+              {t("vote.submitPlan")}
             </Button>
           </div>
         ) : (

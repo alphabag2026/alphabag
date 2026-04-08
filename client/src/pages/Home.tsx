@@ -67,6 +67,7 @@ type ViewType = "A" | "B" | "C";
 
 // ─── 카드 타입 A: 손글씨 B 스타일 ────────────────────────────────────────────
 function PlanCardA({ plan, collectionColor }: { plan: any; collectionColor: string }) {
+  const { t } = useTranslation();
   const colorMap: Record<string, { accent: string; bg: string; border: string }> = {
     golden: { accent: "#f59e0b", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.3)" },
     self: { accent: "#3b82f6", bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.3)" },
@@ -140,7 +141,7 @@ function PlanCardA({ plan, collectionColor }: { plan: any; collectionColor: stri
           {/* 추천금액 */}
           {plan.recommendedAmount && (
             <div className="text-center text-xs text-gray-400 mt-1">
-              추천: <span className="font-bold" style={{ color: c.accent }}>{Number(plan.recommendedAmount).toLocaleString()} USDT</span>
+              {t("home.recommended")}: <span className="font-bold" style={{ color: c.accent }}>{Number(plan.recommendedAmount).toLocaleString()} USDT</span>
             </div>
           )}
         </div>
@@ -151,6 +152,7 @@ function PlanCardA({ plan, collectionColor }: { plan: any; collectionColor: stri
 
 // ─── 카드 타입 B: 게시판 한줄형 ──────────────────────────────────────────────
 function PlanCardB({ plan, collectionColor }: { plan: any; collectionColor: string }) {
+  const { t } = useTranslation();
   const colorMap: Record<string, { accent: string; dot: string }> = {
     golden: { accent: "text-amber-400", dot: "bg-amber-400" },
     self: { accent: "text-blue-400", dot: "bg-blue-400" },
@@ -201,11 +203,11 @@ function PlanCardB({ plan, collectionColor }: { plan: any; collectionColor: stri
   );
 }
 
-// ─── 카드 타입 C: 현재 방식 (기존 PlanCard) ──────────────────────────────────
+// ─── 카드 타입 C: 현재 방식 (기존 PlanCard) ──────────────────────────────────────────────
 function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; collectionColor: string; isDark?: boolean }) {
+  const { t } = useTranslation();
   const badges: string[] = Array.isArray(plan.badgeLabels) ? plan.badgeLabels : [];
   const rating = Number(plan.rating) || 4.0;
-
   const colorMapDark: Record<string, { border: string; glow: string; badge: string; rate: string; btn: string; overlay: string }> = {
     golden: { border: "border-amber-500/30", glow: "hover:shadow-amber-500/40", badge: "bg-amber-500/20 text-amber-300 border-amber-500/30", rate: "text-amber-400", btn: "bg-amber-500/20 text-amber-300 border-amber-500/30 hover:bg-amber-500/30", overlay: "from-amber-900/60" },
     self: { border: "border-blue-500/30", glow: "hover:shadow-blue-500/40", badge: "bg-blue-500/20 text-blue-300 border-blue-500/30", rate: "text-blue-400", btn: "bg-blue-500/20 text-blue-300 border-blue-500/30 hover:bg-blue-500/30", overlay: "from-blue-900/60" },
@@ -270,7 +272,7 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
             <div className="text-xs text-gray-500">Daily Return</div>
           </div>
           {plan.recommendedAmount && (
-            <div className={`text-xs mb-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>추천금액: <span className={`font-bold ${c.rate}`}>{Number(plan.recommendedAmount).toLocaleString()} USDT</span></div>
+            <div className={`text-xs mb-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>{t("home.recommended")}: <span className={`font-bold ${c.rate}`}>{Number(plan.recommendedAmount).toLocaleString()} USDT</span></div>
           )}
           <div className="flex items-center gap-1 mb-3">
             {[1, 2, 3, 4, 5].map((s) => (
@@ -326,7 +328,7 @@ function MarketWidget({ isDark, sidebar = false, mobileInline = false }: { isDar
       <div className={`px-4 py-3 flex items-center justify-between border-b ${isDark ? "border-white/5" : "border-gray-100"}`}>
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-amber-400" />
-          <span className={`text-sm font-bold ${textPrimary}`}>금융 시장</span>
+          <span className={`text-sm font-bold ${textPrimary}`}>{t("home.financialMarket")}</span>
           {fx && (
             <span className={`text-xs ${textSecondary}`}>USD/KRW ₩{fx.KRW?.toLocaleString()}</span>
           )}
@@ -383,7 +385,7 @@ function MarketWidget({ isDark, sidebar = false, mobileInline = false }: { isDar
             onClick={() => setFxCollapsed(v => !v)}
             className={`w-full px-4 py-2 flex items-center justify-between text-[10px] ${textSecondary} hover:${isDark ? "text-white" : "text-gray-700"} transition-colors`}
           >
-            <span>주요 환율 (1 USD 기준)</span>
+            <span>{t("home.exchangeRate")}</span>
             <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${fxCollapsed ? "" : "rotate-180"}`} />
           </button>
           {!fxCollapsed && (
@@ -652,7 +654,7 @@ export default function Home() {
     const cats = new Set((snsInfluencers as any[]).map((inf: any) => inf.category).filter(Boolean));
     return Array.from(cats) as string[];
   }, [snsInfluencers]);
-  const snsCategoryLabels: Record<string, string> = { crypto: "크립토", defi: "DeFi", trading: "트레이딩", nft: "NFT", web3: "Web3", vc: "VC/투자" };
+  const snsCategoryLabels: Record<string, string> = { crypto: t("home.snsCrypto"), defi: "DeFi", trading: t("home.snsTrading"), nft: "NFT", web3: "Web3", vc: t("home.snsVC") };
   // 장바구니 (로칼스토리지))
   const [cartCount, setCartCount] = useState(0);
   useEffect(() => {
@@ -740,7 +742,7 @@ export default function Home() {
                   isDark ? "bg-[#111] border-white/10" : "bg-white border-gray-200"
                 }`}>
                   {[
-                    { href: "/introduction", label: "📖 AlphaBag 소개", color: "text-amber-400" },
+                    { href: "/introduction", label: `📖 ${t("home.navIntro")}`, color: "text-amber-400" },
                     { href: "/golden", label: "🏆 Golden Collection", color: "text-amber-500" },
                     { href: "/self", label: "⚡ Self Collection", color: "text-blue-500" },
                     { href: "/leader", label: "👑 Leader Collection", color: "text-emerald-500" },
@@ -940,7 +942,7 @@ export default function Home() {
               </div>
             ) : (
               <div className="space-y-2 mb-3">
-                {["Golden / Self / Node / CS 는 별도 페이지입니다.", "광고는 이미지 전용(텍스트 없음)입니다.", "지갑 연결 후 Add / Go / Cart 사용 가능합니다."].map((text, i) => (
+                {[t("home.betaHint1"), t("home.betaHint2"), t("home.betaHint3")].map((text, i) => (
                   <div key={i} className={`flex items-start gap-2 text-xs ${textSecondary}`}>
                     <span className="text-amber-400 font-bold flex-shrink-0">{i + 1})</span>
                     <span>{text}</span>
@@ -953,7 +955,7 @@ export default function Home() {
               <Link href="/notices"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>{t("home.community")}</button></Link>
               <button onClick={() => {
                 const meeting = (notices as any[]).find((n: any) => n.type === "meeting" && n.isActive);
-                setMeetingNotice(meeting || { id: 0, title: "온라인 회의 안내", content: "현재 예정된 온라인 회의가 없습니다.", meetingPlatform: "zoom" });
+                setMeetingNotice(meeting || { id: 0, title: t("home.onlineMeetingTitle"), content: t("home.noMeetingScheduled"), meetingPlatform: "zoom" });
               }} className={`flex items-center gap-1 text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>
                 <Video className="w-3 h-3" /> {t("home.zoomMeeting")}
               </button>
@@ -1046,7 +1048,7 @@ export default function Home() {
                 <div className={`text-[10px] ${textSecondary} mb-3 px-2 py-1.5 rounded-lg ${
                   isDark ? "bg-white/5" : "bg-gray-50"
                 }`}>
-                  프로젝트 원페이지 · 다국어 지원 · 추천 레퍼럴 · AI 추천문구
+                  {t("home.onepageDesc")}
                 </div>
                 {/* 프로젝트 카드 그리드 */}
                 <div className="grid grid-cols-2 gap-2">
@@ -1089,7 +1091,7 @@ export default function Home() {
                   ))}
                 </div>
                 {(allPlans as any[]).filter((p: any) => p.onepageUrl).length === 0 && (
-                  <div className={`text-xs ${textSecondary} text-center py-4`}>등록된 1page.to 프로젝트가 없습니다</div>
+                  <div className={`text-xs ${textSecondary} text-center py-4`}>{t("home.noOnepageProjects")}</div>
                 )}
               </div>
             )}
@@ -1106,7 +1108,7 @@ export default function Home() {
                           : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-gray-100 border-gray-200 text-gray-500"
                       }`}
                     >
-                      전체
+                      {t("home.all")}
                     </button>
                     {snsCategories.map((cat) => (
                       <button
@@ -1133,7 +1135,7 @@ export default function Home() {
                         : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-gray-100 border-gray-200 text-gray-500"
                     }`}
                   >
-                    📱 전체
+                      📱 {t("home.all")}
                   </button>
                   {(snsInfluencers as any[])
                     .filter((inf: any) => snsCategory === "all" || inf.category === snsCategory)
@@ -1163,8 +1165,8 @@ export default function Home() {
                 ) : filteredSnsPosts.length === 0 ? (
                   <div className={`text-center py-8`}>
                     <div className="text-3xl mb-2">📱</div>
-                    <div className={`text-xs ${textSecondary}`}>{snsCategory !== "all" ? `${snsCategoryLabels[snsCategory] || snsCategory} 카테고리 소식이 없습니다.` : "등록된 SNS 소식이 없습니다."}</div>
-                    <div className={`text-[10px] ${textSecondary} mt-1`}>관리자가 인플루언서 소식을 등록하면 여기에 표시됩니다.</div>
+                    <div className={`text-xs ${textSecondary}`}>{snsCategory !== "all" ? `${snsCategoryLabels[snsCategory] || snsCategory} ${t("home.snsCategoryEmpty")}` : t("home.snsNoNews")}</div>
+                    <div className={`text-[10px] ${textSecondary} mt-1`}>{t("home.snsEmpty")}</div>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -1238,10 +1240,10 @@ export default function Home() {
                 <div className={`text-xs font-bold mb-3 ${textPrimary}`}>{t("home.tabTitles.news")}</div>
                 <div className="space-y-3">
                   {[
-                    { title: "AlphaBag 새로운 Golden Collection 출시", time: "2시간 전", category: "공지" },
-                    { title: "BTC 신고가 경신 - 암호화폐 시장 동향", time: "4시간 전", category: "시장" },
-                    { title: "Node 스테이킹 수익률 업데이트", time: "1일 전", category: "업데이트" },
-                    { title: "커뮤니티 미팅 일정 안내", time: "2일 전", category: "이벤트" },
+                    { title: t("home.newsItem1"), time: t("home.news2hAgo"), category: t("home.newsNotice") },
+                    { title: t("home.newsItem2"), time: t("home.news4hAgo"), category: t("home.newsMarket") },
+                    { title: t("home.newsItem3"), time: t("home.news1dAgo"), category: t("home.newsUpdate") },
+                    { title: t("home.newsItem4"), time: t("home.news2dAgo"), category: t("home.newsEvent") },
                   ].map((news, i) => (
                     <div key={i} className={`flex items-start gap-3 pb-3 border-b last:border-0 ${isDark ? "border-white/5" : "border-gray-100"}`}>
                       <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
@@ -1331,7 +1333,7 @@ export default function Home() {
                 <div className="mt-4">
                   <div className={`text-xs font-bold mb-2 ${textPrimary}`}>{t("home.tabTitles.trendingCoins")}</div>
                   {trendingCoinsLoading ? (
-                    <div className={`text-xs ${textSecondary} text-center py-3`}>로딩 중...</div>
+                    <div className={`text-xs ${textSecondary} text-center py-3`}>{t("home.loading")}</div>
                   ) : (
                     <div className="grid grid-cols-2 gap-2">
                       {(trendingCoins as any[]).map((coin: any) => (
@@ -1399,7 +1401,7 @@ export default function Home() {
                                 <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
                                   {drop.tokenSymbol}
                                 </span>
-                                <span className={`text-[10px] ${textSecondary}`}>{drop.totalAmount} 총지급</span>
+                                <span className={`text-[10px] ${textSecondary}`}>{drop.totalAmount} {t("home.totalPaid")}</span>
                               </div>
                             </div>
                           </div>
@@ -1426,13 +1428,13 @@ export default function Home() {
                   <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
                     <div className="text-3xl mb-2">❤️</div>
                     <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{t("home.loginRequired")}</div>
-                    <div className={`text-[10px] ${textSecondary}`}>즐겨찾기를 사용하려면 로그인하세요</div>
+                    <div className={`text-[10px] ${textSecondary}`}>{t("home.loginForFavorites")}</div>
                   </div>
                 ) : favoritesList.length === 0 ? (
                   <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
                     <div className="text-3xl mb-2">❤️</div>
-                    <div className={`text-xs font-semibold ${textPrimary} mb-1`}>즐겨찾기가 없습니다</div>
-                    <div className={`text-[10px] ${textSecondary}`}>플랜 상세에서 ♥ 버튼을 눌러 즐겨찾기를 저장하세요</div>
+                    <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{t("home.noFavorites")}</div>
+                    <div className={`text-[10px] ${textSecondary}`}>{t("home.favoritesHint")}</div>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -1457,9 +1459,9 @@ export default function Home() {
                                 <span className={`text-xs font-bold ${textPrimary} truncate`}>{plan.name}</span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-bold text-emerald-400">일 {parseFloat(plan.dailyRate || "0").toFixed(2)}%</span>
-                                {plan.duration && <span className={`text-[10px] ${textSecondary}`}>{plan.duration}일</span>}
-                                {plan.minAmount && <span className={`text-[10px] ${textSecondary}`}>최소 {parseFloat(plan.minAmount).toLocaleString()}</span>}
+                                <span className="text-[10px] font-bold text-emerald-400">{t("home.daily")} {parseFloat(plan.dailyRate || "0").toFixed(2)}%</span>
+                                {plan.duration && <span className={`text-[10px] ${textSecondary}`}>{plan.duration}{t("home.days")}</span>}
+                                {plan.minAmount && <span className={`text-[10px] ${textSecondary}`}>{t("home.minAmount")} {parseFloat(plan.minAmount).toLocaleString()}</span>}
                               </div>
                               {plan.description && (
                                 <div className={`text-[10px] ${textSecondary} truncate mt-0.5`}>{plan.description}</div>
@@ -1468,7 +1470,7 @@ export default function Home() {
                             <button
                               onClick={() => toggleFavoriteMutation.mutate({ planId: plan.id })}
                               className="flex-shrink-0 p-1.5 rounded-lg text-pink-400 hover:bg-pink-500/10 transition-colors"
-                              title="즐겨찾기 제거"
+                              title={t("home.removeFavorite")}
                             >
                               ♥
                             </button>
@@ -1512,7 +1514,7 @@ export default function Home() {
                   <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
                     <div className="text-3xl mb-2">🔗</div>
                     <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{t("home.noMlm")}</div>
-                    <div className={`text-[10px] ${textSecondary}`}>백오피스에서 플랜에 MLM 설정을 활성화하세요</div>
+                    <div className={`text-[10px] ${textSecondary}`}>{t("home.mlmHint")}</div>
                   </div>
                 ) : (
                   <div className="space-y-0">
@@ -1531,8 +1533,8 @@ export default function Home() {
                   🤝 Meetup
                 </div>
                 <div className={`rounded-xl border p-4 mb-3 ${cardBg}`}>
-                  <div className={`text-xs font-semibold ${textPrimary} mb-2`}>예정된 밋업</div>
-                  <div className={`text-[11px] ${textSecondary}`}>현재 등록된 밋업 일정이 없습니다. 곧 업데이트됩니다.</div>
+                  <div className={`text-xs font-semibold ${textPrimary} mb-2`}>{t("home.upcomingMeetup")}</div>
+                  <div className={`text-[11px] ${textSecondary}`}>{t("home.noMeetupScheduled")}</div>
                 </div>
               </div>
             )}
@@ -1559,16 +1561,16 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="p-3">
-                      <div className={`font-bold text-sm ${textPrimary} mb-1`}>NEXUS 2140 · AI×WEB4 글로벌 포럼</div>
-                      <div className={`text-[11px] ${textSecondary} mb-2`}>📅 2026년 5월 12일 &nbsp;|&nbsp; 📍 베트남 하롱베이</div>
-                      <div className={`text-[11px] ${textSecondary} mb-2`}>전 세계 16개국 블록체인·AI 리더 참여 · AlphaBag 공식 스폰서</div>
+                      <div className={`font-bold text-sm ${textPrimary} mb-1`}>NEXUS 2140 · AI×WEB4 {t("home.globalForum")}</div>
+                      <div className={`text-[11px] ${textSecondary} mb-2`}>{t("home.nexusDate")}</div>
+                      <div className={`text-[11px] ${textSecondary} mb-2`}>{t("home.nexusDesc")}</div>
                       <div className="flex flex-wrap gap-1 mb-2">
                         {["HUAWEI", "DWF LABS", "Binance", "Coinbase", "Bitget"].map(p => (
                           <span key={p} className={`text-[9px] px-1.5 py-0.5 rounded border ${isDark ? "border-white/20 text-gray-400" : "border-gray-300 text-gray-500"}`}>{p}</span>
                         ))}
                       </div>
                       <div className={`flex items-center gap-1 text-[11px] text-purple-400 font-semibold`}>
-                        <ExternalLink className="w-3 h-3" /> nexus2140.org 방문하기
+                        <ExternalLink className="w-3 h-3" /> nexus2140.org {t("home.visit")}
                       </div>
                     </div>
                   </div>
@@ -1582,9 +1584,9 @@ export default function Home() {
           <div className={`text-xs font-bold ${textPrimary}`}>{t("home.investmentPlans")}</div>
           <div className={`flex items-center gap-1 rounded-xl p-1 ${isDark ? "bg-[#111111] border border-white/10" : "bg-gray-100 border border-gray-200"}`}>
             {([
-              { type: "A" as ViewType, label: "A", title: "손글씨" },
-              { type: "B" as ViewType, label: "B", title: "목록형" },
-              { type: "C" as ViewType, label: "C", title: "카드형" },
+  { type: "A" as ViewType, label: "A", title: "A" },
+  { type: "B" as ViewType, label: "B", title: "B" },
+  { type: "C" as ViewType, label: "C", title: "C" },
             ] as const).map((v) => (
               <button
                 key={v.type}

@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { trpc } from "@/lib/trpc";
 import { useWallet } from "@/contexts/WalletContext";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -57,24 +58,25 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [recommendLang, setRecommendLang] = useState("ko");
 
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const { isConnected, openModal } = useWallet();
 
   const { data: plan, isLoading } = trpc.public.planDetail.useQuery({ id: planId });
 
-  const generateRecommend = trpc.public.generateRecommendText.useMutation({
-    onSuccess: (data) => {
+  const generateRecommend = (trpc.public as any).generateRecommendText.useMutation({
+    onSuccess: (data: any) => {
       setRecommendTexts(data.texts);
-      toast.success("추천문구가 생성되었습니다!");
+      toast.success(t("planDetail.aiRecommend") + " ✓");
     },
-    onError: () => toast.error("추천문구 생성에 실패했습니다."),
+    onError: () => toast.error("Error"),
   });
 
   const handleCopyRecommend = async (text: string, idx: number) => {
     await navigator.clipboard.writeText(text);
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 2000);
-    toast.success("복사되었습니다!");
+    toast.success(t("planDetail.copied") + " ✓");
   };
 
   const toggleFavorite = useCallback(() => {
@@ -82,12 +84,12 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
     const newFavs = isFavorite ? favs.filter((id) => id !== planId) : [...favs, planId];
     localStorage.setItem("alphabag_favorites", JSON.stringify(newFavs));
     setIsFavorite(!isFavorite);
-    toast.success(isFavorite ? "즐겨찾기에서 제거되었습니다" : "즐겨찾기에 추가되었습니다");
+    toast.success(isFavorite ? t("planDetail.save") + " -" : t("planDetail.save") + " +");
   }, [isFavorite, planId]);
 
   const invest = trpc.user.invest.useMutation({
     onSuccess: () => {
-      toast.success("투자 신청이 완료되었습니다!");
+      toast.success(t("plans.investNow") + " ✓");
       onClose();
     },
     onError: (e) => toast.error(e.message),
@@ -97,7 +99,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
     if (!referralCode.trim()) return;
     localStorage.setItem(`referral_${planId}`, referralCode.trim().toUpperCase());
     setReferralSaved(true);
-    toast.success("추천코드가 저장되었습니다.");
+    toast.success(t("planDetail.referralSaved"));
   };
 
   const handleAddToCart = () => {
@@ -107,13 +109,13 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
       cart.push({ id: planId, name: plan?.name, addedAt: Date.now() });
       localStorage.setItem("alphabag_cart", JSON.stringify(cart));
     }
-    toast.success("장바구니에 추가되었습니다.");
+    toast.success(t("planDetail.addToCart") + " ✓");
   };
 
   const handleInvest = () => {
     if (!isConnected) { openModal(); return; }
     if (!isAuthenticated) { window.dispatchEvent(new CustomEvent("open-wallet-modal")); return; }
-    const amount = prompt("투자 금액을 입력하세요 (USDT):");
+    const amount = prompt(t("planDetail.minInvestment") + " (USDT):");
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return;
     invest.mutate({ planId, amount });
   };
@@ -130,9 +132,9 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-      toast.success("링크가 복사되었습니다!");
+      toast.success(t("planDetail.copied") + " ✓");
     } catch {
-      toast.error("복사 실패");
+      toast.error("Copy failed");
     }
   };
 
@@ -162,7 +164,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
     } else if (plan?.telegramUrl) {
       window.open(plan.telegramUrl, "_blank");
     } else {
-      toast.info("이동 링크가 설정되지 않았습니다.");
+      toast.info(t("planDetail.noGoUrl"));
     }
   };
 
@@ -211,9 +213,9 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
         {/* 탭 */}
         <div className="flex gap-1 px-5 pt-3 border-b border-border/60">
           {[
-            { key: "overview", label: "개요" },
-            { key: "video", label: "비디오" },
-            { key: "docs", label: "자료" },
+            { key: "overview", label: t("planDetail.overview") },
+            { key: "video", label: t("planDetail.video") },
+            { key: "docs", label: t("planDetail.docs") },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -277,7 +279,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
               {/* 추천금액 */}
               {(plan as any).recommendedAmount && (
                 <div className="text-sm">
-                  <span className="text-muted-foreground">추천금액: </span>
+                  <span className="text-muted-foreground">{t("planDetail.recommendedAmount")}: </span>
                   <span className="text-amber-600 font-bold">
                     {Number((plan as any).recommendedAmount).toLocaleString()} USDT
                   </span>
@@ -286,7 +288,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
 
               {/* 추천코드 입력 */}
               <div className="bg-muted/50 rounded-xl p-3 space-y-2 border border-border/40">
-                <div className="text-xs text-muted-foreground font-medium">추천코드 (Project)</div>
+                <div className="text-xs text-muted-foreground font-medium">{t("planDetail.referralCode")}</div>
                 <input
                   type="text"
                   value={referralCode}
@@ -298,9 +300,9 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                   onClick={handleSaveReferral}
                   className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold transition-all"
                 >
-                  저장
+                  {t("planDetail.saveBtn")}
                 </button>
-                <div className="text-[10px] text-muted-foreground">Add 확정 전까지 수정 가능 / Add 확정 시 즉시 잠금</div>
+                <div className="text-[10px] text-muted-foreground">{t("planDetail.referralNote")}</div>
               </div>
 
               {/* 썸네일 갤러리 */}
@@ -373,7 +375,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                     <div className="bg-gradient-to-br from-muted/60 to-muted/30 rounded-xl p-4 border border-border/40">
                       <div className="flex items-center gap-2 mb-3">
                         <span className="text-base">📋</span>
-                        <span className="text-xs font-bold text-foreground uppercase tracking-wide">프로젝트 요약</span>
+                        <span className="text-xs font-bold text-foreground uppercase tracking-wide">{t("planDetail.projectSummary")}</span>
                       </div>
                       <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{plan.description}</p>
                     </div>
@@ -384,14 +386,14 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-amber-500" />
-                        <span className="text-xs font-bold text-foreground">AI 추천문구 생성</span>
+                        <span className="text-xs font-bold text-foreground">{t("planDetail.aiRecommend")}</span>
                       </div>
                       <select
                         value={recommendLang}
                         onChange={(e) => setRecommendLang(e.target.value)}
                         className="text-xs bg-background border border-border rounded-lg px-2 py-1 text-foreground focus:outline-none focus:border-amber-400"
                       >
-                        <option value="ko">🇰🇷 한국어</option>
+                        <option value="ko">🇰🇷 Korean</option>
                         <option value="en">🇺🇸 English</option>
                         <option value="zh">🇨🇳 中文</option>
                         <option value="ja">🇯🇵 日本語</option>
@@ -406,9 +408,9 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black text-sm font-bold transition-all"
                     >
                       {generateRecommend.isPending ? (
-                        <><RefreshCw className="w-4 h-4 animate-spin" /> 생성 중...</>
+                        <><RefreshCw className="w-4 h-4 animate-spin" /> {t("planDetail.generating")}</>
                       ) : (
-                        <><Sparkles className="w-4 h-4" /> 추천문구 생성하기</>
+                        <><Sparkles className="w-4 h-4" /> {t("planDetail.generateRecommend")}</>
                       )}
                     </button>
                     {recommendTexts.length > 0 && (
@@ -452,24 +454,24 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                   <div className="space-y-2 bg-muted/30 rounded-xl p-4 border border-border/30">
                     {plan.minAmount && Number(plan.minAmount) > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">최소 투자</span>
+                        <span className="text-muted-foreground">{t("planDetail.minInvestment")}</span>
                         <span className="text-foreground font-medium">${Number(plan.minAmount).toLocaleString()} USDT</span>
                       </div>
                     )}
                     {plan.duration && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">기간</span>
-                        <span className="text-foreground font-medium">{plan.duration}일</span>
+                        <span className="text-muted-foreground">{t("planDetail.duration")}</span>
+                        <span className="text-foreground font-medium">{plan.duration} {t("planDetail.days")}</span>
                       </div>
                     )}
                     {plan.totalReturn && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">총 수익률</span>
+                        <span className="text-muted-foreground">{t("planDetail.totalReturn")}</span>
                         <span className={`${colColor.text} font-bold`}>{Number(plan.totalReturn).toFixed(0)}%</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm pt-1 border-t border-border/30">
-                      <span className="text-muted-foreground">일일 수익률</span>
+                      <span className="text-muted-foreground">{t("planDetail.dailyRate")}</span>
                       <span className={`${colColor.text} font-black text-base`}>{Number(plan.dailyRate).toFixed(2)}%</span>
                     </div>
                   </div>
@@ -486,7 +488,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                         <Globe className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-bold text-foreground">1page 보기</div>
+                        <div className="text-sm font-bold text-foreground">1page</div>
                         <div className="text-xs text-muted-foreground truncate">{onepageUrl}</div>
                       </div>
                       <ExternalLink className="w-4 h-4 text-amber-500 group-hover:text-amber-400 transition-colors" />
@@ -499,11 +501,11 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                       <div className="flex items-center justify-between px-3 py-2 bg-muted/50">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Globe className="w-3.5 h-3.5" />
-                          원페이지 소개
+                          {t("planDetail.onepageIntro")}
                         </div>
                         <a href={infoweb4Url} target="_blank" rel="noopener noreferrer" className="text-xs text-amber-600 hover:text-amber-500 flex items-center gap-1">
                           <ExternalLink className="w-3 h-3" />
-                          새탭으로 열기
+                          {t("planDetail.openNewTab")}
                         </a>
                       </div>
                       <iframe
@@ -532,8 +534,8 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                       <Play className="w-12 h-12 mb-3 opacity-20" />
-                      <div className="text-sm">등록된 비디오가 없습니다</div>
-                      <div className="text-xs mt-1 opacity-60">(추후 API 연동 예정)</div>
+                      <div className="text-sm">{t("planDetail.noVideo")}</div>
+                      <div className="text-xs mt-1 opacity-60">{t("planDetail.noVideoDesc")}</div>
                     </div>
                   )}
                   {videoId2 && (
@@ -565,7 +567,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                           <FileText className="w-4 h-4 text-amber-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm text-foreground font-medium">자료 {i + 1}</div>
+                          <div className="text-sm text-foreground font-medium">{t("planDetail.docs")} {i + 1}</div>
                           <div className="text-xs text-muted-foreground truncate">{url}</div>
                         </div>
                         <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-amber-600 transition-colors" />
@@ -574,8 +576,8 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                       <FileText className="w-12 h-12 mb-3 opacity-20" />
-                      <div className="text-sm">등록된 자료가 없습니다</div>
-                      <div className="text-xs mt-1 opacity-60">(추후 API 연동 예정)</div>
+                      <div className="text-sm">{t("planDetail.noDocs")}</div>
+                      <div className="text-xs mt-1 opacity-60">{t("planDetail.noVideoDesc")}</div>
                     </div>
                   )}
                   {blogUrl && (
@@ -612,7 +614,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
             }`}
           >
             <Play className="w-3.5 h-3.5" />
-            비디오
+            {t("planDetail.video")}
           </button>
 
           <button
@@ -624,7 +626,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
             }`}
           >
             <FileText className="w-3.5 h-3.5" />
-            자료
+            {t("planDetail.docs")}
           </button>
 
           {blogUrl && (
@@ -648,7 +650,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
             }`}
           >
             <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-red-500" : ""}`} />
-            {isFavorite ? "저장됨" : "저장"}
+            {isFavorite ? t("planDetail.saved") : t("planDetail.save")}
           </button>
 
           {/* 공유 드롭다운 */}
@@ -658,7 +660,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground border border-border/40 hover:border-border transition-all"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Share2 className="w-3.5 h-3.5" />}
-              {copied ? "복사됨" : "공유"}
+              {copied ? t("planDetail.copied") : t("planDetail.share")}
             </button>
             {shareOpen && (
               <div className="absolute bottom-full mb-2 left-0 bg-background border border-border rounded-xl shadow-xl p-2 min-w-[160px] z-10">
@@ -667,28 +669,28 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-muted transition-colors text-left"
                 >
                   <Check className="w-3.5 h-3.5 text-green-600" />
-                  링크 복사
+                  {t("planDetail.copied")}
                 </button>
                 <button
                   onClick={handleShareTelegram}
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-muted transition-colors text-left"
                 >
                   <Send className="w-3.5 h-3.5 text-blue-500" />
-                  텔레그램 공유
+                  {t("planDetail.telegramShare")}
                 </button>
                 <button
                   onClick={handleShareTwitter}
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-muted transition-colors text-left"
                 >
                   <Twitter className="w-3.5 h-3.5 text-sky-500" />
-                  X(트위터) 공유
+                  {t("planDetail.twitterShare")}
                 </button>
                 <button
                   onClick={handleShareKakao}
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:bg-muted transition-colors text-left"
                 >
                   <MessageCircle className="w-3.5 h-3.5 text-yellow-500" />
-                  카카오스토리
+                  {t("planDetail.kakaoShare")}
                 </button>
               </div>
             )}
@@ -704,7 +706,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black transition-all"
             >
               <Globe className="w-3.5 h-3.5" />
-              1page 보기
+               1page
             </a>
           )}
 
@@ -713,7 +715,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground border border-border/40 hover:border-border transition-all"
           >
             <Eye className="w-3.5 h-3.5" />
-            상세
+            {t("planDetail.details")}
           </button>
 
           <button
@@ -721,7 +723,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground border border-border/40 hover:border-border transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
-            담기
+            {t("planDetail.addToCart")}
           </button>
 
           <button
@@ -729,7 +731,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white transition-all ${colColor.btn}`}
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            이동
+            {t("planDetail.go")}
           </button>
         </div>
       </div>
