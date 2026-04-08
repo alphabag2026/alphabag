@@ -729,3 +729,14 @@
 - [x] 사용자 Q&A 탭 키워드 검색 기능 (질문/답변 내용 검색)
 - [x] 관리자 FAQ 탭 드래그앤드롭 순서 변경 (sortOrder 업데이트)
 - [x] 사용자 Q&A 탭 더 보기 페이지네이션 (10개씩 로드)
+
+## Phase 58 - 공지사항 번역 표시 버그 수정 (2026-04-08)
+- [ ] 공지사항 notices 번역 필드 DB 구조 확인 (titleZh, titleEn 등)
+- [ ] 공지사항 list 프로시저에서 번역 필드 반환 여부 확인
+- [ ] 홈페이지/공지사항 페이지 다국어 필드 적용 수정
+
+## Phase 59 - 공지사항 페이지 FAQ/Q&A 탭 + 번역 수정 (2026-04-08)
+- [x] Home.tsx 공지 박스에 공지/FAQ/Q&A 탭 추가 (탭 전환 UI)
+- [x] Home.tsx 공지 목록 번역 필드 적용 (getLocalizedField 헬퍼)
+- [x] NoticeDetailModal.tsx 번역 필드 적용 (title/content 언어별 표시)
+- [x] Home.tsx FAQ/Q&A 탭에서 trpc.faq.list, trpc.qna.listPublic 데이터 로드

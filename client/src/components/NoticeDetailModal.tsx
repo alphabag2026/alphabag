@@ -5,6 +5,7 @@ interface Notice {
   id: number;
   title: string;
   content: string;
+  [key: string]: any;
   type?: string | null;
   isActive?: boolean;
   createdAt?: Date | string | null;
@@ -17,8 +18,20 @@ interface NoticeDetailModalProps {
   isDark?: boolean;
 }
 
+const NOTICE_LANG_MAP: Record<string, string> = {
+  zh: "Zh", ja: "Ja", ko: "Ko", vi: "Vi", th: "Th", id: "Id",
+  ms: "Ms", ru: "Ru", ar: "Ar", es: "Es", pt: "Pt", fr: "Fr",
+  de: "De", it: "It", tr: "Tr", hi: "Hi", pl: "Pl", nl: "Nl",
+  uk: "Uk", tl: "Tl", en: "En",
+};
+
 export function NoticeDetailModal({ notice, onClose, isDark = true }: NoticeDetailModalProps) {
   const { t, i18n } = useTranslation();
+  const lang = (i18n.language || "en").slice(0, 2);
+  const suffix = NOTICE_LANG_MAP[lang] ?? "En";
+  const localTitle = notice[`title${suffix}`] || notice.title;
+  const localContent = notice[`content${suffix}`] || notice.content;
+
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return null;
     const locale = i18n.language || "en";
@@ -55,12 +68,12 @@ export function NoticeDetailModal({ notice, onClose, isDark = true }: NoticeDeta
             </div>
             <div>
               <div className="text-xs text-amber-400 font-medium">{t("notice.noticeLabel")}</div>
-              <div className={`font-bold text-sm ${textPrimary}`}>{notice.title}</div>
+              <div className={`font-bold text-sm ${textPrimary}`}>{localTitle}</div>
             </div>
           </div>
           <button
             onClick={onClose}
-            className={`p-1.5 rounded-lg hover:bg-white/5 transition-colors ${textMuted} hover:${textPrimary}`}
+            className={`p-1.5 rounded-lg hover:bg-white/5 transition-colors ${textMuted}`}
           >
             <X className="w-5 h-5" />
           </button>
@@ -79,7 +92,7 @@ export function NoticeDetailModal({ notice, onClose, isDark = true }: NoticeDeta
           {/* 공지 내용 */}
           <div className={`rounded-xl p-4 ${contentBg}`}>
             <div className={`text-sm whitespace-pre-wrap leading-relaxed ${textSecondary}`}>
-              {notice.content}
+              {localContent}
             </div>
           </div>
 

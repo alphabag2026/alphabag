@@ -596,8 +596,16 @@ function CollectionSection({
 }
 
 // ─── 메인 홈 컴포넌트 ─────────────────────────────────────────────────────────
+// 언어 suffix 헬퍼
+const LANG_SUFFIX_MAP: Record<string, string> = { zh: "Zh", ja: "Ja", ko: "Ko", vi: "Vi", th: "Th", id: "Id", ms: "Ms", ru: "Ru", ar: "Ar", es: "Es", pt: "Pt", fr: "Fr", de: "De", it: "It", tr: "Tr", hi: "Hi", pl: "Pl", nl: "Nl", uk: "Uk", tl: "Tl", en: "En" };
+function getLocalizedField(obj: any, field: string, lang: string): string {
+  const suffix = LANG_SUFFIX_MAP[lang] ?? "En";
+  return obj[`${field}${suffix}`] || obj[field] || "";
+}
+
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = (i18n.language || "en").slice(0, 2);
   const { user: authUser, isAuthenticated } = useAuth();
   const { isConnected, address, openModal, disconnectWallet } = useWallet();
   const { theme, toggleTheme } = useTheme();
@@ -609,6 +617,7 @@ export default function Home() {
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [meetingNotice, setMeetingNotice] = useState<any>(null);
   const [selectedNotice, setSelectedNotice] = useState<any>(null);
+  const [noticeBoxTab, setNoticeBoxTab] = useState<"notice" | "faq" | "qna">("notice");
   const [activeTab, setActiveTab] = useState("recommend");
   const [viewType, setViewType] = useState<ViewType>("C");
   const [searchQuery, setSearchQuery] = useState("");
@@ -625,6 +634,8 @@ export default function Home() {
   const { data: influencerPlans = [] } = trpc.public.influencerPlans.useQuery();
   const { data: mlmPlans = [] } = trpc.public.memePlans.useQuery();
   const { data: notices = [] } = trpc.public.notices.useQuery();
+  const { data: homeFaqs = [] } = trpc.faq.list.useQuery();
+  const { data: homeQna = [] } = trpc.qna.listPublic.useQuery();
   const { data: banners = [] } = trpc.public.banners.useQuery();
   const allPlansInput = useMemo(() => ({}), []);
   const { data: allPlansRaw } = trpc.public.plans.useQuery(allPlansInput);
@@ -923,46 +934,123 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
           {/* 공지 박스 */}
           <div className={`lg:col-span-2 rounded-xl border p-4 ${cardBg}`}>
-            <div className="flex items-center justify-between mb-3">
-              <span className={`font-bold text-sm ${textPrimary}`}>{t("home.notices")}</span>
-              <Badge className={`text-[10px] px-2 py-0.5 ${isDark ? "bg-amber-500/20 text-amber-300 border-amber-500/30" : "bg-amber-100 text-amber-700 border-amber-300"}`}>NOTICE</Badge>
-            </div>
-            {(notices as any[]).length > 0 ? (
-              <div className="space-y-2 mb-3">
-                {(notices as any[]).slice(0, 3).map((n: any, i: number) => (
-                  <div
-                    key={n.id}
-                    className={`flex items-start gap-2 text-xs ${textSecondary} cursor-pointer hover:text-amber-400 transition-colors`}
-                    onClick={() => setSelectedNotice(n)}
+            {/* 탭 헤더 */}
+            <div className="flex items-center gap-1 mb-3">
+              {(["notice", "faq", "qna"] as const).map((tab) => {
+                const labels: Record<string, string> = { notice: "공지", faq: "FAQ", qna: "Q&A" };
+                const isActive = noticeBoxTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setNoticeBoxTab(tab)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                      isActive
+                        ? isDark ? "bg-amber-500/20 text-amber-300" : "bg-amber-100 text-amber-700"
+                        : `${textSecondary} hover:text-amber-400`
+                    }`}
                   >
-                    <span className="text-amber-400 font-bold flex-shrink-0">{i + 1})</span>
-                    <span className="leading-relaxed">{n.title}</span>
+                    {labels[tab]}
+                  </button>
+                );
+              })}
+              <div className="flex-1" />
+              {noticeBoxTab === "notice" && (
+                <Badge className={`text-[10px] px-2 py-0.5 ${isDark ? "bg-amber-500/20 text-amber-300 border-amber-500/30" : "bg-amber-100 text-amber-700 border-amber-300"}`}>NOTICE</Badge>
+              )}
+            </div>
+
+            {/* 공지 탭 */}
+            {noticeBoxTab === "notice" && (
+              <>
+                {(notices as any[]).length > 0 ? (
+                  <div className="space-y-2 mb-3">
+                    {(notices as any[]).slice(0, 3).map((n: any, i: number) => {
+                      const localTitle = getLocalizedField(n, "title", lang);
+                      return (
+                        <div
+                          key={n.id}
+                          className={`flex items-start gap-2 text-xs ${textSecondary} cursor-pointer hover:text-amber-400 transition-colors`}
+                          onClick={() => setSelectedNotice(n)}
+                        >
+                          <span className="text-amber-400 font-bold flex-shrink-0">{i + 1})</span>
+                          <span className="leading-relaxed">{localTitle}</span>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-2 mb-3">
-                {[t("home.betaHint1"), t("home.betaHint2"), t("home.betaHint3")].map((text, i) => (
-                  <div key={i} className={`flex items-start gap-2 text-xs ${textSecondary}`}>
-                    <span className="text-amber-400 font-bold flex-shrink-0">{i + 1})</span>
-                    <span>{text}</span>
+                ) : (
+                  <div className="space-y-2 mb-3">
+                    {[t("home.betaHint1"), t("home.betaHint2"), t("home.betaHint3")].map((text, i) => (
+                      <div key={i} className={`flex items-start gap-2 text-xs ${textSecondary}`}>
+                        <span className="text-amber-400 font-bold flex-shrink-0">{i + 1})</span>
+                        <span>{text}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+                <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
+                  <Link href="/golden"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>{t("home.goldenCollection")}</button></Link>
+                  <Link href="/notices"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>{t("home.community")}</button></Link>
+                  <button onClick={() => {
+                    const meeting = (notices as any[]).find((n: any) => n.type === "meeting" && n.isActive);
+                    setMeetingNotice(meeting || { id: 0, title: t("home.onlineMeetingTitle"), content: t("home.noMeetingScheduled"), meetingPlatform: "zoom" });
+                  }} className={`flex items-center gap-1 text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>
+                    <Video className="w-3 h-3" /> {t("home.zoomMeeting")}
+                  </button>
+                  <button onClick={() => setShowReferralModal(true)} className={`flex items-center gap-1 text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>
+                    <MessageSquare className="w-3 h-3" /> {t("home.selectReferral")}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* FAQ 탭 */}
+            {noticeBoxTab === "faq" && (
+              <div className="space-y-1.5 mb-3">
+                {(homeFaqs as any[]).length === 0 ? (
+                  <p className={`text-xs ${textSecondary} py-2`}>등록된 FAQ가 없습니다.</p>
+                ) : (
+                  (homeFaqs as any[]).slice(0, 4).map((f: any, i: number) => {
+                    const localQ = getLocalizedField(f, "question", lang);
+                    return (
+                      <Link href="/faq" key={f.id}>
+                        <div className={`flex items-start gap-2 text-xs ${textSecondary} cursor-pointer hover:text-amber-400 transition-colors`}>
+                          <span className="text-amber-400 font-bold flex-shrink-0">Q{i + 1})</span>
+                          <span className="leading-relaxed line-clamp-1">{localQ}</span>
+                        </div>
+                      </Link>
+                    );
+                  })
+                )}
+                <div className={`pt-2 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
+                  <Link href="/faq"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>전체 FAQ 보기 →</button></Link>
+                </div>
               </div>
             )}
-            <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
-              <Link href="/golden"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>{t("home.goldenCollection")}</button></Link>
-              <Link href="/notices"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>{t("home.community")}</button></Link>
-              <button onClick={() => {
-                const meeting = (notices as any[]).find((n: any) => n.type === "meeting" && n.isActive);
-                setMeetingNotice(meeting || { id: 0, title: t("home.onlineMeetingTitle"), content: t("home.noMeetingScheduled"), meetingPlatform: "zoom" });
-              }} className={`flex items-center gap-1 text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>
-                <Video className="w-3 h-3" /> {t("home.zoomMeeting")}
-              </button>
-              <button onClick={() => setShowReferralModal(true)} className={`flex items-center gap-1 text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>
-                <MessageSquare className="w-3 h-3" /> {t("home.selectReferral")}
-              </button>
-            </div>
+
+            {/* Q&A 탭 */}
+            {noticeBoxTab === "qna" && (
+              <div className="space-y-1.5 mb-3">
+                {(homeQna as any[]).length === 0 ? (
+                  <p className={`text-xs ${textSecondary} py-2`}>등록된 Q&A가 없습니다.</p>
+                ) : (
+                  (homeQna as any[]).slice(0, 4).map((q: any) => {
+                    const localQ = getLocalizedField(q, "question", lang);
+                    return (
+                      <Link href="/faq" key={q.id}>
+                        <div className={`flex items-start gap-2 text-xs ${textSecondary} cursor-pointer hover:text-amber-400 transition-colors`}>
+                          <span className={`font-bold flex-shrink-0 ${q.answer ? "text-emerald-400" : "text-amber-400"}`}>{q.answer ? "✓" : "?"}</span>
+                          <span className="leading-relaxed line-clamp-1">{localQ}</span>
+                        </div>
+                      </Link>
+                    );
+                  })
+                )}
+                <div className={`pt-2 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
+                  <Link href="/faq"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>전체 Q&A 보기 →</button></Link>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 광고 슬라이더 */}
