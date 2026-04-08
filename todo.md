@@ -704,3 +704,11 @@
 - [x] main.tsx에 I18nextProvider 추가
 - [x] Docker 컨테이너 내부 /app/dist에 최신 빌드 tar 해제 (경로 수정)
 - [x] 언어 변경 시 리렌더링 정상 작동 확인 (영어 선택 시 전체 UI 영어로 변경)
+
+## 버그 수정 및 기능 개선 (2026-04-08)
+- [x] 공지 항목 클릭 시 상세 모달 표시 (NoticeDetailModal 컴포넌트 추가)
+- [x] 번역 누락 키 수정 - 20개 언어에 meetup/expo 탭 번역 추가
+- [x] WALLX 로고 이미지 업데이트 (id=4)
+- [x] PINDEX 로고 이미지 업데이트 (id=16)
+- [x] LTF 로고 이미지 업데이트 (id=17)
+- [x] AWS Lightsail 서버 배포 (alphabag.net)

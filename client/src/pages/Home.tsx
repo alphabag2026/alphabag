@@ -19,6 +19,7 @@ import { PlanDetailModal } from "@/components/PlanDetailModal";
 import { ReferralMessageModal } from "@/components/ReferralMessageModal";
 import { MeetingNoticeModal } from "@/components/MeetingNoticeModal";
 import BetaNoticeModal from "@/components/BetaNoticeModal";
+import { NoticeDetailModal } from "@/components/NoticeDetailModal";
 import { useTheme } from "@/contexts/ThemeContext";
 
 // CDN URLs
@@ -605,6 +606,7 @@ export default function Home() {
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [meetingNotice, setMeetingNotice] = useState<any>(null);
+  const [selectedNotice, setSelectedNotice] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("recommend");
   const [viewType, setViewType] = useState<ViewType>("C");
   const [searchQuery, setSearchQuery] = useState("");
@@ -926,7 +928,11 @@ export default function Home() {
             {(notices as any[]).length > 0 ? (
               <div className="space-y-2 mb-3">
                 {(notices as any[]).slice(0, 3).map((n: any, i: number) => (
-                  <div key={n.id} className={`flex items-start gap-2 text-xs ${textSecondary}`}>
+                  <div
+                    key={n.id}
+                    className={`flex items-start gap-2 text-xs ${textSecondary} cursor-pointer hover:text-amber-400 transition-colors`}
+                    onClick={() => setSelectedNotice(n)}
+                  >
                     <span className="text-amber-400 font-bold flex-shrink-0">{i + 1})</span>
                     <span className="leading-relaxed">{n.title}</span>
                   </div>
@@ -1664,6 +1670,7 @@ export default function Home() {
       {selectedPlanId && <PlanDetailModal planId={selectedPlanId} onClose={() => setSelectedPlanId(null)} />}
       {showReferralModal && <ReferralMessageModal onClose={() => setShowReferralModal(false)} />}
       {meetingNotice && <MeetingNoticeModal notice={meetingNotice} onClose={() => setMeetingNotice(null)} />}
+      {selectedNotice && <NoticeDetailModal notice={selectedNotice} onClose={() => setSelectedNotice(null)} isDark={isDark} />}
 
       {/* ─── 푸터 ─── */}
       <footer className={`border-t py-6 ${isDark ? "border-white/5 bg-[#050505]" : "border-gray-200 bg-white"}`}>
