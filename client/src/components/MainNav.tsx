@@ -26,6 +26,7 @@ export function MainNav() {
     { href: "/meme", label: "Meme", color: "hover:text-pink-600 hover:bg-pink-50", active: "text-pink-600 bg-pink-50 font-semibold" },
     { href: "/influencer", label: "Influencer", color: "hover:text-orange-600 hover:bg-orange-50", active: "text-orange-600 bg-orange-50 font-semibold" },
     { href: "/notices", label: "Notices", color: "hover:text-foreground hover:bg-muted", active: "text-foreground bg-muted font-semibold" },
+    { href: "/faq", label: "FAQ", color: "hover:text-foreground hover:bg-muted", active: "text-foreground bg-muted font-semibold" },
   ];
 
   const isActive = (href: string) => location === href || location.startsWith(href + "/");

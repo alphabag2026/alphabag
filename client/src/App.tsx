@@ -53,6 +53,7 @@ import PlanDetailPage from "./pages/PlanDetailPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import About from "./pages/About";
 import Introduction from "./pages/Introduction";
+import FaqQnaPage from "./pages/FaqQnaPage";
 
 function Router() {
   return (
@@ -106,6 +107,7 @@ function Router() {
       <Route path="/my-submissions" component={MySubmissions} />
       <Route path="/about" component={About} />
       <Route path="/introduction" component={Introduction} />
+      <Route path="/faq" component={FaqQnaPage} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

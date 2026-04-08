@@ -1,4 +1,6 @@
 import { TRPCError } from "@trpc/server";
+import { invokeLLM } from "./_core/llm";
+import { translateTitleContent, translateToAllLanguages, translateQuestionAnswer } from "./translate";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ENV } from "./_core/env";
@@ -467,6 +469,92 @@ export const appRouter = router({
         await createAuditLog({ adminId: ctx.user.id, action: "DELETE_NOTICE", targetType: "notice", targetId: input.id });
         return { success: true };
       }),
+      // AI 자동 번역 프로시저
+      translate: superAdminProcedure.input(z.object({
+        id: z.number(),
+        title: z.string(),
+        content: z.string(),
+      })).mutation(async ({ input, ctx }) => {
+        const LANGUAGES = [
+          { code: "zh", name: "Chinese (Simplified)" },
+          { code: "ja", name: "Japanese" },
+          { code: "ko", name: "Korean" },
+          { code: "vi", name: "Vietnamese" },
+          { code: "th", name: "Thai" },
+          { code: "id", name: "Indonesian" },
+          { code: "ms", name: "Malay" },
+          { code: "ru", name: "Russian" },
+          { code: "ar", name: "Arabic" },
+          { code: "es", name: "Spanish" },
+          { code: "pt", name: "Portuguese" },
+          { code: "fr", name: "French" },
+          { code: "de", name: "German" },
+          { code: "it", name: "Italian" },
+          { code: "tr", name: "Turkish" },
+          { code: "hi", name: "Hindi" },
+          { code: "pl", name: "Polish" },
+          { code: "nl", name: "Dutch" },
+          { code: "uk", name: "Ukrainian" },
+          { code: "tl", name: "Filipino (Tagalog)" },
+        ];
+        const prompt = `You are a professional translator. Translate the following notice title and content into all specified languages. Return ONLY a valid JSON object with no markdown, no code blocks, no extra text.
+
+Title: ${input.title}
+Content: ${input.content}
+
+Return this exact JSON structure:
+{
+  "zh": {"title": "...", "content": "..."},
+  "ja": {"title": "...", "content": "..."},
+  "ko": {"title": "...", "content": "..."},
+  "vi": {"title": "...", "content": "..."},
+  "th": {"title": "...", "content": "..."},
+  "id": {"title": "...", "content": "..."},
+  "ms": {"title": "...", "content": "..."},
+  "ru": {"title": "...", "content": "..."},
+  "ar": {"title": "...", "content": "..."},
+  "es": {"title": "...", "content": "..."},
+  "pt": {"title": "...", "content": "..."},
+  "fr": {"title": "...", "content": "..."},
+  "de": {"title": "...", "content": "..."},
+  "it": {"title": "...", "content": "..."},
+  "tr": {"title": "...", "content": "..."},
+  "hi": {"title": "...", "content": "..."},
+  "pl": {"title": "...", "content": "..."},
+  "nl": {"title": "...", "content": "..."},
+  "uk": {"title": "...", "content": "..."},
+  "tl": {"title": "...", "content": "..."}
+}`;
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "You are a professional multilingual translator. Always return valid JSON only." },
+            { role: "user", content: prompt },
+          ],
+        });
+        const rawContent = response.choices[0].message.content as string;
+        let translations: Record<string, { title: string; content: string }>;
+        try {
+          // JSON 코드 블록 제거
+          const cleaned = rawContent.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+          translations = JSON.parse(cleaned);
+        } catch {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Translation parsing failed" });
+        }
+        // DB 업데이트
+        const updateData: Record<string, string> = {};
+        for (const lang of LANGUAGES) {
+          const t = translations[lang.code];
+          if (t) {
+            const titleKey = `title${lang.code.charAt(0).toUpperCase() + lang.code.slice(1)}` as keyof typeof updateData;
+            const contentKey = `content${lang.code.charAt(0).toUpperCase() + lang.code.slice(1)}` as keyof typeof updateData;
+            updateData[titleKey] = t.title;
+            updateData[contentKey] = t.content;
+          }
+        }
+        await db.updateNotice(input.id, updateData as Parameters<typeof db.updateNotice>[1]);
+        await createAuditLog({ adminId: ctx.user.id, action: "TRANSLATE_NOTICE", targetType: "notice", targetId: input.id });
+        return { success: true, translations };
+      }),
     }),
     announcements: router({
       list: adminProcedure.query(async () => await db.getAnnouncements()),
@@ -559,6 +647,192 @@ export const appRouter = router({
         await db.deleteAdImage(input.id);
         return { success: true };
       }),
+    }),
+  }),
+
+  // ─── FAQ ────────────────────────────────────────────────────────────────────
+  faq: router({
+    list: publicProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { faqs } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      return drizzleDb.select().from(faqs).where(eq(faqs.isActive, true)).orderBy(faqs.sortOrder);
+    }),
+    listAdmin: adminProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { faqs } = await import("../drizzle/schema");
+      return drizzleDb.select().from(faqs).orderBy(faqs.sortOrder);
+    }),
+    create: superAdminProcedure.input(z.object({
+      question: z.string().min(1),
+      answer: z.string().min(1),
+      category: z.string().default("general"),
+      sortOrder: z.number().default(0),
+      autoTranslate: z.boolean().default(true),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { faqs } = await import("../drizzle/schema");
+      let translationData: Record<string, string> = {};
+      if (input.autoTranslate) {
+        try {
+          const { questions, answers } = await translateQuestionAnswer(input.question, input.answer);
+          for (const [lang, val] of Object.entries(questions)) {
+            translationData[`question${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = val;
+          }
+          for (const [lang, val] of Object.entries(answers)) {
+            translationData[`answer${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = val;
+          }
+        } catch (e) { console.warn('[FAQ translate]', e); }
+      }
+      await drizzleDb.insert(faqs).values({ question: input.question, answer: input.answer, category: input.category, sortOrder: input.sortOrder, ...translationData } as any);
+      return { success: true };
+    }),
+    update: superAdminProcedure.input(z.object({
+      id: z.number(),
+      question: z.string().optional(),
+      answer: z.string().optional(),
+      category: z.string().optional(),
+      sortOrder: z.number().optional(),
+      isActive: z.boolean().optional(),
+      autoTranslate: z.boolean().default(false),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { faqs } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const { id, autoTranslate, ...data } = input;
+      let translationData: Record<string, string> = {};
+      if (autoTranslate && data.question && data.answer) {
+        try {
+          const { questions, answers } = await translateQuestionAnswer(data.question, data.answer);
+          for (const [lang, val] of Object.entries(questions)) {
+            translationData[`question${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = val;
+          }
+          for (const [lang, val] of Object.entries(answers)) {
+            translationData[`answer${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = val;
+          }
+        } catch (e) { console.warn('[FAQ translate]', e); }
+      }
+      await drizzleDb.update(faqs).set({ ...data, ...translationData } as any).where(eq(faqs.id, id!));
+      return { success: true };
+    }),
+    delete: superAdminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { faqs } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      await drizzleDb.delete(faqs).where(eq(faqs.id, input.id));
+      return { success: true };
+    }),
+    translate: superAdminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { faqs } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const [faq] = await drizzleDb.select().from(faqs).where(eq(faqs.id, input.id));
+      if (!faq) throw new TRPCError({ code: 'NOT_FOUND' });
+      const { questions, answers } = await translateQuestionAnswer(faq.question, faq.answer);
+      const translationData: Record<string, string> = {};
+      for (const [lang, val] of Object.entries(questions)) {
+        translationData[`question${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = val;
+      }
+      for (const [lang, val] of Object.entries(answers)) {
+        translationData[`answer${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = val;
+      }
+      await drizzleDb.update(faqs).set(translationData as any).where(eq(faqs.id, input.id));
+      return { success: true };
+    }),
+  }),
+
+  // ─── Q&A ────────────────────────────────────────────────────────────────────
+  qna: router({
+    listPublic: publicProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { qnaQuestions } = await import("../drizzle/schema");
+      const { eq, and } = await import("drizzle-orm");
+      return drizzleDb.select().from(qnaQuestions)
+        .where(and(eq(qnaQuestions.isPrivate, false), eq(qnaQuestions.isActive, true)))
+        .orderBy(qnaQuestions.createdAt);
+    }),
+    listMine: protectedProcedure.query(async ({ ctx }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { qnaQuestions } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      return drizzleDb.select().from(qnaQuestions)
+        .where(eq(qnaQuestions.userId, ctx.user.id))
+        .orderBy(qnaQuestions.createdAt);
+    }),
+    ask: publicProcedure.input(z.object({
+      question: z.string().min(1).max(2000),
+      isPrivate: z.boolean().default(false),
+      category: z.string().default("general"),
+      nickname: z.string().optional(),
+      userId: z.number().optional(),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { qnaQuestions } = await import("../drizzle/schema");
+      let translationData: Record<string, string> = {};
+      try {
+        const translations = await translateToAllLanguages(input.question);
+        for (const [lang, val] of Object.entries(translations)) {
+          translationData[`question${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = val;
+        }
+      } catch (e) { console.warn('[QnA translate]', e); }
+      await drizzleDb.insert(qnaQuestions).values({
+        question: input.question,
+        isPrivate: input.isPrivate,
+        category: input.category,
+        nickname: input.nickname ?? null,
+        userId: input.userId ?? null,
+        ...translationData,
+      } as any);
+      return { success: true };
+    }),
+    listAdmin: adminProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { qnaQuestions } = await import("../drizzle/schema");
+      return drizzleDb.select().from(qnaQuestions).orderBy(qnaQuestions.createdAt);
+    }),
+    answer: adminProcedure.input(z.object({
+      id: z.number(),
+      answer: z.string().min(1),
+      autoTranslate: z.boolean().default(true),
+    })).mutation(async ({ input, ctx }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { qnaQuestions } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      let translationData: Record<string, string> = {};
+      if (input.autoTranslate) {
+        try {
+          const translations = await translateToAllLanguages(input.answer);
+          for (const [lang, val] of Object.entries(translations)) {
+            translationData[`answer${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = val;
+          }
+        } catch (e) { console.warn('[QnA answer translate]', e); }
+      }
+      await drizzleDb.update(qnaQuestions).set({
+        answer: input.answer,
+        answeredBy: ctx.user.id,
+        answeredAt: new Date(),
+        ...translationData,
+      } as any).where(eq(qnaQuestions.id, input.id));
+      return { success: true };
+    }),
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { qnaQuestions } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      await drizzleDb.delete(qnaQuestions).where(eq(qnaQuestions.id, input.id));
+      return { success: true };
     }),
   }),
 
@@ -1230,6 +1504,7 @@ export const appRouter = router({
       additionalInfo: z.string().optional(),
     })).mutation(async ({ input }) => {
       const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
       if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { listingRequests } = await import("../drizzle/schema");
       await drizzleDb.insert(listingRequests).values(input);
@@ -1270,6 +1545,7 @@ export const appRouter = router({
       adminNote: z.string().optional(),
     })).mutation(async ({ input }) => {
       const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
       if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { listingRequests } = await import("../drizzle/schema");
       // 기존 신청 정보 조회
@@ -1317,6 +1593,7 @@ export const appRouter = router({
       sortOrder: z.number().default(0),
     })).mutation(async ({ input }) => {
       const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
       if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { partners } = await import("../drizzle/schema");
       await drizzleDb.insert(partners).values(input);
@@ -1324,6 +1601,7 @@ export const appRouter = router({
     }),
     toggleHidden: adminProcedure.input(z.object({ id: z.number(), isHidden: z.boolean() })).mutation(async ({ input }) => {
       const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
       if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { partners } = await import("../drizzle/schema");
       await drizzleDb.update(partners).set({ isHidden: input.isHidden }).where(eq(partners.id, input.id));
@@ -1339,6 +1617,7 @@ export const appRouter = router({
       sortOrder: z.number().optional(),
     })).mutation(async ({ input }) => {
       const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
       if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { partners } = await import("../drizzle/schema");
       const { id, ...fields } = input;
@@ -1347,6 +1626,7 @@ export const appRouter = router({
     }),
     delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
       const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
       if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { partners } = await import("../drizzle/schema");
       await drizzleDb.delete(partners).where(eq(partners.id, input.id));

@@ -148,6 +148,20 @@
       "when": 1775185005866,
       "tag": "0020_glossy_thanos",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1775652969843,
+      "tag": "0021_smooth_cable",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "5",
+      "when": 1775653479542,
+      "tag": "0022_ambitious_johnny_storm",
+      "breakpoints": true
     }
   ]
 }

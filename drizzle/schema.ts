@@ -139,6 +139,47 @@ export const notices = mysqlTable("notices", {
   id: int("id").autoincrement().primaryKey(),
   title: varchar("title", { length: 200 }).notNull(),
   content: text("content").notNull(),
+  // AI 자동 번역 컬럼 (21개 언어)
+  titleZh: varchar("title_zh", { length: 200 }),
+  titleJa: varchar("title_ja", { length: 200 }),
+  titleKo: varchar("title_ko", { length: 200 }),
+  titleVi: varchar("title_vi", { length: 200 }),
+  titleTh: varchar("title_th", { length: 200 }),
+  titleId: varchar("title_id", { length: 200 }),
+  titleMs: varchar("title_ms", { length: 200 }),
+  titleRu: varchar("title_ru", { length: 200 }),
+  titleAr: varchar("title_ar", { length: 200 }),
+  titleEs: varchar("title_es", { length: 200 }),
+  titlePt: varchar("title_pt", { length: 200 }),
+  titleFr: varchar("title_fr", { length: 200 }),
+  titleDe: varchar("title_de", { length: 200 }),
+  titleIt: varchar("title_it", { length: 200 }),
+  titleTr: varchar("title_tr", { length: 200 }),
+  titleHi: varchar("title_hi", { length: 200 }),
+  titlePl: varchar("title_pl", { length: 200 }),
+  titleNl: varchar("title_nl", { length: 200 }),
+  titleUk: varchar("title_uk", { length: 200 }),
+  titleTl: varchar("title_tl", { length: 200 }),
+  contentZh: text("content_zh"),
+  contentJa: text("content_ja"),
+  contentKo: text("content_ko"),
+  contentVi: text("content_vi"),
+  contentTh: text("content_th"),
+  contentId: text("content_id"),
+  contentMs: text("content_ms"),
+  contentRu: text("content_ru"),
+  contentAr: text("content_ar"),
+  contentEs: text("content_es"),
+  contentPt: text("content_pt"),
+  contentFr: text("content_fr"),
+  contentDe: text("content_de"),
+  contentIt: text("content_it"),
+  contentTr: text("content_tr"),
+  contentHi: text("content_hi"),
+  contentPl: text("content_pl"),
+  contentNl: text("content_nl"),
+  contentUk: text("content_uk"),
+  contentTl: text("content_tl"),
   isActive: boolean("isActive").default(true).notNull(),
   isPinned: boolean("isPinned").default(false).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
@@ -603,3 +644,77 @@ export const rewardWithdrawals = mysqlTable("rewardWithdrawals", {
 });
 export type RewardWithdrawal = typeof rewardWithdrawals.$inferSelect;
 export type InsertRewardWithdrawal = typeof rewardWithdrawals.$inferInsert;
+
+// ─── FAQ (자주 묻는 질문) ─────────────────────────────────────────────────────
+export const faqs = mysqlTable("faqs", {
+  id: int("id").autoincrement().primaryKey(),
+  question: text("question").notNull(),           // 원문 질문 (영어/한국어)
+  answer: text("answer").notNull(),               // 원문 답변
+  category: varchar("category", { length: 50 }).default("general"),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  // AI 자동 번역 컬럼 (21개 언어)
+  questionZh: text("question_zh"), answerZh: text("answer_zh"),
+  questionJa: text("question_ja"), answerJa: text("answer_ja"),
+  questionKo: text("question_ko"), answerKo: text("answer_ko"),
+  questionVi: text("question_vi"), answerVi: text("answer_vi"),
+  questionTh: text("question_th"), answerTh: text("answer_th"),
+  questionId: text("question_id"), answerId: text("answer_id"),
+  questionMs: text("question_ms"), answerMs: text("answer_ms"),
+  questionRu: text("question_ru"), answerRu: text("answer_ru"),
+  questionAr: text("question_ar"), answerAr: text("answer_ar"),
+  questionEs: text("question_es"), answerEs: text("answer_es"),
+  questionPt: text("question_pt"), answerPt: text("answer_pt"),
+  questionFr: text("question_fr"), answerFr: text("answer_fr"),
+  questionDe: text("question_de"), answerDe: text("answer_de"),
+  questionIt: text("question_it"), answerIt: text("answer_it"),
+  questionTr: text("question_tr"), answerTr: text("answer_tr"),
+  questionHi: text("question_hi"), answerHi: text("answer_hi"),
+  questionPl: text("question_pl"), answerPl: text("answer_pl"),
+  questionNl: text("question_nl"), answerNl: text("answer_nl"),
+  questionUk: text("question_uk"), answerUk: text("answer_uk"),
+  questionTl: text("question_tl"), answerTl: text("answer_tl"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Faq = typeof faqs.$inferSelect;
+export type InsertFaq = typeof faqs.$inferInsert;
+
+// ─── Q&A (질문/답변) ──────────────────────────────────────────────────────────
+export const qnaQuestions = mysqlTable("qnaQuestions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),                          // 로그인 사용자 (null=비로그인)
+  nickname: varchar("nickname", { length: 50 }),  // 비로그인 시 닉네임
+  isPrivate: boolean("isPrivate").default(false).notNull(), // true=1:1비밀방, false=공개방
+  category: varchar("category", { length: 50 }).default("general"),
+  question: text("question").notNull(),           // 원문 질문
+  answer: text("answer"),                         // 관리자 답변 (null=미답변)
+  answeredBy: int("answeredBy"),                  // 답변한 관리자 ID
+  answeredAt: timestamp("answeredAt"),
+  isActive: boolean("isActive").default(true).notNull(),
+  // AI 자동 번역 컬럼 (질문+답변, 21개 언어)
+  questionZh: text("question_zh"), answerZh: text("answer_zh"),
+  questionJa: text("question_ja"), answerJa: text("answer_ja"),
+  questionKo: text("question_ko"), answerKo: text("answer_ko"),
+  questionVi: text("question_vi"), answerVi: text("answer_vi"),
+  questionTh: text("question_th"), answerTh: text("answer_th"),
+  questionId: text("question_id"), answerId: text("answer_id"),
+  questionMs: text("question_ms"), answerMs: text("answer_ms"),
+  questionRu: text("question_ru"), answerRu: text("answer_ru"),
+  questionAr: text("question_ar"), answerAr: text("answer_ar"),
+  questionEs: text("question_es"), answerEs: text("answer_es"),
+  questionPt: text("question_pt"), answerPt: text("answer_pt"),
+  questionFr: text("question_fr"), answerFr: text("answer_fr"),
+  questionDe: text("question_de"), answerDe: text("answer_de"),
+  questionIt: text("question_it"), answerIt: text("answer_it"),
+  questionTr: text("question_tr"), answerTr: text("answer_tr"),
+  questionHi: text("question_hi"), answerHi: text("answer_hi"),
+  questionPl: text("question_pl"), answerPl: text("answer_pl"),
+  questionNl: text("question_nl"), answerNl: text("answer_nl"),
+  questionUk: text("question_uk"), answerUk: text("answer_uk"),
+  questionTl: text("question_tl"), answerTl: text("answer_tl"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type QnaQuestion = typeof qnaQuestions.$inferSelect;
+export type InsertQnaQuestion = typeof qnaQuestions.$inferInsert;
