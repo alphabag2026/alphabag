@@ -78,6 +78,11 @@ export default function FaqQnaPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const filteredFaqs = faqs?.filter((f: any) => selectedCategory === "all" || f.category === selectedCategory) ?? [];
 
+  // Q&A 카테고리 필터
+  const qnaCategories = publicQna ? Array.from(new Set(publicQna.map((q: any) => q.category))).filter(Boolean) : [];
+  const [selectedQnaCategory, setSelectedQnaCategory] = useState<string>("all");
+  const filteredPublicQna = publicQna?.filter((q: any) => selectedQnaCategory === "all" || q.category === selectedQnaCategory) ?? [];
+
   const getCategoryLabel = (cat: string) => {
     const map: Record<string, string> = { general: "일반", investment: "투자", account: "계정", payment: "결제", technical: "기술" };
     return map[cat] ?? cat;
@@ -237,10 +242,36 @@ export default function FaqQnaPage() {
 
             {/* 공개 Q&A */}
             <div>
-              <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-                <Globe className="w-3 h-3" />
-                공개 Q&A
-              </p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                  <Globe className="w-3 h-3" />
+                  공개 Q&A
+                </p>
+                {/* 카테고리 필터 */}
+                {qnaCategories.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    <button
+                      onClick={() => setSelectedQnaCategory("all")}
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
+                        selectedQnaCategory === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      }`}
+                    >
+                      전체
+                    </button>
+                    {qnaCategories.map((cat: any) => (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedQnaCategory(cat)}
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
+                          selectedQnaCategory === cat ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        }`}
+                      >
+                        {getCategoryLabel(cat)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               {qnaLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map(i => (
@@ -256,9 +287,14 @@ export default function FaqQnaPage() {
                     첫 질문하기
                   </Button>
                 </div>
+              ) : filteredPublicQna.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <MessageSquare className="w-8 h-8 text-muted-foreground/30 mb-2" />
+                  <p className="text-muted-foreground text-sm">해당 카테고리의 Q&A가 없습니다</p>
+                </div>
               ) : (
                 <div className="space-y-3">
-                  {publicQna.map((item: any) => {
+                  {filteredPublicQna.map((item: any) => {
                     const question = getLocalizedField(item, "question", lang);
                     const answer = item.answer ? getLocalizedField(item, "answer", lang) : null;
                     return (
@@ -267,7 +303,7 @@ export default function FaqQnaPage() {
                           <span className="text-xs text-muted-foreground">{item.nickname ?? "익명"}</span>
                           <span className="text-xs text-muted-foreground">·</span>
                           <span className="text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleDateString("ko-KR")}</span>
-                          {item.category && <Badge variant="outline" className="text-xs">{item.category}</Badge>}
+                          {item.category && <Badge variant="outline" className="text-xs">{getCategoryLabel(item.category)}</Badge>}
                         </div>
                         <p className="text-sm font-medium mb-2">{question}</p>
                         {answer ? (
