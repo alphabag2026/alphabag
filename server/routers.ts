@@ -555,6 +555,39 @@ Return this exact JSON structure:
         await createAuditLog({ adminId: ctx.user.id, action: "TRANSLATE_NOTICE", targetType: "notice", targetId: input.id });
         return { success: true, translations };
       }),
+      translateAll: superAdminProcedure.mutation(async ({ ctx }) => {
+        const drizzleDb = await getDb();
+        if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        const { notices } = await import("../drizzle/schema");
+        const { isNull } = await import("drizzle-orm");
+        const untranslated = await drizzleDb.select().from(notices).where(isNull(notices.titleZh));
+        let count = 0;
+        for (const notice of untranslated) {
+          try {
+            const prompt = `Translate the following notice into 20 languages. Return ONLY valid JSON.\nTitle: ${notice.title}\nContent: ${notice.content ?? ""}\nReturn: {"zh":{"title":"...","content":"..."},"ja":{"title":"...","content":"..."},"ko":{"title":"...","content":"..."},"vi":{"title":"...","content":"..."},"th":{"title":"...","content":"..."},"id":{"title":"...","content":"..."},"ms":{"title":"...","content":"..."},"ru":{"title":"...","content":"..."},"ar":{"title":"...","content":"..."},"es":{"title":"...","content":"..."},"pt":{"title":"...","content":"..."},"fr":{"title":"...","content":"..."},"de":{"title":"...","content":"..."},"it":{"title":"...","content":"..."},"tr":{"title":"...","content":"..."},"hi":{"title":"...","content":"..."},"pl":{"title":"...","content":"..."},"nl":{"title":"...","content":"..."},"uk":{"title":"...","content":"..."},"tl":{"title":"...","content":"..."}}\n`;
+            const response = await invokeLLM({ messages: [
+              { role: "system", content: "Professional multilingual translator. Return valid JSON only." },
+              { role: "user", content: prompt },
+            ]});
+            const raw = (response.choices[0].message.content as string).replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+            const translations = JSON.parse(raw) as Record<string, { title: string; content: string }>;
+            const LANGS = ["zh","ja","ko","vi","th","id","ms","ru","ar","es","pt","fr","de","it","tr","hi","pl","nl","uk","tl"];
+            const updateData: Record<string, string> = {};
+            for (const lang of LANGS) {
+              const t = translations[lang];
+              if (t) {
+                updateData[`title${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = t.title;
+                updateData[`content${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = t.content;
+              }
+            }
+            const { eq } = await import("drizzle-orm");
+            await drizzleDb.update(notices).set(updateData as any).where(eq(notices.id, notice.id));
+            count++;
+          } catch { /* skip failed */ }
+        }
+        await createAuditLog({ adminId: ctx.user.id, action: "TRANSLATE_ALL_NOTICES", targetType: "notice" });
+        return { success: true, count };
+      }),
     }),
     announcements: router({
       list: adminProcedure.query(async () => await db.getAnnouncements()),
@@ -757,9 +790,33 @@ Return this exact JSON structure:
       ));
       return { success: true };
     }),
+    translateAll: superAdminProcedure.mutation(async ({ ctx }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { faqs } = await import("../drizzle/schema");
+      const { isNull } = await import("drizzle-orm");
+      const untranslated = await drizzleDb.select().from(faqs).where(isNull(faqs.questionZh));
+      let count = 0;
+      for (const faq of untranslated) {
+        try {
+          const { questions, answers } = await translateQuestionAnswer(faq.question, faq.answer);
+          const translationData: Record<string, string> = {};
+          for (const [lang, val] of Object.entries(questions)) {
+            translationData[`question${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = val;
+          }
+          for (const [lang, val] of Object.entries(answers)) {
+            translationData[`answer${lang.charAt(0).toUpperCase() + lang.slice(1)}`] = val;
+          }
+          const { eq } = await import("drizzle-orm");
+          await drizzleDb.update(faqs).set(translationData as any).where(eq(faqs.id, faq.id));
+          count++;
+        } catch { /* skip failed */ }
+      }
+      await createAuditLog({ adminId: ctx.user.id, action: "TRANSLATE_ALL_FAQS", targetType: "faq" });
+      return { success: true, count };
+    }),
   }),
-
-  // ─── Q&A ────────────────────────────────────────────────────────────────────
+  // ─── Q&A ─────────────────────────────────────────────────────────────────────
   qna: router({
     listPublic: publicProcedure.query(async () => {
       const drizzleDb = await getDb();

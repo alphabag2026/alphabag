@@ -102,6 +102,15 @@ export default function Content() {
   const createFaq = trpc.faq.create.useMutation({ onSuccess: () => { toast.success("FAQ 생성 완료"); refetchFaqs(); setDialogOpen(false); } });
   const updateFaq = trpc.faq.update.useMutation({ onSuccess: () => { toast.success("수정 완료"); refetchFaqs(); setDialogOpen(false); } });
   const deleteFaq = trpc.faq.delete.useMutation({ onSuccess: () => { toast.success("삭제 완료"); refetchFaqs(); setDeleteTarget(null); } });
+  const [isBulkTranslating, setIsBulkTranslating] = useState(false);
+  const translateAllNotices = trpc.content.notices.translateAll.useMutation({
+    onSuccess: (data) => { toast.success(`${data.count}개 공지 번역 완료!`); utils.content.notices.list.invalidate(); setIsBulkTranslating(false); },
+    onError: () => { toast.error("일괄 번역 실패"); setIsBulkTranslating(false); },
+  });
+  const translateAllFaqs = trpc.faq.translateAll.useMutation({
+    onSuccess: (data) => { toast.success(`${data.count}개 FAQ 번역 완료!`); refetchFaqs(); setIsBulkTranslating(false); },
+    onError: () => { toast.error("일괄 번역 실패"); setIsBulkTranslating(false); },
+  });
   const translateFaq = trpc.faq.translate.useMutation({
     onSuccess: () => { toast.success("번역 완료!"); refetchFaqs(); setTranslatingId(null); },
     onError: () => { toast.error("번역 실패"); setTranslatingId(null); },
@@ -375,12 +384,33 @@ export default function Content() {
                 </TabsTrigger>
               ))}
             </TabsList>
-            {activeTab !== "qna" && (
-              <Button onClick={() => openCreate(activeTab)} className="gap-2">
-                <Plus className="w-4 h-4" />
-                추가
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {(activeTab === "notices" || activeTab === "faqs") && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs border-amber-500/40 text-amber-400 hover:text-amber-300 hover:border-amber-400"
+                  disabled={isBulkTranslating}
+                  onClick={() => {
+                    setIsBulkTranslating(true);
+                    if (activeTab === "notices") translateAllNotices.mutate();
+                    else translateAllFaqs.mutate();
+                  }}
+                >
+                  {isBulkTranslating ? (
+                    <><span className="inline-block animate-spin">↻</span> 번역중...</>
+                  ) : (
+                    <><Languages className="w-3.5 h-3.5" /> 미번역 일괄 번역</>
+                  )}
+                </Button>
+              )}
+              {activeTab !== "qna" && (
+                <Button onClick={() => openCreate(activeTab)} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  추가
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* 공지사항 / Announcements / Banners / Ads 탭 */}

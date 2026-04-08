@@ -229,6 +229,9 @@ const en = {
     noticeLabel: "Notice",
     close: "Close",
     announcements: "Announcements",
+    tabNotice: "Notice",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta 开放",
@@ -414,6 +417,9 @@ const zh = {
     noticeLabel: "公告",
     close: "关闭",
     announcements: "公告",
+    tabNotice: "公告",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Mở Cửa",
@@ -598,6 +604,9 @@ const ja = {
     noticeLabel: "お知らせ",
     close: "閉じる",
     announcements: "お知らせ",
+    tabNotice: "お知らせ",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag เปิดตัว Beta",
@@ -782,6 +791,9 @@ const vi = {
     noticeLabel: "Thông báo",
     close: "Đóng",
     announcements: "Thông báo",
+    tabNotice: "Thông báo",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Dibuka",
@@ -974,6 +986,9 @@ const ko = {
     noticeLabel: "공지사항",
     close: "닫기",
     announcements: "공지사항",
+    tabNotice: "공지",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Открыт",
@@ -1158,6 +1173,9 @@ const th = {
     noticeLabel: "ประกาศ",
     close: "ปิด",
     announcements: "ประกาศ",
+    tabNotice: "ประกาศ",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Abierto",
@@ -1342,6 +1360,9 @@ const id = {
     noticeLabel: "Pengumuman",
     close: "Tutup",
     announcements: "Pengumuman",
+    tabNotice: "Pengumuman",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Ouvert",
@@ -1526,6 +1547,9 @@ const ms = {
     noticeLabel: "Pengumuman",
     close: "Tutup",
     announcements: "Pengumuman",
+    tabNotice: "Pengumuman",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Aperto",
@@ -1710,6 +1734,9 @@ const ru = {
     noticeLabel: "Объявление",
     close: "Закрыть",
     announcements: "Объявления",
+    tabNotice: "Объявление",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta खुला",
@@ -1894,6 +1921,9 @@ const ar = {
     noticeLabel: "إعلان",
     close: "إغلاق",
     announcements: "الإعلانات",
+    tabNotice: "إعلان",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Open",
@@ -2078,6 +2108,9 @@ const es = {
     noticeLabel: "Aviso",
     close: "Cerrar",
     announcements: "Avisos",
+    tabNotice: "Aviso",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Відкрито",
@@ -2262,6 +2295,9 @@ const pt = {
     noticeLabel: "Aviso",
     close: "Fechar",
     announcements: "Avisos",
+    tabNotice: "Aviso",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Aberto",
@@ -2446,6 +2482,9 @@ const fr = {
     noticeLabel: "Annonce",
     close: "Fermer",
     announcements: "Annonces",
+    tabNotice: "Avis",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Ouvert",
@@ -2630,6 +2669,9 @@ const de = {
     noticeLabel: "Ankündigung",
     close: "Schließen",
     announcements: "Ankündigungen",
+    tabNotice: "Ankündigung",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Offen",
@@ -2814,6 +2856,9 @@ const it = {
     noticeLabel: "Annuncio",
     close: "Chiudi",
     announcements: "Annunci",
+    tabNotice: "Avviso",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Aperto",
@@ -2998,6 +3043,9 @@ const tr = {
     noticeLabel: "Duyuru",
     close: "Kapat",
     announcements: "Duyurular",
+    tabNotice: "Duyuru",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Açık",
@@ -3182,6 +3230,9 @@ const hi = {
     noticeLabel: "सूचना",
     close: "बंद करें",
     announcements: "सूचनाएं",
+    tabNotice: "सूचना",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta खुला",
@@ -3366,6 +3417,9 @@ const pl = {
     noticeLabel: "Ogłoszenie",
     close: "Zamknij",
     announcements: "Ogłoszenia",
+    tabNotice: "Ogłoszenie",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Otwarte",
@@ -3550,6 +3604,9 @@ const nl = {
     noticeLabel: "Aankondiging",
     close: "Sluiten",
     announcements: "Aankondigingen",
+    tabNotice: "Aankondiging",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Open",
@@ -3734,6 +3791,9 @@ const uk = {
     noticeLabel: "Оголошення",
     close: "Закрити",
     announcements: "Оголошення",
+    tabNotice: "Оголошення",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Відкрито",
@@ -3918,6 +3978,9 @@ const tl = {
     noticeLabel: "Anunsyo",
     close: "Isara",
     announcements: "Mga Anunsyo",
+    tabNotice: "Anunsyo",
+    tabFaq: "FAQ",
+    tabQna: "Q&A",
   },
   beta: {
     title: "AlphaBag Beta Bukas",

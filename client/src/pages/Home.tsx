@@ -937,19 +937,29 @@ export default function Home() {
             {/* 탭 헤더 */}
             <div className="flex items-center gap-1 mb-3">
               {(["notice", "faq", "qna"] as const).map((tab) => {
-                const labels: Record<string, string> = { notice: "공지", faq: "FAQ", qna: "Q&A" };
+                const labels: Record<string, string> = {
+                  notice: t("notice.tabNotice"),
+                  faq: t("notice.tabFaq"),
+                  qna: t("notice.tabQna"),
+                };
                 const isActive = noticeBoxTab === tab;
+                const pendingCount = tab === "qna" ? homeQna.filter((q: any) => !q.answer).length : 0;
                 return (
                   <button
                     key={tab}
                     onClick={() => setNoticeBoxTab(tab)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                    className={`relative px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
                       isActive
                         ? isDark ? "bg-amber-500/20 text-amber-300" : "bg-amber-100 text-amber-700"
                         : `${textSecondary} hover:text-amber-400`
                     }`}
                   >
                     {labels[tab]}
+                    {pendingCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">
+                        {pendingCount > 9 ? "9+" : pendingCount}
+                      </span>
+                    )}
                   </button>
                 );
               })}
