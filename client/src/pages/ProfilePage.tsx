@@ -10,7 +10,8 @@ import { Link } from "wouter";
 import { toast } from "sonner";
 import {
   ArrowLeft, Loader2, Wallet, User, Shield, Copy,
-  CheckCircle2, AlertCircle, Clock, Send, ExternalLink, Link2
+  CheckCircle2, AlertCircle, Clock, Send, ExternalLink, Link2,
+  MessageSquare, Lock, ChevronDown, ChevronUp
 } from "lucide-react";
 import { useWallet } from "@/contexts/WalletContext";
 
@@ -50,6 +51,10 @@ export default function ProfilePage() {
     },
     onError: (err: any) => toast.error(err.message),
   });
+
+  // 내 Q&A
+  const { data: myQna, isLoading: qnaLoading } = trpc.qna.listMine.useQuery(undefined, { enabled: isAuthenticated });
+  const [expandedQna, setExpandedQna] = useState<number | null>(null);
 
   const generateCode = trpc.user.generateReferralCode.useMutation({
     onSuccess: (data) => {
@@ -369,6 +374,89 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
+          </CardContent>
+        </Card>
+        {/* 내 Q&A */}
+        <Card className="border-border/40">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-primary" /> 내 Q&A
+              {myQna && myQna.length > 0 && (
+                <Badge variant="secondary" className="ml-auto text-xs">{myQna.length}개</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {qnaLoading ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : !myQna || myQna.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">아직 등록한 Q&A가 없습니다.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {myQna.map((q) => (
+                  <div
+                    key={q.id}
+                    className="rounded-lg border border-border/40 bg-background/50 overflow-hidden"
+                  >
+                    <button
+                      className="w-full flex items-start gap-3 p-3 text-left hover:bg-muted/20 transition-colors"
+                      onClick={() => setExpandedQna(expandedQna === q.id ? null : q.id)}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          {q.isPrivate && <Lock className="w-3 h-3 text-muted-foreground flex-shrink-0" />}
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                            {q.category === 'general' ? '일반' : q.category === 'investment' ? '투자' : q.category === 'account' ? '계정' : q.category === 'payment' ? '결제' : q.category === 'technical' ? '기술' : q.category}
+                          </Badge>
+                          {q.answer ? (
+                            <Badge className="text-[10px] px-1.5 py-0 bg-green-500/20 text-green-400 border-green-500/30">답변완료</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-yellow-400 border-yellow-500/30">답변대기</Badge>
+                          )}
+                          <span className="text-[10px] text-muted-foreground ml-auto">
+                            {new Date(q.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-sm text-foreground line-clamp-2">{q.question}</p>
+                      </div>
+                      {expandedQna === q.id ? (
+                        <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                      )}
+                    </button>
+                    {expandedQna === q.id && (
+                      <div className="px-3 pb-3 space-y-2 border-t border-border/30 pt-3">
+                        <div className="p-3 rounded-lg bg-muted/20">
+                          <p className="text-xs text-muted-foreground mb-1 font-medium">질문</p>
+                          <p className="text-sm text-foreground whitespace-pre-wrap">{q.question}</p>
+                        </div>
+                        {q.answer ? (
+                          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                            <p className="text-xs text-primary mb-1 font-medium">관리자 답변</p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap">{q.answer}</p>
+                            {q.answeredAt && (
+                              <p className="text-[10px] text-muted-foreground mt-2">
+                                {new Date(q.answeredAt).toLocaleString()}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/20">
+                            <p className="text-xs text-yellow-400">아직 답변이 등록되지 않았습니다. 답변 시 텔레그램/이메일로 알림을 받으실 수 있습니다.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
