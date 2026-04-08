@@ -90,3 +90,29 @@ describe("qna", () => {
     await expect(caller.qna.answer({ id: 1, answer: "test answer" })).rejects.toThrow();
   });
 });
+
+describe("faq.reorder", () => {
+  it("faq.reorder requires admin role", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.faq.reorder({ items: [{ id: 1, sortOrder: 0 }] })).rejects.toThrow();
+  });
+
+  it("faq.reorder accepts valid items array for admin", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    // DB 없는 환경에서는 INTERNAL_SERVER_ERROR 또는 성공 두 경우 모두 허용 (인증은 통과)
+    try {
+      const result = await caller.faq.reorder({ items: [{ id: 1, sortOrder: 0 }] });
+      expect(result).toMatchObject({ success: true });
+    } catch (e: any) {
+      expect(e.code).toBe("INTERNAL_SERVER_ERROR");
+    }
+  });
+
+  it("faq.reorder rejects empty items array for non-admin", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.faq.reorder({ items: [] })).rejects.toThrow();
+  });
+});

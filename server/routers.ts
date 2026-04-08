@@ -745,6 +745,18 @@ Return this exact JSON structure:
       await drizzleDb.update(faqs).set(translationData as any).where(eq(faqs.id, input.id));
       return { success: true };
     }),
+    reorder: superAdminProcedure.input(z.object({
+      items: z.array(z.object({ id: z.number(), sortOrder: z.number() })),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      const { faqs } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      await Promise.all(input.items.map(item =>
+        drizzleDb.update(faqs).set({ sortOrder: item.sortOrder }).where(eq(faqs.id, item.id))
+      ));
+      return { success: true };
+    }),
   }),
 
   // ─── Q&A ────────────────────────────────────────────────────────────────────

@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, HelpCircle, MessageSquare, Plus, Lock, Globe, CheckCircle, Clock, Send } from "lucide-react";
+import { ChevronDown, ChevronUp, HelpCircle, MessageSquare, Plus, Lock, Globe, CheckCircle, Clock, Send, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -81,7 +81,34 @@ export default function FaqQnaPage() {
   // Q&A 카테고리 필터
   const qnaCategories = publicQna ? Array.from(new Set(publicQna.map((q: any) => q.category))).filter(Boolean) : [];
   const [selectedQnaCategory, setSelectedQnaCategory] = useState<string>("all");
-  const filteredPublicQna = publicQna?.filter((q: any) => selectedQnaCategory === "all" || q.category === selectedQnaCategory) ?? [];
+
+  // Q&A 키워드 검색
+  const [qnaSearch, setQnaSearch] = useState("");
+
+  // Q&A 페이지네이션
+  const QNA_PAGE_SIZE = 10;
+  const [qnaPage, setQnaPage] = useState(1);
+
+  // Q&A 필터링 (카테고리 + 검색)
+  const filteredPublicQna = useMemo(() => {
+    let list = publicQna ?? [];
+    if (selectedQnaCategory !== "all") list = list.filter((q: any) => q.category === selectedQnaCategory);
+    if (qnaSearch.trim()) {
+      const kw = qnaSearch.trim().toLowerCase();
+      list = list.filter((q: any) =>
+        (q.question ?? "").toLowerCase().includes(kw) ||
+        (q.answer ?? "").toLowerCase().includes(kw)
+      );
+    }
+    return list;
+  }, [publicQna, selectedQnaCategory, qnaSearch]);
+
+  const paginatedQna = filteredPublicQna.slice(0, qnaPage * QNA_PAGE_SIZE);
+  const hasMoreQna = filteredPublicQna.length > qnaPage * QNA_PAGE_SIZE;
+
+  // 검색어/카테고리 변경 시 페이지 리셋
+  const handleQnaSearch = (v: string) => { setQnaSearch(v); setQnaPage(1); };
+  const handleQnaCategory = (v: string) => { setSelectedQnaCategory(v); setQnaPage(1); };
 
   const getCategoryLabel = (cat: string) => {
     const map: Record<string, string> = { general: "일반", investment: "투자", account: "계정", payment: "결제", technical: "기술" };
@@ -191,12 +218,28 @@ export default function FaqQnaPage() {
 
           {/* ── Q&A 탭 ── */}
           <TabsContent value="qna">
-            <div className="flex justify-between items-center mb-5">
+            <div className="flex justify-between items-center mb-4">
               <p className="text-sm text-muted-foreground">궁금한 점을 질문해보세요 {user?.telegramChatId && <span className="text-xs text-blue-400 ml-1">텔레그램 답변 알림 활성화</span>}</p>
               <Button size="sm" className="gap-2" onClick={() => setAskDialogOpen(true)}>
                 <Plus className="w-4 h-4" />
                 질문하기
               </Button>
+            </div>
+
+            {/* 검색창 */}
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={qnaSearch}
+                onChange={e => handleQnaSearch(e.target.value)}
+                placeholder="질문 또는 답변 내용으로 검색..."
+                className="pl-9 pr-9 bg-input"
+              />
+              {qnaSearch && (
+                <button onClick={() => handleQnaSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
             {/* 내 질문 (로그인 시) */}
@@ -251,7 +294,7 @@ export default function FaqQnaPage() {
                 {qnaCategories.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     <button
-                      onClick={() => setSelectedQnaCategory("all")}
+                      onClick={() => handleQnaCategory("all")}
                       className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
                         selectedQnaCategory === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                       }`}
@@ -261,7 +304,7 @@ export default function FaqQnaPage() {
                     {qnaCategories.map((cat: any) => (
                       <button
                         key={cat}
-                        onClick={() => setSelectedQnaCategory(cat)}
+                        onClick={() => handleQnaCategory(cat)}
                         className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
                           selectedQnaCategory === cat ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                         }`}
@@ -293,35 +336,55 @@ export default function FaqQnaPage() {
                   <p className="text-muted-foreground text-sm">해당 카테고리의 Q&A가 없습니다</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {filteredPublicQna.map((item: any) => {
-                    const question = getLocalizedField(item, "question", lang);
-                    const answer = item.answer ? getLocalizedField(item, "answer", lang) : null;
-                    return (
-                      <div key={item.id} className="rounded-xl border border-border/40 p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xs text-muted-foreground">{item.nickname ?? "익명"}</span>
-                          <span className="text-xs text-muted-foreground">·</span>
-                          <span className="text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleDateString("ko-KR")}</span>
-                          {item.category && <Badge variant="outline" className="text-xs">{getCategoryLabel(item.category)}</Badge>}
-                        </div>
-                        <p className="text-sm font-medium mb-2">{question}</p>
-                        {answer ? (
-                          <div className="pl-3 border-l-2 border-emerald-400/40 mt-2">
-                            <p className="text-xs text-emerald-400 font-medium flex items-center gap-1 mb-1">
-                              <CheckCircle className="w-3 h-3" />답변
-                            </p>
-                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{answer}</p>
+                <>
+                  {/* 검색 결과 요약 */}
+                  {qnaSearch && (
+                    <p className="text-xs text-muted-foreground mb-2">"{qnaSearch}" 검색 결과 {filteredPublicQna.length}건</p>
+                  )}
+                  <div className="space-y-3">
+                    {paginatedQna.map((item: any) => {
+                      const question = getLocalizedField(item, "question", lang);
+                      const answer = item.answer ? getLocalizedField(item, "answer", lang) : null;
+                      return (
+                        <div key={item.id} className="rounded-xl border border-border/40 p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs text-muted-foreground">{item.nickname ?? "익명"}</span>
+                            <span className="text-xs text-muted-foreground">·</span>
+                            <span className="text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleDateString("ko-KR")}</span>
+                            {item.category && <Badge variant="outline" className="text-xs">{getCategoryLabel(item.category)}</Badge>}
                           </div>
-                        ) : (
-                          <p className="text-xs text-amber-400 flex items-center gap-1 mt-1">
-                            <Clock className="w-3 h-3" />답변 대기 중
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                          <p className="text-sm font-medium mb-2">{question}</p>
+                          {answer ? (
+                            <div className="pl-3 border-l-2 border-emerald-400/40 mt-2">
+                              <p className="text-xs text-emerald-400 font-medium flex items-center gap-1 mb-1">
+                                <CheckCircle className="w-3 h-3" />답변
+                              </p>
+                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{answer}</p>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-amber-400 flex items-center gap-1 mt-1">
+                              <Clock className="w-3 h-3" />답변 대기 중
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* 더 보기 버튼 */}
+                  {hasMoreQna && (
+                    <div className="flex justify-center mt-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => setQnaPage(p => p + 1)}
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                        더 보기 ({filteredPublicQna.length - qnaPage * QNA_PAGE_SIZE}건 더)
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </TabsContent>

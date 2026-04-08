@@ -2,7 +2,24 @@ import { useState, useMemo } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, FileText, Bell, Image, Megaphone, HelpCircle, MessageSquare, Languages, CheckCircle, Clock, Lock, Globe } from "lucide-react";
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, FileText, Bell, Image, Megaphone, HelpCircle, MessageSquare, Languages, CheckCircle, Clock, Lock, Globe, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +44,7 @@ export default function Content() {
   const [translatingId, setTranslatingId] = useState<number | null>(null);
   const [faqCategoryFilter, setFaqCategoryFilter] = useState<string>("all");
   const [qnaStatusFilter, setQnaStatusFilter] = useState<string>("all");
+  const [faqOrder, setFaqOrder] = useState<number[]>([]);
 
   const utils = trpc.useUtils();
 
@@ -80,7 +98,7 @@ export default function Content() {
   const updateAd = trpc.content.adImages.update.useMutation({ onSuccess: () => { toast.success("수정 완료"); utils.content.adImages.list.invalidate(); setDialogOpen(false); } });
   const deleteAd = trpc.content.adImages.delete.useMutation({ onSuccess: () => { toast.success("삭제 완료"); utils.content.adImages.list.invalidate(); setDeleteTarget(null); } });
 
-  // ── FAQ Mutations ─────────────────────────────────────────────────────────────
+    // ── FAQ Mutations ─────────────────────────────────────────────────────
   const createFaq = trpc.faq.create.useMutation({ onSuccess: () => { toast.success("FAQ 생성 완료"); refetchFaqs(); setDialogOpen(false); } });
   const updateFaq = trpc.faq.update.useMutation({ onSuccess: () => { toast.success("수정 완료"); refetchFaqs(); setDialogOpen(false); } });
   const deleteFaq = trpc.faq.delete.useMutation({ onSuccess: () => { toast.success("삭제 완료"); refetchFaqs(); setDeleteTarget(null); } });
@@ -88,6 +106,38 @@ export default function Content() {
     onSuccess: () => { toast.success("번역 완료!"); refetchFaqs(); setTranslatingId(null); },
     onError: () => { toast.error("번역 실패"); setTranslatingId(null); },
   });
+  const reorderFaq = trpc.faq.reorder.useMutation({
+    onSuccess: () => { toast.success("순서 저장 완료"); refetchFaqs(); },
+    onError: () => toast.error("순서 저장 실패"),
+  });
+
+  // DnD 센서
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  // faqs 데이터 로드 시 faqOrder 초기화
+  useMemo(() => {
+    if (faqs && faqOrder.length === 0) setFaqOrder(faqs.map((f: any) => f.id));
+  }, [faqs]);
+
+  // 정렬된 FAQ 목록
+  const orderedFaqs = useMemo(() => {
+    if (!faqs || faqOrder.length === 0) return faqs ?? [];
+    const map = new Map(faqs.map((f: any) => [f.id, f]));
+    return faqOrder.map(id => map.get(id)).filter(Boolean);
+  }, [faqs, faqOrder]);
+
+  const handleFaqDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = faqOrder.indexOf(Number(active.id));
+    const newIndex = faqOrder.indexOf(Number(over.id));
+    const newOrder = arrayMove(faqOrder, oldIndex, newIndex);
+    setFaqOrder(newOrder);
+    reorderFaq.mutate({ items: newOrder.map((id, idx) => ({ id, sortOrder: idx })) });
+  };
 
   // ── Q&A Mutations ─────────────────────────────────────────────────────────────
   const answerQna = trpc.qna.answer.useMutation({
@@ -203,9 +253,15 @@ export default function Content() {
     </div>
   );
 
-  // ── FAQ 행 컴포넌트 ──────────────────────────────────────────────────────────
-  const FaqRow = ({ item }: { item: any }) => (
-    <div className="flex items-start gap-3 p-3.5 rounded-xl border border-border/40 hover:border-primary/20 transition-all group">
+  // ──  // ── FAQ Sortable 행 컴포넌트 ───────────────────────────────────────
+  const SortableFaqRow = ({ item }: { item: any }) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+    const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+    return (
+    <div ref={setNodeRef} style={style} className="flex items-start gap-3 p-3.5 rounded-xl border border-border/40 hover:border-primary/20 transition-all group">
+      <button {...attributes} {...listeners} className="mt-1 text-muted-foreground/40 hover:text-muted-foreground cursor-grab active:cursor-grabbing flex-shrink-0">
+        <GripVertical className="w-4 h-4" />
+      </button>
       <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
         <HelpCircle className="w-4 h-4 text-amber-500" />
       </div>
@@ -241,7 +297,8 @@ export default function Content() {
         </button>
       </div>
     </div>
-  );
+    );
+  };
 
   // ── Q&A 행 컴포넌트 ──────────────────────────────────────────────────────────
   const QnaRow = ({ item }: { item: any }) => (
@@ -367,12 +424,16 @@ export default function Content() {
                     ))}
                   </div>
                 )}
-                {filteredFaqs.length > 0 ? (
-                  <div className="space-y-2">
-                    {filteredFaqs.map((item: any) => (
-                      <FaqRow key={item.id} item={item} />
-                    ))}
-                  </div>
+                {orderedFaqs.length > 0 ? (
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFaqDragEnd}>
+                    <SortableContext items={orderedFaqs.map((f: any) => f.id)} strategy={verticalListSortingStrategy}>
+                      <div className="space-y-2">
+                        {(faqCategoryFilter === "all" ? orderedFaqs : orderedFaqs.filter((f: any) => f.category === faqCategoryFilter)).map((item: any) => (
+                          <SortableFaqRow key={item.id} item={item} />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <HelpCircle className="w-10 h-10 text-muted-foreground/30 mb-3" />
