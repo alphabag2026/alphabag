@@ -48,7 +48,7 @@ function HighlightText({ text, query, className }: { text: string; query: string
 const SUB_MENUS = [
   { id: "recommend", label: "recommend", icon: "⭐" },
   { id: "bbag", label: "B bag", icon: "💰" },
-  { id: "infoweb4", label: "infoweb4", icon: "🌐" },
+  { id: "infoweb4", label: "1page.to", icon: "🌐" },
   { id: "sns", label: "SNS", icon: "📱" },
   { id: "trending", label: "trending", icon: "🚀" },
   { id: "airdrop", label: "airdrop", icon: "🎁" },
