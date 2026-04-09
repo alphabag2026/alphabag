@@ -818,3 +818,15 @@
   - [x] 비용 최적화 가이드
 - [x] 인플루언서 다이얼로그에 수집주기/일평균트윗/실시간알림 필드 추가
 - [x] 인플루언서 목록에 실시간 알림 배지 추가
+
+## Phase 60 완료 - KOL 프로필 이미지 + 번역 기능
+- [x] KOL 105명 프로필 이미지 URL (unavatar.io) 업데이트
+- [x] snsPosts DB에 translatedContent, mediaUrls, translatedAt 컬럼 추가
+- [x] 서버: translatePost (LLM 한국어 번역) 프로시저 구현 (캐시 지원)
+- [x] 서버: translatePosts (일괄 번역) 프로시저 구현
+- [x] posts 쿼리에 translatedContent, mediaUrls, influencerFollowerCount, influencerCategory 필드 추가
+- [x] Home.tsx SNS 피드: KOL 아바타 이미지 표시 개선 (팔로워수 배지, 카테고리 배지)
+- [x] Home.tsx SNS 피드: 미디어 이미지 그리드 표시
+- [x] Home.tsx SNS 피드: 🤖 한국어 번역 버튼 (클릭 시 AI 번역, 재클릭 시 원문 토글)
+- [x] 백오피스 Sns.tsx: 포스트 번역 버튼 추가
+- [x] 백오피스 Sns.tsx: 미디어 이미지 표시 추가

@@ -45,6 +45,9 @@ type Post = {
   likes: number;
   retweets: number;
   replies: number;
+  translatedContent?: string | null;
+  mediaUrls?: string[] | null;
+  translatedAt?: Date | string | null;
   postedAt: Date | string;
   isActive: boolean;
   influencerName?: string;
@@ -63,6 +66,10 @@ const CATEGORIES = [
 export default function SnsPage() {
   const utils = trpc.useUtils();
   const [activeTab, setActiveTab] = useState<'influencers' | 'cost'>('influencers');
+  const [translatingPostId, setTranslatingPostId] = useState<number | null>(null);
+  const [translatedPosts, setTranslatedPosts] = useState<Record<number, string>>({});
+  const [showTranslation, setShowTranslation] = useState<Record<number, boolean>>({});
+  const translatePostMutation = trpc.sns.translatePost.useMutation();
 
   const { data: influencers = [], isLoading: infLoading } = trpc.sns.adminInfluencers.useQuery();
   const { data: snsStats } = trpc.sns.snsStats.useQuery();
@@ -604,11 +611,53 @@ export default function SnsPage() {
                         </div>
                       ) : (
                         <div className="divide-y divide-border/50">
-                          {infPosts.map((post) => (
+                          {infPosts.map((post) => {
+                            const isTranslating = translatingPostId === post.id;
+                            const translated = translatedPosts[post.id] || post.translatedContent;
+                            const isShowingTranslation = showTranslation[post.id];
+                            const displayContent = isShowingTranslation && translated ? translated : post.content;
+
+                            const handleTranslate = async () => {
+                              if (translated) {
+                                setShowTranslation(prev => ({ ...prev, [post.id]: !prev[post.id] }));
+                                return;
+                              }
+                              setTranslatingPostId(post.id);
+                              try {
+                                const result = await translatePostMutation.mutateAsync({ postId: post.id });
+                                setTranslatedPosts(prev => ({ ...prev, [post.id]: result.translatedContent }));
+                                setShowTranslation(prev => ({ ...prev, [post.id]: true }));
+                                toast.success("번역 완료");
+                              } catch (e) {
+                                toast.error("번역 실패");
+                              } finally {
+                                setTranslatingPostId(null);
+                              }
+                            };
+
+                            return (
                             <div key={post.id} className="px-4 py-3 flex gap-3">
                               <div className="flex-1 min-w-0">
-                                <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap line-clamp-3">{post.content}</p>
-                                <div className="flex items-center gap-4 mt-1.5">
+                                {isShowingTranslation && translated && (
+                                  <span className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 mb-1">
+                                    🤖 AI 한국어 번역
+                                  </span>
+                                )}
+                                <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap line-clamp-4">{displayContent}</p>
+                                {/* 미디어 이미지 */}
+                                {post.mediaUrls && Array.isArray(post.mediaUrls) && post.mediaUrls.length > 0 && (
+                                  <div className={`mt-2 grid gap-1 ${
+                                    post.mediaUrls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'
+                                  }`}>
+                                    {post.mediaUrls.slice(0, 4).map((url: string, idx: number) => (
+                                      <a key={idx} href={url} target="_blank" rel="noopener noreferrer">
+                                        <img src={url} alt={`media-${idx}`}
+                                          className="w-full rounded-lg object-cover max-h-40 hover:opacity-90 transition-opacity" />
+                                      </a>
+                                    ))}
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                                   <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                                     <Heart className="w-3 h-3" /> {post.likes?.toLocaleString()}
                                   </span>
@@ -627,6 +676,21 @@ export default function SnsPage() {
                                       <ExternalLink className="w-3 h-3" /> 원문
                                     </a>
                                   )}
+                                  {/* 번역 버튼 */}
+                                  <button
+                                    onClick={handleTranslate}
+                                    disabled={isTranslating}
+                                    className={`text-[10px] font-medium px-2 py-0.5 rounded-full border transition-all ${
+                                      isShowingTranslation && translated
+                                        ? "bg-emerald-100 border-emerald-300 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-emerald-400"
+                                        : "bg-muted border-border text-muted-foreground hover:bg-accent"
+                                    } disabled:opacity-50 disabled:cursor-wait`}
+                                  >
+                                    {isTranslating ? "⟳ 번역 중..."
+                                      : isShowingTranslation && translated ? "🌐 원문"
+                                      : translated ? "🌐 번역"
+                                      : "🤖 한국어"}
+                                  </button>
                                 </div>
                               </div>
                               <div className="flex items-start gap-1 flex-shrink-0">
@@ -641,7 +705,8 @@ export default function SnsPage() {
                                 </Button>
                               </div>
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
