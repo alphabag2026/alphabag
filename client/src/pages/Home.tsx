@@ -1277,12 +1277,24 @@ export default function Home() {
                     {filteredSnsPosts.map((post: any) => {
                       const isTranslating = translatingPostId === post.id;
                       const translated = translatedPosts[post.id] || post.translatedContent;
-                      const isShowingTranslation = showTranslation[post.id];
+
+                      // 사용자 언어 기준 자동 번역 표시 로직
+                      // - 한국어(ko) 사용자: 번역본 우선 표시 (번역본이 있으면 자동으로 번역 보기)
+                      // - 영어(en) 사용자: 원문 우선 표시
+                      // - 기타 언어: 번역본이 있으면 자동 표시
+                      const userLangBase = lang.slice(0, 2).toLowerCase();
+                      const isNonEnglishUser = userLangBase !== "en";
+                      // showTranslation이 명시적으로 설정된 경우 그것을 따르고,
+                      // 아닌 경우 비영어 사용자 + 번역본 있으면 자동으로 번역 표시
+                      const isShowingTranslation = showTranslation[post.id] !== undefined
+                        ? showTranslation[post.id]
+                        : (isNonEnglishUser && !!translated);
                       const displayContent = isShowingTranslation && translated ? translated : post.content;
 
                       const handleTranslate = async () => {
                         if (translated) {
-                          setShowTranslation(prev => ({ ...prev, [post.id]: !prev[post.id] }));
+                          // 명시적 토글
+                          setShowTranslation(prev => ({ ...prev, [post.id]: !isShowingTranslation }));
                           return;
                         }
                         setTranslatingPostId(post.id);
@@ -1373,7 +1385,7 @@ export default function Home() {
                           <div className={`flex items-center gap-1 mb-1.5 text-[9px] font-medium px-2 py-0.5 rounded-full w-fit ${
                             isDark ? "bg-emerald-500/15 text-emerald-400" : "bg-emerald-50 text-emerald-600"
                           }`}>
-                            🤖 AI 한국어 번역
+                            🤖 {t("home.aiTranslatedBadge", "AI Translated")}
                           </div>
                         )}
 
@@ -1425,13 +1437,13 @@ export default function Home() {
                             } disabled:opacity-50 disabled:cursor-wait`}
                           >
                             {isTranslating ? (
-                              <><span className="animate-spin">⟳</span> 번역 중...</>
+                              <><span className="animate-spin">⟳</span> {t("home.translating", "Translating...")}</>
                             ) : isShowingTranslation && translated ? (
-                              <>🌐 원문 보기</>
+                              <>🌐 {t("home.showOriginal", "Show Original")}</>
                             ) : translated ? (
-                              <>🌐 번역 보기</>
+                              <>🌐 {t("home.showTranslation", "Show Translation")}</>
                             ) : (
-                              <>🤖 한국어 번역</>
+                              <>🤖 {t("home.translateBtn", "AI Translate")}</>
                             )}
                           </button>
                         </div>

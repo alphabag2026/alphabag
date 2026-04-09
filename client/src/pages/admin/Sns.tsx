@@ -773,9 +773,25 @@ export default function SnsPage() {
               </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">Twitter User ID (X API v2)</label>
-                <Input placeholder="숫자 ID (예: 123456789)" value={infForm.twitterUserId}
-                  onChange={e => setInfForm(f => ({ ...f, twitterUserId: e.target.value }))} />
-                <p className="text-[10px] text-muted-foreground mt-0.5">비워두면 핸들로 자동 조회됩니다</p>
+                <div className="flex gap-2">
+                  <Input placeholder="숫자 ID (예: 44196397)" value={infForm.twitterUserId}
+                    onChange={e => setInfForm(f => ({ ...f, twitterUserId: e.target.value }))} />
+                  {infForm.handle && (
+                    <a
+                      href={`https://tweeterid.com/?input=${infForm.handle}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 text-[10px] text-blue-400 hover:text-blue-300 underline flex items-center"
+                    >
+                      ID 조회
+                    </a>
+                  )}
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {infForm.twitterUserId
+                    ? <span className="text-green-400">✓ ID 입력됨 — 자동수집 활성화 시 즉시 수집 시작</span>
+                    : "비워두면 핸들(@)로 자동 조회 (API 호출 1회 소모)"}
+                </p>
               </div>
               <div className="flex items-center justify-between">
                 <div>

@@ -2,21 +2,34 @@
  * TwitterFetchScheduler
  * - 1시간마다 autoFetchEnabled=true 인플루언서의 최신 트윗을 X API v2로 수집
  * - 중복 방지: tweetId 기준으로 이미 저장된 트윗은 스킵
+ * - 미디어 URL 수집: 트윗에 첨부된 이미지/영상 URL 저장
+ * - 자동 번역: 새 트윗 저장 후 한국어 자동 번역 실행
  * - 텔레그램 발송: snsTelegramChatId가 설정된 인플루언서의 새 트윗은 텔레그램으로 공유
  */
 
 import { getDb } from "./db";
 import { snsInfluencers, snsPosts } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
+import { autoTranslatePost } from "./tweetTranslationHelper";
 
 const TWITTER_BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const FETCH_INTERVAL_MS = 60 * 60 * 1000; // 1시간
 
+interface TwitterMedia {
+  media_key: string;
+  type: "photo" | "video" | "animated_gif";
+  url?: string; // photo
+  preview_image_url?: string; // video/gif
+}
+
 interface TwitterTweet {
   id: string;
   text: string;
   created_at?: string;
+  attachments?: {
+    media_keys?: string[];
+  };
   public_metrics?: {
     like_count: number;
     retweet_count: number;
@@ -32,6 +45,9 @@ interface TwitterUserResponse {
 
 interface TwitterTimelineResponse {
   data?: TwitterTweet[];
+  includes?: {
+    media?: TwitterMedia[];
+  };
   errors?: Array<{ message: string }>;
 }
 
@@ -58,14 +74,16 @@ async function fetchTwitterUserId(handle: string): Promise<string | null> {
 }
 
 /**
- * X API v2: userId → 최신 트윗 목록 (최대 10개)
+ * X API v2: userId → 최신 트윗 목록 (최대 10개, 미디어 포함)
  */
-async function fetchLatestTweets(userId: string): Promise<TwitterTweet[]> {
-  if (!TWITTER_BEARER_TOKEN) return [];
+async function fetchLatestTweets(userId: string): Promise<{ tweets: TwitterTweet[]; mediaMap: Map<string, string> }> {
+  if (!TWITTER_BEARER_TOKEN) return { tweets: [], mediaMap: new Map() };
   try {
     const params = new URLSearchParams({
       max_results: "10",
-      "tweet.fields": "created_at,public_metrics",
+      "tweet.fields": "created_at,public_metrics,attachments",
+      "media.fields": "url,preview_image_url,type",
+      expansions: "attachments.media_keys",
       exclude: "retweets,replies",
     });
     const res = await fetch(
@@ -74,13 +92,21 @@ async function fetchLatestTweets(userId: string): Promise<TwitterTweet[]> {
     );
     if (!res.ok) {
       console.error(`[TwitterFetch] Failed to fetch tweets for userId=${userId}: ${res.status}`);
-      return [];
+      return { tweets: [], mediaMap: new Map() };
     }
     const json = (await res.json()) as TwitterTimelineResponse;
-    return json.data ?? [];
+
+    // 미디어 맵 구성 (media_key → URL)
+    const mediaMap = new Map<string, string>();
+    for (const media of json.includes?.media ?? []) {
+      const url = media.url || media.preview_image_url;
+      if (url) mediaMap.set(media.media_key, url);
+    }
+
+    return { tweets: json.data ?? [], mediaMap };
   } catch (e) {
     console.error(`[TwitterFetch] Error fetching tweets for userId=${userId}:`, e);
-    return [];
+    return { tweets: [], mediaMap: new Map() };
   }
 }
 
@@ -132,7 +158,7 @@ async function fetchForInfluencer(influencer: {
       .where(eq(snsInfluencers.id, influencer.id));
   }
 
-  const tweets = await fetchLatestTweets(userId);
+  const { tweets, mediaMap } = await fetchLatestTweets(userId);
   if (!tweets.length) return 0;
 
   // 기존 tweetId 목록 조회 (중복 방지)
@@ -151,7 +177,16 @@ async function fetchForInfluencer(influencer: {
     const postedAt = tweet.created_at ? new Date(tweet.created_at) : new Date();
     const tweetUrl = `https://x.com/${influencer.handle}/status/${tweet.id}`;
 
-    await db.insert(snsPosts).values({
+    // 미디어 URL 수집
+    const mediaUrls: string[] = [];
+    if (tweet.attachments?.media_keys) {
+      for (const key of tweet.attachments.media_keys) {
+        const url = mediaMap.get(key);
+        if (url) mediaUrls.push(url);
+      }
+    }
+
+    const inserted = await db.insert(snsPosts).values({
       influencerId: influencer.id,
       content: tweet.text,
       tweetId: tweet.id,
@@ -159,9 +194,18 @@ async function fetchForInfluencer(influencer: {
       likes: tweet.public_metrics?.like_count ?? 0,
       retweets: tweet.public_metrics?.retweet_count ?? 0,
       replies: tweet.public_metrics?.reply_count ?? 0,
+      mediaUrls: mediaUrls.length > 0 ? mediaUrls : null,
       postedAt,
       isActive: true,
     });
+
+    // 자동 번역 (비동기, 실패해도 수집은 완료)
+    const insertId = (inserted as any).insertId ?? (inserted as any)[0]?.insertId;
+    if (insertId) {
+      autoTranslatePost(insertId, tweet.text).catch((e) =>
+        console.error(`[TwitterFetch] Auto-translate error for post #${insertId}:`, e)
+      );
+    }
 
     // 텔레그램 발송
     if (influencer.snsTelegramChatId) {
@@ -237,7 +281,7 @@ async function runFetch(): Promise<void> {
  * 스케줄러 시작 (서버 초기화 시 호출)
  */
 export function startTwitterFetchScheduler(): void {
-  console.log("[TwitterFetchScheduler] Started - fetching every 1 hour");
+  console.log("[TwitterFetchScheduler] Started - fetching every 1 hour (with media + auto-translate)");
 
   // 서버 시작 후 30초 뒤 첫 실행 (서버 안정화 대기)
   setTimeout(() => {

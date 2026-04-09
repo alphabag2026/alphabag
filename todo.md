@@ -830,3 +830,11 @@
 - [x] Home.tsx SNS 피드: 🤖 한국어 번역 버튼 (클릭 시 AI 번역, 재클릭 시 원문 토글)
 - [x] 백오피스 Sns.tsx: 포스트 번역 버튼 추가
 - [x] 백오피스 Sns.tsx: 미디어 이미지 표시 추가
+
+## Phase 61 완료 - 트윗 자동 번역 + twitterUserId 입력 + 미디어 이미지 수집
+- [x] tweetTranslationHelper.ts: 다국어 번역 헬퍼 (22개 언어 지원, 암호화폐 전문 번역)
+- [x] twitterFetchScheduler: 미디어 URL 수집 (photo/video/gif) + 자동 번역 연동
+- [x] twitterStreamScheduler: 미디어 URL 수집 + 자동 번역 연동 (Filtered Stream)
+- [x] 백오피스 Sns.tsx: twitterUserId 입력 UX 개선 (ID 조회 링크, 입력 상태 안내)
+- [x] 프론트엔드 SNS 피드: 사용자 언어 기준 자동 번역 표시 (비영어 사용자는 번역본 우선)
+- [x] 번역 버튼/배지 텍스트 i18n 다국어 처리
