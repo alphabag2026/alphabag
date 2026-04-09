@@ -13,6 +13,7 @@ import { startTwitterFetchScheduler } from "../twitterFetchScheduler";
 import { registerTelegramWebhook } from "../telegramWebhook";
 import { startPaymentChecker } from "../paymentChecker";
 import { startVoteDeadlineScheduler } from "../voteDeadlineScheduler";
+import { startTwitterStreamScheduler } from "../twitterStreamScheduler";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -79,6 +80,8 @@ async function startServer() {
   startPaymentChecker();
   // Start vote deadline auto-processing scheduler
   startVoteDeadlineScheduler();
+  // Start Twitter/X Filtered Stream real-time scheduler
+  startTwitterStreamScheduler().catch((e) => console.error('[TwitterStream] Start error:', e));
 }
 
 startServer().catch(console.error);

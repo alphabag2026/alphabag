@@ -2188,6 +2188,9 @@ Return this exact JSON structure:
       followerCount: z.string().optional(),
       twitterUserId: z.string().optional(),
       autoFetchEnabled: z.boolean().optional(),
+      fetchIntervalHours: z.number().optional(),
+      alertOnNewPost: z.boolean().optional(),
+      estimatedDailyTweets: z.number().optional(),
       snsTelegramChatId: z.string().optional(),
       isActive: z.boolean().optional(),
       sortOrder: z.number().optional(),
@@ -2330,6 +2333,77 @@ Return this exact JSON structure:
       const { snsPosts } = await import("../drizzle/schema");
       await database.delete(snsPosts).where(eq(snsPosts.id, input.id));
       return { success: true };
+    }),
+    // 어드민: KOL 비용 통계 (비용 정산 대시보드용)
+    snsStats: adminProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return null;
+      const { snsInfluencers, snsPosts } = await import("../drizzle/schema");
+      const { count, sum, sql, and } = await import("drizzle-orm");
+
+      // 전체 인플루언서 통계
+      const totalInfluencers = await database.select({ count: count() }).from(snsInfluencers)
+        .where(eq(snsInfluencers.isActive, true));
+      const autoFetchCount = await database.select({ count: count() }).from(snsInfluencers)
+        .where(and(eq(snsInfluencers.isActive, true), eq(snsInfluencers.autoFetchEnabled, true)));
+      const alertCount = await database.select({ count: count() }).from(snsInfluencers)
+        .where(and(eq(snsInfluencers.isActive, true), eq(snsInfluencers.alertOnNewPost, true)));
+
+      // 예상 월 비용 계산 (estimatedDailyTweets * 30 * $0.005)
+      const allInfluencers = await database.select({
+        id: snsInfluencers.id,
+        name: snsInfluencers.name,
+        handle: snsInfluencers.handle,
+        category: snsInfluencers.category,
+        autoFetchEnabled: snsInfluencers.autoFetchEnabled,
+        alertOnNewPost: snsInfluencers.alertOnNewPost,
+        estimatedDailyTweets: snsInfluencers.estimatedDailyTweets,
+        fetchIntervalHours: snsInfluencers.fetchIntervalHours,
+        followerCount: snsInfluencers.followerCount,
+        lastFetchedAt: snsInfluencers.lastFetchedAt,
+      }).from(snsInfluencers).where(eq(snsInfluencers.isActive, true));
+
+      const COST_PER_TWEET = 0.005; // $0.005 per tweet read
+      let estimatedMonthlyCost = 0;
+      let estimatedMonthlyTweets = 0;
+      const categoryBreakdown: Record<string, { count: number; monthlyCost: number; monthlyTweets: number }> = {};
+
+      for (const inf of allInfluencers) {
+        if (!inf.autoFetchEnabled) continue;
+        const dailyTweets = inf.estimatedDailyTweets || 5;
+        const monthlyTweets = dailyTweets * 30;
+        const cost = monthlyTweets * COST_PER_TWEET;
+        estimatedMonthlyCost += cost;
+        estimatedMonthlyTweets += monthlyTweets;
+
+        const cat = inf.category || 'crypto';
+        if (!categoryBreakdown[cat]) categoryBreakdown[cat] = { count: 0, monthlyCost: 0, monthlyTweets: 0 };
+        categoryBreakdown[cat].count++;
+        categoryBreakdown[cat].monthlyCost += cost;
+        categoryBreakdown[cat].monthlyTweets += monthlyTweets;
+      }
+
+      // 이번 달 실제 수집된 포스트 수
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const thisMonthPosts = await database.select({ count: count() }).from(snsPosts)
+        .where(sql`${snsPosts.postedAt} >= ${monthStart}`);
+
+      // 전체 포스트 수
+      const totalPosts = await database.select({ count: count() }).from(snsPosts);
+
+      return {
+        totalInfluencers: totalInfluencers[0]?.count ?? 0,
+        autoFetchCount: autoFetchCount[0]?.count ?? 0,
+        alertCount: alertCount[0]?.count ?? 0,
+        estimatedMonthlyCost: Math.round(estimatedMonthlyCost * 100) / 100,
+        estimatedMonthlyTweets,
+        thisMonthPosts: thisMonthPosts[0]?.count ?? 0,
+        totalPosts: totalPosts[0]?.count ?? 0,
+        categoryBreakdown,
+        influencers: allInfluencers,
+        costPerTweet: COST_PER_TWEET,
+      };
     }),
   }),
 

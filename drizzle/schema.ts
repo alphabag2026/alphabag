@@ -477,6 +477,9 @@ export const snsInfluencers = mysqlTable("snsInfluencers", {
   followerCount: varchar("followerCount", { length: 30 }), // e.g. "9.2M"
   twitterUserId: varchar("twitterUserId", { length: 50 }), // X API user ID for auto-fetch
   autoFetchEnabled: boolean("autoFetchEnabled").default(false).notNull(),
+  fetchIntervalHours: int("fetchIntervalHours").default(3).notNull(), // 수집 주기 (시간)
+  alertOnNewPost: boolean("alertOnNewPost").default(false).notNull(), // 신규 트윗 텔레그램 알림
+  estimatedDailyTweets: int("estimatedDailyTweets").default(5).notNull(), // 일 평균 트윗 수 (비용 계산용)
   lastFetchedAt: timestamp("lastFetchedAt"),
   snsTelegramChatId: varchar("snsTelegramChatId", { length: 64 }), // 텔레그램 채널 ID
   isActive: boolean("isActive").default(true).notNull(),

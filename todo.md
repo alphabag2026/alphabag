@@ -774,3 +774,47 @@
 - [ ] 서버 user.updateQnaNotification 프로시저 추가
 - [ ] 마이페이지 내 Q&A - 삭제/수정 버튼 UI 추가
 - [ ] 마이페이지 - Q&A 알림 설정 토글 (텔레그램/이메일 선택)
+
+## Phase 58 - Twitter 수집 주기 차등 설정
+- [ ] DB snsInfluencers 테이블에 fetchIntervalHours 필드 추가
+- [ ] 핵심 4명(elonmusk/realDonaldTrump/cz_binance/haileycrypto) fetchIntervalHours=1 설정
+- [ ] 나머지 인플루언서 fetchIntervalHours=3 설정
+- [ ] twitterFetchScheduler.ts 로직 변경 (개별 인플루언서 lastFetchedAt + fetchIntervalHours 기반 차등 수집)
+- [ ] 프로덕션 DB 마이그레이션 및 배포
+
+## Phase 58 - 핵심 인플루언서 트윗 자동 알림 + 차등 수집 주기
+- [ ] DB snsInfluencers에 fetchIntervalHours(int, default 3), alertOnNewPost(boolean, default false) 필드 추가
+- [ ] DB 마이그레이션 실행
+- [ ] 핵심 4명(elonmusk/realDonaldTrump/cz_binance/허이) fetchIntervalHours=1, alertOnNewPost=true 설정
+- [ ] twitterFetchScheduler: lastFetchedAt + fetchIntervalHours 기반 차등 수집 로직
+- [ ] 신규 트윗 감지 시 alertOnNewPost=true 인플루언서만 텔레그램 채널 자동 알림 발송
+- [ ] 알림 메시지 포맷: 인플루언서명 + 트윗 내용 + 원문 링크
+- [ ] 프로덕션 배포
+
+## Phase 59 - KOL 100명 Filtered Stream 실시간 수집 + 백오피스 비용 정산 UI
+- [ ] 글로벌 금융/암호화폐 주요 KOL 100명 조사 (일론머스크, 트럼프, CZ, 허이 포함)
+- [ ] DB snsInfluencers에 fetchIntervalHours, alertOnNewPost 필드 추가 및 마이그레이션
+- [ ] KOL 100명 twitterUserId 포함하여 DB 삽입
+- [ ] twitterFetchScheduler → Filtered Stream 방식으로 전환 (실시간 수집)
+- [ ] 신규 트윗 감지 시 alertOnNewPost=true 인플루언서 텔레그램 자동 알림
+- [ ] 백오피스 KOL 관리 페이지에 비용 정산 섹션 추가
+  - KOL 1명 추가 시 월 예상 비용 표시 ($0.005 × 평균 트윗 수 × 30일)
+  - 전체 KOL 월 총 예상 비용 실시간 계산
+  - 실제 누적 트윗 수 기반 이번 달 비용 표시
+- [ ] 프로덕션 배포
+
+## Phase 59 완료 - KOL 100명 + 비용 정산 UI
+- [x] KOL 105명 DB 삽입 (기존 27명 + 신규 78명)
+- [x] 핵심 4명 alertOnNewPost=true, autoFetchEnabled=true 설정
+- [x] twitterStreamScheduler.ts 구현 (Filtered Stream 실시간 수집)
+- [x] 서버 인덱스에 startTwitterStreamScheduler 등록
+- [x] sns.snsStats 프로시저 추가 (비용 정산 데이터)
+- [x] updateInfluencer에 fetchIntervalHours, alertOnNewPost, estimatedDailyTweets 필드 추가
+- [x] 백오피스 SNS 페이지에 비용 정산 탭 추가
+  - [x] KOL 요약 카드 (전체/자동수집/실시간알림/이번달수집)
+  - [x] 예상 월 API 비용 + 예산 대비 진행률 바
+  - [x] 카테고리별 비용 분석
+  - [x] KOL 개별 비용 현황 테이블
+  - [x] 비용 최적화 가이드
+- [x] 인플루언서 다이얼로그에 수집주기/일평균트윗/실시간알림 필드 추가
+- [x] 인플루언서 목록에 실시간 알림 배지 추가

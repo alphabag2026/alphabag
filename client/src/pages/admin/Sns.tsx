@@ -16,7 +16,8 @@ import {
 import {
   Plus, Pencil, Trash2, ChevronDown, ChevronUp, MessageSquare,
   Heart, Repeat2, MessagesSquare, ExternalLink, Users, RefreshCw,
-  Send, Bot, Zap,
+  Send, Bot, Zap, DollarSign, TrendingUp, Bell, Activity, BarChart2,
+  AlertTriangle, CheckCircle2,
 } from "lucide-react";
 
 type Influencer = {
@@ -61,8 +62,10 @@ const CATEGORIES = [
 
 export default function SnsPage() {
   const utils = trpc.useUtils();
+  const [activeTab, setActiveTab] = useState<'influencers' | 'cost'>('influencers');
 
   const { data: influencers = [], isLoading: infLoading } = trpc.sns.adminInfluencers.useQuery();
+  const { data: snsStats } = trpc.sns.snsStats.useQuery();
   const [selectedInfId, setSelectedInfId] = useState<number | null>(null);
   const [expandedInfId, setExpandedInfId] = useState<number | null>(null);
   const { data: posts = [], isLoading: postsLoading } = trpc.sns.adminPosts.useQuery(
@@ -76,7 +79,9 @@ export default function SnsPage() {
   const [infForm, setInfForm] = useState({
     name: "", handle: "", avatarUrl: "", twitterUrl: "",
     description: "", category: "crypto", followerCount: "",
-    twitterUserId: "", autoFetchEnabled: false, snsTelegramChatId: "", sortOrder: 0,
+    twitterUserId: "", autoFetchEnabled: false,
+    fetchIntervalHours: 1, alertOnNewPost: false, estimatedDailyTweets: 5,
+    snsTelegramChatId: "", sortOrder: 0,
   });
 
   // ─── 포스트 다이얼로그
@@ -136,6 +141,9 @@ export default function SnsPage() {
         followerCount: inf.followerCount || "",
         twitterUserId: inf.twitterUserId || "",
         autoFetchEnabled: inf.autoFetchEnabled,
+        fetchIntervalHours: (inf as any).fetchIntervalHours || 1,
+        alertOnNewPost: (inf as any).alertOnNewPost || false,
+        estimatedDailyTweets: (inf as any).estimatedDailyTweets || 5,
         snsTelegramChatId: inf.snsTelegramChatId || "",
         sortOrder: inf.sortOrder,
       });
@@ -144,7 +152,8 @@ export default function SnsPage() {
       setInfForm({
         name: "", handle: "", avatarUrl: "", twitterUrl: "", description: "",
         category: "crypto", followerCount: "", twitterUserId: "",
-        autoFetchEnabled: false, snsTelegramChatId: "", sortOrder: 0,
+        autoFetchEnabled: false, fetchIntervalHours: 1, alertOnNewPost: false,
+        estimatedDailyTweets: 5, snsTelegramChatId: "", sortOrder: 0,
       });
     }
     setInfDialog(true);
@@ -209,6 +218,8 @@ export default function SnsPage() {
 
   const categoryLabel = (cat: string | null) => CATEGORIES.find(c => c.value === cat)?.label || cat || "-";
 
+  const COST_PER_TWEET = 0.005;
+
   return (
     <AdminLayout title="SNS 인플루언서 관리">
       <div className="space-y-6">
@@ -220,11 +231,255 @@ export default function SnsPage() {
               크립토 업계 인플루언서 계정과 소식을 관리합니다. X API 자동수집 및 텔레그램 발송을 지원합니다.
             </p>
           </div>
-          <Button onClick={() => openInfDialog()} className="gap-2 bg-sky-600 hover:bg-sky-700 text-white">
-            <Plus className="w-4 h-4" /> 인플루언서 추가
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex rounded-lg border overflow-hidden">
+              <button
+                onClick={() => setActiveTab('influencers')}
+                className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                  activeTab === 'influencers'
+                    ? 'bg-sky-600 text-white'
+                    : 'bg-background text-muted-foreground hover:bg-muted'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5 inline mr-1" />인플루언서 ({(influencers as Influencer[]).length})
+              </button>
+              <button
+                onClick={() => setActiveTab('cost')}
+                className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                  activeTab === 'cost'
+                    ? 'bg-sky-600 text-white'
+                    : 'bg-background text-muted-foreground hover:bg-muted'
+                }`}
+              >
+                <DollarSign className="w-3.5 h-3.5 inline mr-1" />비용 정산
+              </button>
+            </div>
+            {activeTab === 'influencers' && (
+              <Button onClick={() => openInfDialog()} className="gap-2 bg-sky-600 hover:bg-sky-700 text-white">
+                <Plus className="w-4 h-4" /> 인플루언서 추가
+              </Button>
+            )}
+          </div>
         </div>
 
+        {/* 비용 정산 탭 */}
+        {activeTab === 'cost' && snsStats && (
+          <div className="space-y-5">
+            {/* 요약 카드 */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="border rounded-xl p-4 bg-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
+                    <Users className="w-4 h-4 text-sky-600" />
+                  </div>
+                  <span className="text-xs text-muted-foreground">전체 KOL</span>
+                </div>
+                <div className="text-2xl font-bold text-foreground">{snsStats.totalInfluencers}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">활성 인플루언서</div>
+              </div>
+              <div className="border rounded-xl p-4 bg-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-green-600" />
+                  </div>
+                  <span className="text-xs text-muted-foreground">자동수집</span>
+                </div>
+                <div className="text-2xl font-bold text-foreground">{snsStats.autoFetchCount}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">API 수집 활성</div>
+              </div>
+              <div className="border rounded-xl p-4 bg-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                    <Bell className="w-4 h-4 text-red-500" />
+                  </div>
+                  <span className="text-xs text-muted-foreground">실시간 알림</span>
+                </div>
+                <div className="text-2xl font-bold text-foreground">{snsStats.alertCount}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">Stream 알림 설정</div>
+              </div>
+              <div className="border rounded-xl p-4 bg-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                    <Activity className="w-4 h-4 text-yellow-600" />
+                  </div>
+                  <span className="text-xs text-muted-foreground">이번 달 수집</span>
+                </div>
+                <div className="text-2xl font-bold text-foreground">{snsStats.thisMonthPosts.toLocaleString()}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">총 {snsStats.totalPosts.toLocaleString()}개</div>
+              </div>
+            </div>
+
+            {/* 예상 비용 섹션 */}
+            <div className="border rounded-xl p-5 bg-card">
+              <div className="flex items-center gap-2 mb-4">
+                <DollarSign className="w-5 h-5 text-green-500" />
+                <h3 className="font-semibold text-foreground">예상 월 API 비용</h3>
+                <Badge className="ml-auto text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-0">
+                  Twitter API Basic ($100/월)
+                </Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="bg-muted/30 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                    ${snsStats.estimatedMonthlyCost.toFixed(2)}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">예상 월 비용</div>
+                  <div className="text-[10px] text-muted-foreground">(자동수집 KOL 기준)</div>
+                </div>
+                <div className="bg-muted/30 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-bold text-sky-600 dark:text-sky-400">
+                    {snsStats.estimatedMonthlyTweets.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">예상 월 트윗 수</div>
+                  <div className="text-[10px] text-muted-foreground">(일 평균 × 30일)</div>
+                </div>
+                <div className="bg-muted/30 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                    ${COST_PER_TWEET}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">트윗당 비용</div>
+                  <div className="text-[10px] text-muted-foreground">(X API Pay-per-use)</div>
+                </div>
+              </div>
+              {/* 예산 대비 현황 */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">월 예산 대비 예상 사용량</span>
+                  <span className="font-medium">${snsStats.estimatedMonthlyCost.toFixed(2)} / $100.00</span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all ${
+                      snsStats.estimatedMonthlyCost > 80 ? 'bg-red-500' :
+                      snsStats.estimatedMonthlyCost > 50 ? 'bg-yellow-500' : 'bg-green-500'
+                    }`}
+                    style={{ width: `${Math.min((snsStats.estimatedMonthlyCost / 100) * 100, 100)}%` }}
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 text-xs">
+                  {snsStats.estimatedMonthlyCost > 80 ? (
+                    <><AlertTriangle className="w-3.5 h-3.5 text-red-500" /><span className="text-red-500">예산 초과 위험. KOL 수 또는 수집 빈도를 줄이세요.</span></>
+                  ) : snsStats.estimatedMonthlyCost > 50 ? (
+                    <><AlertTriangle className="w-3.5 h-3.5 text-yellow-500" /><span className="text-yellow-600">예산의 50% 이상 사용 예정. 모니터링 필요.</span></>
+                  ) : (
+                    <><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /><span className="text-green-600">예산 범위 내. 안전한 수준입니다.</span></>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 카테고리별 비용 분석 */}
+            <div className="border rounded-xl p-5 bg-card">
+              <div className="flex items-center gap-2 mb-4">
+                <BarChart2 className="w-5 h-5 text-sky-500" />
+                <h3 className="font-semibold text-foreground">카테고리별 비용 분석</h3>
+              </div>
+              <div className="space-y-3">
+                {Object.entries(snsStats.categoryBreakdown)
+                  .sort((a, b) => b[1].monthlyCost - a[1].monthlyCost)
+                  .map(([cat, data]) => {
+                    const pct = snsStats.estimatedMonthlyCost > 0
+                      ? (data.monthlyCost / snsStats.estimatedMonthlyCost) * 100
+                      : 0;
+                    const catLabel = CATEGORIES.find(c => c.value === cat)?.label || cat;
+                    return (
+                      <div key={cat}>
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">{catLabel}</Badge>
+                            <span className="text-muted-foreground">{data.count}명 · {data.monthlyTweets.toLocaleString()}트윗/월</span>
+                          </div>
+                          <span className="font-medium">${data.monthlyCost.toFixed(2)} ({pct.toFixed(0)}%)</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-1.5">
+                          <div
+                            className="h-1.5 rounded-full bg-sky-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+
+            {/* KOL 개별 비용 목록 (자동수집 활성화된 것만) */}
+            <div className="border rounded-xl p-5 bg-card">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="w-5 h-5 text-purple-500" />
+                <h3 className="font-semibold text-foreground">KOL 개별 비용 현황</h3>
+                <span className="text-xs text-muted-foreground ml-auto">자동수집 활성화된 KOL만 표시</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 text-muted-foreground font-medium">KOL</th>
+                      <th className="text-left py-2 text-muted-foreground font-medium">카테고리</th>
+                      <th className="text-right py-2 text-muted-foreground font-medium">일 트윗</th>
+                      <th className="text-right py-2 text-muted-foreground font-medium">월 트윗</th>
+                      <th className="text-right py-2 text-muted-foreground font-medium">월 비용</th>
+                      <th className="text-center py-2 text-muted-foreground font-medium">알림</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {snsStats.influencers
+                      .filter(inf => inf.autoFetchEnabled)
+                      .sort((a, b) => (b.estimatedDailyTweets || 5) - (a.estimatedDailyTweets || 5))
+                      .map(inf => {
+                        const daily = inf.estimatedDailyTweets || 5;
+                        const monthly = daily * 30;
+                        const cost = monthly * COST_PER_TWEET;
+                        return (
+                          <tr key={inf.id} className="hover:bg-muted/20">
+                            <td className="py-2">
+                              <div className="font-medium text-foreground">{inf.name}</div>
+                              <div className="text-muted-foreground">@{inf.handle}</div>
+                            </td>
+                            <td className="py-2">
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                {CATEGORIES.find(c => c.value === inf.category)?.label || inf.category}
+                              </Badge>
+                            </td>
+                            <td className="py-2 text-right">{daily}</td>
+                            <td className="py-2 text-right">{monthly.toLocaleString()}</td>
+                            <td className="py-2 text-right font-medium">${cost.toFixed(2)}</td>
+                            <td className="py-2 text-center">
+                              {inf.alertOnNewPost ? (
+                                <Bell className="w-3.5 h-3.5 text-red-500 mx-auto" />
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* 비용 절감 팁 */}
+            <div className="border rounded-xl p-4 bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
+              <div className="flex items-start gap-3">
+                <Zap className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-1">💡 비용 최적화 가이드</div>
+                  <ul className="text-xs text-blue-600 dark:text-blue-300 space-y-1">
+                    <li>• <strong>핵심 4명</strong> (일론머스크, 트럼프, CZ, 허이)만 실시간 알림 설정 → 나머지는 1~3시간 주기 수집</li>
+                    <li>• <strong>estimatedDailyTweets</strong>를 실제 트윗 빈도에 맞게 조정하면 예상 비용이 정확해집니다</li>
+                    <li>• Twitter API Basic $100/월 플랜: 월 20,000건 트윗 읽기 포함 (초과 시 $0.005/건)</li>
+                    <li>• 현재 예상 월 비용: <strong>${snsStats.estimatedMonthlyCost.toFixed(2)}</strong> (예산 $100 대비 {((snsStats.estimatedMonthlyCost / 100) * 100).toFixed(1)}%)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 인플루언서 목록 탭 */}
+        {activeTab === 'influencers' && (
+          <div>
         {/* 인플루언서 목록 */}
         {infLoading ? (
           <div className="text-center py-12 text-muted-foreground text-sm">로딩 중...</div>
@@ -265,6 +520,11 @@ export default function SnsPage() {
                         {inf.autoFetchEnabled && (
                           <Badge className="text-[10px] px-1.5 py-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0">
                             <Bot className="w-2.5 h-2.5 mr-0.5" /> 자동수집
+                          </Badge>
+                        )}
+                        {(inf as any).alertOnNewPost && (
+                          <Badge className="text-[10px] px-1.5 py-0 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-0">
+                            <Bell className="w-2.5 h-2.5 mr-0.5" /> 실시간
                           </Badge>
                         )}
                         {inf.snsTelegramChatId && (
@@ -391,6 +651,8 @@ export default function SnsPage() {
             })}
           </div>
         )}
+          </div>
+        )}
       </div>
 
       {/* 인플루언서 다이얼로그 */}
@@ -453,11 +715,45 @@ export default function SnsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-xs font-medium text-foreground">자동수집 활성화</div>
-                  <div className="text-[10px] text-muted-foreground">1시간마다 최신 트윗 자동 수집</div>
+                  <div className="text-[10px] text-muted-foreground">주기적으로 최신 트윗 자동 수집</div>
                 </div>
                 <Switch
                   checked={infForm.autoFetchEnabled}
                   onCheckedChange={v => setInfForm(f => ({ ...f, autoFetchEnabled: v }))}
+                />
+              </div>
+              {infForm.autoFetchEnabled && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">수집 주기 (시간)</label>
+                    <Select value={String(infForm.fetchIntervalHours)} onValueChange={v => setInfForm(f => ({ ...f, fetchIntervalHours: parseInt(v) }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1시간</SelectItem>
+                        <SelectItem value="2">2시간</SelectItem>
+                        <SelectItem value="3">3시간</SelectItem>
+                        <SelectItem value="6">6시간</SelectItem>
+                        <SelectItem value="12">12시간</SelectItem>
+                        <SelectItem value="24">24시간</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">일 평균 트윗 수</label>
+                    <Input type="number" min={1} max={100} value={infForm.estimatedDailyTweets}
+                      onChange={e => setInfForm(f => ({ ...f, estimatedDailyTweets: parseInt(e.target.value) || 5 }))} />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">비용 정산 기준값 (예상 일 트윗)</p>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-medium text-foreground">트윗 실시간 알림</div>
+                  <div className="text-[10px] text-muted-foreground">Filtered Stream으로 즉시 알림 (핵심 KOL에만 권장)</div>
+                </div>
+                <Switch
+                  checked={infForm.alertOnNewPost}
+                  onCheckedChange={v => setInfForm(f => ({ ...f, alertOnNewPost: v }))}
                 />
               </div>
             </div>

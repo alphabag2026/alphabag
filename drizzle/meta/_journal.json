@@ -169,6 +169,13 @@
       "when": 1775664090201,
       "tag": "0023_yellow_christian_walker",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1775734992871,
+      "tag": "0024_lethal_tusk",
+      "breakpoints": true
     }
   ]
 }
