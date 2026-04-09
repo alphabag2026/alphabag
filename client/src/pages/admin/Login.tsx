@@ -143,7 +143,7 @@ export default function AdminLogin() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          © 2025 AlphaBag. All rights reserved.
+          © 2026 AlphaBag. All rights reserved.
         </p>
       </div>
     </div>

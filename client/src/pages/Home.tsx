@@ -18,7 +18,6 @@ import {
 import { PlanDetailModal } from "@/components/PlanDetailModal";
 import { ReferralMessageModal } from "@/components/ReferralMessageModal";
 import { MeetingNoticeModal } from "@/components/MeetingNoticeModal";
-import BetaNoticeModal from "@/components/BetaNoticeModal";
 import { NoticeDetailModal } from "@/components/NoticeDetailModal";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -669,8 +668,13 @@ export default function Home() {
   // 장바구니 (로칼스토리지))
   const [cartCount, setCartCount] = useState(0);
   useEffect(() => {
-    const cart = JSON.parse(localStorage.getItem("alphabag-cart") || "[]");
-    setCartCount(cart.length);
+    const updateCartCount = () => {
+      const cart = JSON.parse(localStorage.getItem("alphabag_cart") || "[]");
+      setCartCount(cart.length);
+    };
+    updateCartCount();
+    window.addEventListener("cart-updated", updateCartCount);
+    return () => window.removeEventListener("cart-updated", updateCartCount);
   }, []);
 
   // 검색 기능
@@ -722,8 +726,6 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen ${bg} ${textPrimary} transition-colors duration-300`}>
-      {/* ─── 베타테스트 공지 팝업 ─── */}
-      <BetaNoticeModal />
       {/* ─── 상단 네비게이션 ─── */}
       <nav className={`sticky top-0 z-50 backdrop-blur-xl border-b ${navBg}`}>
         <div className="max-w-7xl mx-auto px-3">
@@ -1789,7 +1791,7 @@ export default function Home() {
               <Link href="/notices"><span className="hover:text-amber-400 cursor-pointer transition-colors">Notices</span></Link>
               <Link href="/#airdrop"><span className="hover:text-emerald-400 cursor-pointer transition-colors">Airdrop</span></Link>
             </div>
-            <div className={`text-xs ${textSecondary}`}>© 2025 AlphaBag. All rights reserved.</div>
+            <div className={`text-xs ${textSecondary}`}>© 2026 AlphaBag. All rights reserved.</div>
           </div>
         </div>
       </footer>

@@ -54,6 +54,7 @@ import FavoritesPage from "./pages/FavoritesPage";
 import About from "./pages/About";
 import Introduction from "./pages/Introduction";
 import FaqQnaPage from "./pages/FaqQnaPage";
+import CartPage from "./pages/CartPage";
 
 function Router() {
   return (
@@ -108,6 +109,7 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/introduction" component={Introduction} />
       <Route path="/faq" component={FaqQnaPage} />
+      <Route path="/cart" component={CartPage} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -117,7 +119,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark" switchable={false}>
+      <ThemeProvider defaultTheme="dark" switchable={true}>
         <TooltipProvider>
           <Toaster />
           <WalletConnectModal />

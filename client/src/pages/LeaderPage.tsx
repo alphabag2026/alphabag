@@ -156,7 +156,7 @@ export default function LeaderPage() {
             <img src={ALPHABAG_LOGO} alt="AlphaBag" className="w-7 h-7 rounded object-contain" />
             <div className="text-sm font-bold text-muted-foreground">AlphaBag</div>
           </div>
-          <div className="text-xs text-muted-foreground">© 2025 AlphaBag. All rights reserved.</div>
+          <div className="text-xs text-muted-foreground">© 2026 AlphaBag. All rights reserved.</div>
         </div>
       </footer>
 

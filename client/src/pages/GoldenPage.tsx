@@ -243,7 +243,7 @@ export default function GoldenPage() {
               <span className="text-sm font-bold text-muted-foreground">AlphaBag</span>
             </div>
           </Link>
-          <div className="text-xs text-muted-foreground">© 2025 AlphaBag. All rights reserved.</div>
+          <div className="text-xs text-muted-foreground">© 2026 AlphaBag. All rights reserved.</div>
         </div>
       </footer>
     </div>

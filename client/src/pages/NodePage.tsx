@@ -223,7 +223,7 @@ export default function NodePage() {
               <span className="text-sm font-bold text-gray-400">AlphaBag</span>
             </div>
           </Link>
-          <div className="text-xs text-gray-600">© 2025 AlphaBag. All rights reserved.</div>
+          <div className="text-xs text-gray-600">© 2026 AlphaBag. All rights reserved.</div>
         </div>
       </footer>
     </div>
