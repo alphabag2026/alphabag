@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-const STORAGE_KEY = "alphabag_beta_notice_closed_v1";
+const STORAGE_KEY = "alphabag_beta_notice_closed_v2";
 
 export default function BetaNoticeModal() {
   const { t } = useTranslation();
