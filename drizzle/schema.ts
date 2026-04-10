@@ -480,6 +480,8 @@ export const snsInfluencers = mysqlTable("snsInfluencers", {
   fetchIntervalHours: int("fetchIntervalHours").default(3).notNull(), // 수집 주기 (시간)
   alertOnNewPost: boolean("alertOnNewPost").default(false).notNull(), // 신규 트윗 텔레그램 알림
   estimatedDailyTweets: int("estimatedDailyTweets").default(5).notNull(), // 일 평균 트윗 수 (비용 계산용)
+  autoTranslate: boolean("autoTranslate").default(false).notNull(), // 새 트윗 수집 시 자동 번역
+  autoTranslateLang: varchar("autoTranslateLang", { length: 10 }).default("ko"), // 자동 번역 언어 코드
   lastFetchedAt: timestamp("lastFetchedAt"),
   snsTelegramChatId: varchar("snsTelegramChatId", { length: 64 }), // 텔레그램 채널 ID
   isActive: boolean("isActive").default(true).notNull(),

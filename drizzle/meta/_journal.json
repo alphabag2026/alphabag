@@ -183,6 +183,13 @@
       "when": 1775793963680,
       "tag": "0025_cloudy_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1775794686448,
+      "tag": "0026_loose_speed",
+      "breakpoints": true
     }
   ]
 }

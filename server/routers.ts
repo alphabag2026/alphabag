@@ -2194,6 +2194,8 @@ Return this exact JSON structure:
       snsTelegramChatId: z.string().optional(),
       isActive: z.boolean().optional(),
       sortOrder: z.number().optional(),
+      autoTranslate: z.boolean().optional(),
+      autoTranslateLang: z.string().optional(),
     })).mutation(async ({ input }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -2430,6 +2432,37 @@ Return this exact JSON structure:
         .from(snsPosts)
         .groupBy(snsPosts.influencerId);
       return results;
+    }),
+    // 어드민: KOL twitterUserId 일괄 등록 (쉼표 구분 handle:userId 형식)
+    bulkUpdateTwitterIds: adminProcedure.input(z.object({
+      // 형식: "handle1:userId1,handle2:userId2" 또는 "handle1,handle2" (ID만 있는 경우)
+      // 또는 [{handle, twitterUserId}] 배열
+      entries: z.array(z.object({
+        handle: z.string(),
+        twitterUserId: z.string(),
+        autoFetchEnabled: z.boolean().optional(),
+      })),
+    })).mutation(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { snsInfluencers } = await import("../drizzle/schema");
+      let updated = 0;
+      let notFound: string[] = [];
+      for (const entry of input.entries) {
+        const handle = entry.handle.replace(/^@/, "").toLowerCase();
+        const rows = await database.select({ id: snsInfluencers.id })
+          .from(snsInfluencers)
+          .where(eq(snsInfluencers.handle, handle));
+        if (!rows.length) {
+          notFound.push(handle);
+          continue;
+        }
+        const updateData: Record<string, unknown> = { twitterUserId: entry.twitterUserId };
+        if (entry.autoFetchEnabled !== undefined) updateData.autoFetchEnabled = entry.autoFetchEnabled;
+        await database.update(snsInfluencers).set(updateData).where(eq(snsInfluencers.id, rows[0].id));
+        updated++;
+      }
+      return { updated, notFound };
     }),
     // 어드민: KOL 비용 통계 (비용 정산 대시보드용)
     snsStats: adminProcedure.query(async () => {

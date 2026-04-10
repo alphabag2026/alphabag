@@ -84,6 +84,7 @@ export default function SnsPage() {
     twitterUserId: "", autoFetchEnabled: false,
     fetchIntervalHours: 1, alertOnNewPost: false, estimatedDailyTweets: 5,
     snsTelegramChatId: "", sortOrder: 0,
+    autoTranslate: false, autoTranslateLang: "ko",
   });
 
   // ─── 포스트 다이얼로그
@@ -102,6 +103,12 @@ export default function SnsPage() {
   const [translateResult, setTranslateResult] = useState<{ translated: number; remaining: number } | null>(null);
   const [showTranslated, setShowTranslated] = useState<Record<number, boolean>>({});
   const [translatingPostId, setTranslatingPostId] = useState<number | null>(null);
+  const [translateLang, setTranslateLang] = useState('ko');
+
+  // ─── 일괄 twitterUserId 등록 상태
+  const [bulkIdDialog, setBulkIdDialog] = useState(false);
+  const [bulkIdText, setBulkIdText] = useState('');
+  const [bulkIdLoading, setBulkIdLoading] = useState(false);
 
   // ─── Mutations
   const createInf = trpc.sns.createInfluencer.useMutation({
@@ -137,6 +144,17 @@ export default function SnsPage() {
     onSuccess: () => { utils.sns.adminPosts.invalidate(); toast.success("포스트 삭제됨"); },
     onError: (e) => toast.error(e.message),
   });
+  const bulkUpdateTwitterIdsMutation = trpc.sns.bulkUpdateTwitterIds.useMutation({
+    onSuccess: (data) => {
+      utils.sns.adminInfluencers.invalidate();
+      toast.success(`일괄 등록 완료: ${data.updated}개 업데이트${data.notFound.length ? ` | 미발견: ${data.notFound.join(', ')}` : ''}`);
+      setBulkIdDialog(false);
+      setBulkIdText('');
+      setBulkIdLoading(false);
+    },
+    onError: (e) => { toast.error(e.message); setBulkIdLoading(false); },
+  });
+
   const translateAllMutation = trpc.sns.translateAllPosts.useMutation({
     onSuccess: (data) => {
       setTranslateResult(data);
@@ -172,6 +190,8 @@ export default function SnsPage() {
         estimatedDailyTweets: (inf as any).estimatedDailyTweets || 5,
         snsTelegramChatId: inf.snsTelegramChatId || "",
         sortOrder: inf.sortOrder,
+        autoTranslate: (inf as any).autoTranslate || false,
+        autoTranslateLang: (inf as any).autoTranslateLang || "ko",
       });
     } else {
       setEditingInf(null);
@@ -180,6 +200,7 @@ export default function SnsPage() {
         category: "crypto", followerCount: "", twitterUserId: "",
         autoFetchEnabled: false, fetchIntervalHours: 1, alertOnNewPost: false,
         estimatedDailyTweets: 5, snsTelegramChatId: "", sortOrder: 0,
+        autoTranslate: false, autoTranslateLang: "ko",
       });
     }
     setInfDialog(true);
@@ -281,7 +302,31 @@ export default function SnsPage() {
               </button>
             </div>
             {activeTab === 'influencers' && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* 번역 언어 선택 */}
+                <Select value={translateLang} onValueChange={setTranslateLang}>
+                  <SelectTrigger className="h-8 w-28 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ko">🇰🇷 한국어</SelectItem>
+                    <SelectItem value="zh">🇨🇳 중국어</SelectItem>
+                    <SelectItem value="ja">🇯🇵 일본어</SelectItem>
+                    <SelectItem value="en">🇺🇸 영어</SelectItem>
+                    <SelectItem value="vi">🇻🇳 베트남어</SelectItem>
+                    <SelectItem value="th">🇹🇭 태국어</SelectItem>
+                    <SelectItem value="id">🇮🇩 인도네시아어</SelectItem>
+                    <SelectItem value="ru">🇷🇺 러시아어</SelectItem>
+                    <SelectItem value="ar">🇸🇦 아랍어</SelectItem>
+                    <SelectItem value="es">🇪🇸 스페인어</SelectItem>
+                    <SelectItem value="pt">🇧🇷 포르투갈어</SelectItem>
+                    <SelectItem value="fr">🇫🇷 프랑스어</SelectItem>
+                    <SelectItem value="de">🇩🇪 독일어</SelectItem>
+                    <SelectItem value="tr">🇹🇷 터키어</SelectItem>
+                    <SelectItem value="hi">🇮🇳 힌디어</SelectItem>
+                  </SelectContent>
+                </Select>
+                {/* 일괄 번역 버튼 */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -290,11 +335,21 @@ export default function SnsPage() {
                   onClick={() => {
                     setTranslateAllLoading(true);
                     setTranslateResult(null);
-                    translateAllMutation.mutate({ targetLang: 'ko', batchSize: 20 });
+                    translateAllMutation.mutate({ targetLang: translateLang, batchSize: 20 });
                   }}
                 >
                   <Bot className={`w-3.5 h-3.5 ${translateAllLoading ? 'animate-spin' : ''}`} />
                   {translateAllLoading ? '번역 중...' : '일괄 번역'}
+                </Button>
+                {/* 일괄 ID 등록 버튼 */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs border-orange-300 text-orange-700 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400"
+                  onClick={() => setBulkIdDialog(true)}
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  ID 일괄 등록
                 </Button>
                 <Button onClick={() => openInfDialog()} className="gap-2 bg-sky-600 hover:bg-sky-700 text-white">
                   <Plus className="w-4 h-4" /> 인플루언서 추가
@@ -860,6 +915,49 @@ export default function SnsPage() {
               </div>
             </div>
 
+            {/* 자동 번역 설정 */}
+            <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Bot className="w-4 h-4 text-purple-500" />
+                <span className="text-xs font-semibold text-foreground">자동 번역 설정</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-medium text-foreground">새 트윗 수집 시 자동 번역</div>
+                  <div className="text-[10px] text-muted-foreground">트윗 수집 즉시 LLM으로 번역 저장</div>
+                </div>
+                <Switch
+                  checked={infForm.autoTranslate}
+                  onCheckedChange={v => setInfForm(f => ({ ...f, autoTranslate: v }))}
+                />
+              </div>
+              {infForm.autoTranslate && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">번역 대상 언어</label>
+                  <Select value={infForm.autoTranslateLang} onValueChange={v => setInfForm(f => ({ ...f, autoTranslateLang: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ko">🇰🇷 한국어</SelectItem>
+                      <SelectItem value="zh">🇨🇳 중국어</SelectItem>
+                      <SelectItem value="ja">🇯🇵 일본어</SelectItem>
+                      <SelectItem value="en">🇺🇸 영어</SelectItem>
+                      <SelectItem value="vi">🇻🇳 베트남어</SelectItem>
+                      <SelectItem value="th">🇹🇭 태국어</SelectItem>
+                      <SelectItem value="id">🇮🇩 인도네시아어</SelectItem>
+                      <SelectItem value="ru">🇷🇺 러시아어</SelectItem>
+                      <SelectItem value="ar">🇸🇦 아랍어</SelectItem>
+                      <SelectItem value="es">🇪🇸 스페인어</SelectItem>
+                      <SelectItem value="pt">🇧🇷 포르투갈어</SelectItem>
+                      <SelectItem value="fr">🇫🇷 프랑스어</SelectItem>
+                      <SelectItem value="de">🇩🇪 독일어</SelectItem>
+                      <SelectItem value="tr">🇹🇷 터키어</SelectItem>
+                      <SelectItem value="hi">🇮🇳 힌디어</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
             {/* 텔레그램 연동 설정 */}
             <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
               <div className="flex items-center gap-2">
@@ -947,6 +1045,65 @@ export default function SnsPage() {
             <Button onClick={submitPost} disabled={createPost.isPending || updatePost.isPending}
               className="bg-sky-600 hover:bg-sky-700 text-white">
               {editingPost ? "수정" : "추가"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 일괄 Twitter ID 등록 다이얼로그 */}
+      <Dialog open={bulkIdDialog} onOpenChange={setBulkIdDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-orange-500" />
+              KOL Twitter ID 일괄 등록
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
+              <p className="text-xs text-orange-700 dark:text-orange-300 font-medium mb-1">입력 형식</p>
+              <p className="text-xs text-orange-600 dark:text-orange-400 font-mono">핸들,숫자ID</p>
+              <p className="text-xs text-muted-foreground mt-1">예) elonmusk,44196397</p>
+              <p className="text-xs text-muted-foreground">한 줄에 하나씩, 쉼표로 구분</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">핸들,ID 목록 (줄바꽔으로 구분)</label>
+              <textarea
+                className="w-full border rounded-md p-2 text-sm font-mono bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                rows={8}
+                placeholder={`elonmusk,44196397\nrealDonaldTrump,25073877\ncz_binance,902926941413453824\nVitalikButerin,295218901`}
+                value={bulkIdText}
+                onChange={e => setBulkIdText(e.target.value)}
+              />
+            </div>
+            <div className="text-xs text-muted-foreground">
+              입력한 핸들이 DB에 없으면 미발견으로 표시됩니다.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setBulkIdDialog(false); setBulkIdText(''); }}
+              disabled={bulkIdLoading}>
+              취소
+            </Button>
+            <Button
+              className="bg-orange-600 hover:bg-orange-700 text-white gap-2"
+              disabled={bulkIdLoading || !bulkIdText.trim()}
+              onClick={() => {
+                const lines = bulkIdText.trim().split('\n').filter(l => l.trim());
+                const entries = lines.map(line => {
+                  const parts = line.split(',').map(p => p.trim());
+                  return { handle: parts[0], twitterUserId: parts[1] };
+                }).filter(e => e.handle && e.twitterUserId);
+                if (!entries.length) { toast.error('유효한 데이터가 없습니다'); return; }
+                setBulkIdLoading(true);
+                bulkUpdateTwitterIdsMutation.mutate({ entries });
+              }}
+            >
+              {bulkIdLoading ? (
+                <><RefreshCw className="w-4 h-4 animate-spin" /> 등록 중...</>
+              ) : (
+                <><Zap className="w-4 h-4" /> {bulkIdText.trim().split('\n').filter(l => l.trim()).length}개 등록</>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

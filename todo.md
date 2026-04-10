@@ -836,3 +836,24 @@
 - [x] Home.tsx: SNS 피드 동영상 재생 버튼 오버레이 (backdrop-blur 원형 버튼)
 - [x] Home.tsx: 미디어 이미지 그리드 (1개=1컬, 2개+=2컬)
 - [x] Home.tsx: 사용자 언어 기준 번역 버튼 (영어 사용자 제외)
+
+## Phase 63 - 번역 언어 드롭다운 + 자동 번역 토글 + twitterUserId 일괄 등록
+- [ ] DB: snsInfluencers에 autoTranslate(boolean), autoTranslateLang(varchar) 컬럼 추가
+- [ ] 서버: translateAllPosts에 targetLang 파라미터 추가
+- [ ] 서버: updateInfluencer에 autoTranslate, autoTranslateLang 필드 추가
+- [ ] 서버: twitterFetchScheduler/StreamScheduler에 autoTranslate KOL 자동 번역 연동
+- [ ] 서버: bulkUpdateTwitterIds 프로시저 (쉼표 구분 일괄 등록)
+- [ ] 백오피스 Sns.tsx: 일괄 번역 버튼 옆 언어 선택 드롭다운 (한국어/중국어/일본어/영어 등)
+- [ ] 백오피스 Sns.tsx: KOL 편집 다이얼로그에 자동 번역 토글 + 번역 언어 선택
+- [ ] 백오피스 Sns.tsx: twitterUserId 일괄 등록 UI (쉼표 구분 입력창 + 등록 버튼)
+
+## Phase 63 완료 - 번역 언어 드롭다운 + 자동 번역 토글 + twitterUserId 일괄 등록
+- [x] DB: snsInfluencers에 autoTranslate(boolean), autoTranslateLang(varchar) 컬럼 추가
+- [x] 서버: updateInfluencer에 autoTranslate, autoTranslateLang 필드 추가
+- [x] 서버: bulkUpdateTwitterIds 프로시저 (핸들,ID 쌍 일괄 업데이트)
+- [x] 서버: twitterFetchScheduler - 미디어 URL 수집 (photo/video/gif) + autoTranslate 연동
+- [x] 백오피스 Sns.tsx: 번역 언어 드롭다운 (15개 언어: 한/중/일/영/베/태/인도네/러/아랍/스/포/불/독/터/힌)
+- [x] 백오피스 Sns.tsx: 일괄 번역 버튼이 선택된 언어로 번역 실행
+- [x] 백오피스 Sns.tsx: KOL 설정 다이얼로그에 자동 번역 토글 + 번역 언어 선택 추가
+- [x] 백오피스 Sns.tsx: ID 일괄 등록 버튼 (주황색) + 다이얼로그 (핸들,ID 형식 입력)
+- [x] 백오피스 Sns.tsx: 일괄 등록 결과 토스트 (업데이트 수 + 미발견 핸들 표시)

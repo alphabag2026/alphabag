@@ -1,6 +1,8 @@
 /**
  * TwitterFetchScheduler
  * - 1시간마다 autoFetchEnabled=true 인플루언서의 최신 트윗을 X API v2로 수집
+ * - 미디어 URL 수집: 트윗에 첨부된 사진/동영상 URL을 mediaUrls 컬럼에 저장
+ * - 자동 번역: autoTranslate=true인 인플루언서의 새 트윗을 LLM으로 자동 번역
  * - 중복 방지: tweetId 기준으로 이미 저장된 트윗은 스킵
  * - 텔레그램 발송: snsTelegramChatId가 설정된 인플루언서의 새 트윗은 텔레그램으로 공유
  */
@@ -8,15 +10,33 @@
 import { getDb } from "./db";
 import { snsInfluencers, snsPosts } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
+import { invokeLLM } from "./_core/llm";
 
 const TWITTER_BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const FETCH_INTERVAL_MS = 60 * 60 * 1000; // 1시간
 
+const LANG_NAMES: Record<string, string> = {
+  ko: "Korean", zh: "Chinese (Simplified)", ja: "Japanese", vi: "Vietnamese",
+  th: "Thai", id: "Indonesian", ms: "Malay", ru: "Russian",
+  ar: "Arabic", es: "Spanish", pt: "Portuguese", fr: "French",
+  de: "German", it: "Italian", tr: "Turkish", hi: "Hindi",
+  nl: "Dutch", pl: "Polish", uk: "Ukrainian", sv: "Swedish",
+  da: "Danish", fi: "Finnish",
+};
+
+interface TwitterMedia {
+  media_key: string;
+  type: "photo" | "video" | "animated_gif";
+  url?: string; // photo URL
+  preview_image_url?: string; // video thumbnail
+}
+
 interface TwitterTweet {
   id: string;
   text: string;
   created_at?: string;
+  attachments?: { media_keys?: string[] };
   public_metrics?: {
     like_count: number;
     retweet_count: number;
@@ -32,6 +52,7 @@ interface TwitterUserResponse {
 
 interface TwitterTimelineResponse {
   data?: TwitterTweet[];
+  includes?: { media?: TwitterMedia[] };
   errors?: Array<{ message: string }>;
 }
 
@@ -58,14 +79,16 @@ async function fetchTwitterUserId(handle: string): Promise<string | null> {
 }
 
 /**
- * X API v2: userId → 최신 트윗 목록 (최대 10개)
+ * X API v2: userId → 최신 트윗 목록 (최대 10개, 미디어 포함)
  */
-async function fetchLatestTweets(userId: string): Promise<TwitterTweet[]> {
-  if (!TWITTER_BEARER_TOKEN) return [];
+async function fetchLatestTweets(userId: string): Promise<{ tweets: TwitterTweet[]; mediaMap: Map<string, string> }> {
+  if (!TWITTER_BEARER_TOKEN) return { tweets: [], mediaMap: new Map() };
   try {
     const params = new URLSearchParams({
       max_results: "10",
-      "tweet.fields": "created_at,public_metrics",
+      "tweet.fields": "created_at,public_metrics,attachments",
+      "expansions": "attachments.media_keys",
+      "media.fields": "url,preview_image_url,type",
       exclude: "retweets,replies",
     });
     const res = await fetch(
@@ -74,13 +97,46 @@ async function fetchLatestTweets(userId: string): Promise<TwitterTweet[]> {
     );
     if (!res.ok) {
       console.error(`[TwitterFetch] Failed to fetch tweets for userId=${userId}: ${res.status}`);
-      return [];
+      return { tweets: [], mediaMap: new Map() };
     }
     const json = (await res.json()) as TwitterTimelineResponse;
-    return json.data ?? [];
+    
+    // 미디어 키 → URL 매핑 생성
+    const mediaMap = new Map<string, string>();
+    if (json.includes?.media) {
+      for (const media of json.includes.media) {
+        const url = media.url || media.preview_image_url;
+        if (url) mediaMap.set(media.media_key, url);
+      }
+    }
+    
+    return { tweets: json.data ?? [], mediaMap };
   } catch (e) {
     console.error(`[TwitterFetch] Error fetching tweets for userId=${userId}:`, e);
-    return [];
+    return { tweets: [], mediaMap: new Map() };
+  }
+}
+
+/**
+ * LLM으로 트윗 번역
+ */
+async function translateTweet(content: string, targetLang: string): Promise<string | null> {
+  const langName = LANG_NAMES[targetLang] || "Korean";
+  try {
+    const response = await invokeLLM({
+      messages: [
+        {
+          role: "system",
+          content: `You are a professional crypto/finance translator. Translate the following tweet to ${langName}. Keep hashtags ($BTC, #Bitcoin), @mentions, URLs, and emojis unchanged. Return ONLY the translated text, no explanation.`,
+        },
+        { role: "user", content },
+      ],
+    });
+    const translated = (response.choices[0].message.content as string)?.trim();
+    return translated || null;
+  } catch (e) {
+    console.error(`[TwitterFetch] Translation error:`, e);
+    return null;
   }
 }
 
@@ -117,6 +173,8 @@ async function fetchForInfluencer(influencer: {
   handle: string;
   twitterUserId: string | null;
   snsTelegramChatId: string | null;
+  autoTranslate?: boolean;
+  autoTranslateLang?: string | null;
 }): Promise<number> {
   let userId = influencer.twitterUserId;
 
@@ -132,7 +190,7 @@ async function fetchForInfluencer(influencer: {
       .where(eq(snsInfluencers.id, influencer.id));
   }
 
-  const tweets = await fetchLatestTweets(userId);
+  const { tweets, mediaMap } = await fetchLatestTweets(userId);
   if (!tweets.length) return 0;
 
   // 기존 tweetId 목록 조회 (중복 방지)
@@ -144,12 +202,34 @@ async function fetchForInfluencer(influencer: {
     .where(eq(snsPosts.influencerId, influencer.id));
   const existingTweetIds = new Set(existingPosts.map((p: { tweetId: string | null }) => p.tweetId).filter(Boolean));
 
+  const shouldAutoTranslate = influencer.autoTranslate === true;
+  const targetLang = influencer.autoTranslateLang || "ko";
+
   let newCount = 0;
   for (const tweet of tweets) {
     if (existingTweetIds.has(tweet.id)) continue;
 
     const postedAt = tweet.created_at ? new Date(tweet.created_at) : new Date();
     const tweetUrl = `https://x.com/${influencer.handle}/status/${tweet.id}`;
+
+    // 미디어 URL 수집
+    let mediaUrlsJson: string | null = null;
+    if (tweet.attachments?.media_keys?.length) {
+      const urls = tweet.attachments.media_keys
+        .map((key) => mediaMap.get(key))
+        .filter(Boolean) as string[];
+      if (urls.length) mediaUrlsJson = JSON.stringify(urls);
+    }
+
+    // 자동 번역
+    let translatedContent: string | null = null;
+    let translatedAt: Date | null = null;
+    if (shouldAutoTranslate && tweet.text) {
+      translatedContent = await translateTweet(tweet.text, targetLang);
+      if (translatedContent) translatedAt = new Date();
+      // LLM rate limit 방지
+      await new Promise((r) => setTimeout(r, 300));
+    }
 
     await db.insert(snsPosts).values({
       influencerId: influencer.id,
@@ -161,6 +241,9 @@ async function fetchForInfluencer(influencer: {
       replies: tweet.public_metrics?.reply_count ?? 0,
       postedAt,
       isActive: true,
+      mediaUrls: mediaUrlsJson,
+      translatedContent,
+      translatedAt,
     });
 
     // 텔레그램 발송
@@ -208,6 +291,8 @@ async function runFetch(): Promise<void> {
       handle: snsInfluencers.handle,
       twitterUserId: snsInfluencers.twitterUserId,
       snsTelegramChatId: snsInfluencers.snsTelegramChatId,
+      autoTranslate: snsInfluencers.autoTranslate,
+      autoTranslateLang: snsInfluencers.autoTranslateLang,
     })
     .from(snsInfluencers)
     .where(
