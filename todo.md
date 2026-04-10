@@ -864,3 +864,9 @@
 - [x] Home.tsx: infoweb4 탭 섹션 내 링크/텍스트 1page.to로 통일
 - [x] PlanDetailModal.tsx: infoweb4 주석 → 1page.to 주석 교체
 - [x] TypeScript 오류 없음 확인
+
+## Phase 65 - SNS 번역 버튼 버그 수정 (2026-04-10)
+- [x] translatePost 프로시저를 adminProcedure → publicProcedure로 변경 (로그인 없이 번역 가능)
+- [x] 번역 완료 후 로컬 캐시(snsLocalTranslations)에 즉시 저장하여 UI 즉시 업데이트
+- [x] 번역 버튼 표시 조건 개선: isNonEnglish 기준으로 항상 표시, 로컬 캐시 우선 참조
+- [x] onError 핸들러에 console.error 추가 (디버깅 개선)

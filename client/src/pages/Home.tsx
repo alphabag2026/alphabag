@@ -669,13 +669,22 @@ export default function Home() {
   const snsUtils = trpc.useUtils();
   const [snsShowTranslated, setSnsShowTranslated] = useState<Record<number, boolean>>({});
   const [snsTranslatingId, setSnsTranslatingId] = useState<number | null>(null);
+  const [snsLocalTranslations, setSnsLocalTranslations] = useState<Record<number, string>>({});
   const snsTranslateMutation = trpc.sns.translatePost.useMutation({
-    onSuccess: (_, vars) => {
-      snsUtils.sns.posts.invalidate();
+    onSuccess: (data, vars) => {
+      // 로컈 캐시에 번역 결과 저장 (즉시 표시)
+      if (data?.translatedContent) {
+        setSnsLocalTranslations(prev => ({ ...prev, [vars.postId]: data.translatedContent! }));
+      }
       setSnsShowTranslated(prev => ({ ...prev, [vars.postId]: true }));
       setSnsTranslatingId(null);
+      // 백그라운드에서 DB 리프레시
+      snsUtils.sns.posts.invalidate();
     },
-    onError: () => setSnsTranslatingId(null),
+    onError: (err) => {
+      console.error('[SNS translate error]', err);
+      setSnsTranslatingId(null);
+    },
   });
   const userLang = i18n.language;
   const isNonEnglish = userLang && userLang !== 'en';
@@ -1337,7 +1346,8 @@ export default function Home() {
                         {/* 포스트 내용 */}
                         {(() => {
                           const isShowingTr = snsShowTranslated[post.id];
-                          const displayContent = isShowingTr && post.translatedContent ? post.translatedContent : post.content;
+                          const localTr = snsLocalTranslations[post.id];
+                          const displayContent = isShowingTr ? (localTr || post.translatedContent || post.content) : post.content;
                           const mediaList: string[] = (() => { try { return JSON.parse(post.mediaUrls || '[]'); } catch { return []; } })();
                           return (
                             <>
@@ -1383,7 +1393,7 @@ export default function Home() {
                             💬 {post.replies?.toLocaleString() || 0}
                           </span>
                           {/* 번역 버튼: 영어가 아닌 사용자에게만 표시 */}
-                          {(post.translatedContent || isNonEnglish) && (
+                          {isNonEnglish && (
                             <button
                               className={`ml-auto flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full transition-colors ${
                                 isDark ? 'bg-purple-500/15 text-purple-400 hover:bg-purple-500/25' : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
@@ -1391,9 +1401,12 @@ export default function Home() {
                               disabled={snsTranslatingId === post.id}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (post.translatedContent) {
+                                const hasTranslation = snsLocalTranslations[post.id] || post.translatedContent;
+                                if (hasTranslation) {
+                                  // 이미 번역된 경우: 원문/번역 토글
                                   setSnsShowTranslated(prev => ({ ...prev, [post.id]: !prev[post.id] }));
                                 } else {
+                                  // 미번역: LLM 번역 요청
                                   setSnsTranslatingId(post.id);
                                   snsTranslateMutation.mutate({ postId: post.id, targetLang: userLang || 'ko' });
                                 }

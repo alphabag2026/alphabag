@@ -2336,8 +2336,8 @@ Return this exact JSON structure:
       await database.delete(snsPosts).where(eq(snsPosts.id, input.id));
       return { success: true };
     }),
-    // 어드민: 단일 포스트 번역
-    translatePost: adminProcedure.input(z.object({
+    // 공개: 단일 포스트 번역 (로그인 불필요)
+    translatePost: publicProcedure.input(z.object({
       postId: z.number(),
       targetLang: z.string().default("ko"),
     })).mutation(async ({ input }) => {
