@@ -728,26 +728,3 @@ export const qnaQuestions = mysqlTable("qnaQuestions", {
 });
 export type QnaQuestion = typeof qnaQuestions.$inferSelect;
 export type InsertQnaQuestion = typeof qnaQuestions.$inferInsert;
-
-// ─── 여행 서류 (입국심사 체크리스트) ─────────────────────────────────────────
-export const travelDocuments = mysqlTable("travelDocuments", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  docType: mysqlEnum("docType", [
-    "passport",
-    "flight_ticket",
-    "hotel_voucher",
-    "visa",
-    "travel_insurance",
-    "other",
-  ]).notNull(),
-  title: varchar("title", { length: 200 }).notNull(),
-  fileUrl: text("fileUrl"),
-  expiryDate: varchar("expiryDate", { length: 20 }),
-  note: text("note"),
-  isActive: boolean("isActive").default(true).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-export type TravelDocument = typeof travelDocuments.$inferSelect;
-export type InsertTravelDocument = typeof travelDocuments.$inferInsert;
