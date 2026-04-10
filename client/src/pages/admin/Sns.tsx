@@ -45,13 +45,12 @@ type Post = {
   likes: number;
   retweets: number;
   replies: number;
-  translatedContent?: string | null;
-  mediaUrls?: string[] | null;
-  translatedAt?: Date | string | null;
   postedAt: Date | string;
   isActive: boolean;
   influencerName?: string;
   influencerHandle?: string;
+  translatedContent?: string | null;
+  mediaUrls?: string | null; // JSON array string
 };
 
 const CATEGORIES = [
@@ -66,10 +65,6 @@ const CATEGORIES = [
 export default function SnsPage() {
   const utils = trpc.useUtils();
   const [activeTab, setActiveTab] = useState<'influencers' | 'cost'>('influencers');
-  const [translatingPostId, setTranslatingPostId] = useState<number | null>(null);
-  const [translatedPosts, setTranslatedPosts] = useState<Record<number, string>>({});
-  const [showTranslation, setShowTranslation] = useState<Record<number, boolean>>({});
-  const translatePostMutation = trpc.sns.translatePost.useMutation();
 
   const { data: influencers = [], isLoading: infLoading } = trpc.sns.adminInfluencers.useQuery();
   const { data: snsStats } = trpc.sns.snsStats.useQuery();
@@ -101,6 +96,12 @@ export default function SnsPage() {
 
   // ─── 수동 수집 로딩 상태
   const [fetchingId, setFetchingId] = useState<number | null>(null);
+
+  // ─── 일괄 번역 상태
+  const [translateAllLoading, setTranslateAllLoading] = useState(false);
+  const [translateResult, setTranslateResult] = useState<{ translated: number; remaining: number } | null>(null);
+  const [showTranslated, setShowTranslated] = useState<Record<number, boolean>>({});
+  const [translatingPostId, setTranslatingPostId] = useState<number | null>(null);
 
   // ─── Mutations
   const createInf = trpc.sns.createInfluencer.useMutation({
@@ -135,6 +136,24 @@ export default function SnsPage() {
   const deletePost = trpc.sns.deletePost.useMutation({
     onSuccess: () => { utils.sns.adminPosts.invalidate(); toast.success("포스트 삭제됨"); },
     onError: (e) => toast.error(e.message),
+  });
+  const translateAllMutation = trpc.sns.translateAllPosts.useMutation({
+    onSuccess: (data) => {
+      setTranslateResult(data);
+      utils.sns.adminPosts.invalidate();
+      toast.success(`번역 완료: ${data.translated}개 | 남은 미번역: ${data.remaining}개`);
+      setTranslateAllLoading(false);
+    },
+    onError: (e) => { toast.error(e.message); setTranslateAllLoading(false); },
+  });
+  const translatePostMutation = trpc.sns.translatePost.useMutation({
+    onSuccess: (data, vars) => {
+      utils.sns.adminPosts.invalidate();
+      setShowTranslated(prev => ({ ...prev, [vars.postId]: true }));
+      setTranslatingPostId(null);
+      toast.success("번역 완료");
+    },
+    onError: (e) => { toast.error(e.message); setTranslatingPostId(null); },
   });
 
   // ─── 인플루언서 다이얼로그 열기
@@ -262,9 +281,25 @@ export default function SnsPage() {
               </button>
             </div>
             {activeTab === 'influencers' && (
-              <Button onClick={() => openInfDialog()} className="gap-2 bg-sky-600 hover:bg-sky-700 text-white">
-                <Plus className="w-4 h-4" /> 인플루언서 추가
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20"
+                  disabled={translateAllLoading}
+                  onClick={() => {
+                    setTranslateAllLoading(true);
+                    setTranslateResult(null);
+                    translateAllMutation.mutate({ targetLang: 'ko', batchSize: 20 });
+                  }}
+                >
+                  <Bot className={`w-3.5 h-3.5 ${translateAllLoading ? 'animate-spin' : ''}`} />
+                  {translateAllLoading ? '번역 중...' : '일괄 번역'}
+                </Button>
+                <Button onClick={() => openInfDialog()} className="gap-2 bg-sky-600 hover:bg-sky-700 text-white">
+                  <Plus className="w-4 h-4" /> 인플루언서 추가
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -484,6 +519,18 @@ export default function SnsPage() {
           </div>
         )}
 
+        {/* 일괄 번역 결과 배너 */}
+        {translateResult && (
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 text-xs">
+            <CheckCircle2 className="w-4 h-4 text-purple-600 flex-shrink-0" />
+            <span className="text-purple-700 dark:text-purple-300">
+              번역 완료: <strong>{translateResult.translated}개</strong> | 남은 미번역: <strong>{translateResult.remaining}개</strong>
+              {translateResult.remaining > 0 && " (다시 실행하면 추가 번역)"}
+            </span>
+            <button onClick={() => setTranslateResult(null)} className="ml-auto text-purple-400 hover:text-purple-600">×</button>
+          </div>
+        )}
+
         {/* 인플루언서 목록 탭 */}
         {activeTab === 'influencers' && (
           <div>
@@ -612,49 +659,35 @@ export default function SnsPage() {
                       ) : (
                         <div className="divide-y divide-border/50">
                           {infPosts.map((post) => {
-                            const isTranslating = translatingPostId === post.id;
-                            const translated = translatedPosts[post.id] || post.translatedContent;
-                            const isShowingTranslation = showTranslation[post.id];
-                            const displayContent = isShowingTranslation && translated ? translated : post.content;
-
-                            const handleTranslate = async () => {
-                              if (translated) {
-                                setShowTranslation(prev => ({ ...prev, [post.id]: !prev[post.id] }));
-                                return;
-                              }
-                              setTranslatingPostId(post.id);
-                              try {
-                                const result = await translatePostMutation.mutateAsync({ postId: post.id });
-                                setTranslatedPosts(prev => ({ ...prev, [post.id]: result.translatedContent }));
-                                setShowTranslation(prev => ({ ...prev, [post.id]: true }));
-                                toast.success("번역 완료");
-                              } catch (e) {
-                                toast.error("번역 실패");
-                              } finally {
-                                setTranslatingPostId(null);
-                              }
-                            };
-
+                            const mediaList: string[] = (() => { try { return JSON.parse(post.mediaUrls || '[]'); } catch { return []; } })();
+                            const isShowingTranslated = showTranslated[post.id];
+                            const displayContent = isShowingTranslated && post.translatedContent ? post.translatedContent : post.content;
                             return (
                             <div key={post.id} className="px-4 py-3 flex gap-3">
                               <div className="flex-1 min-w-0">
-                                {isShowingTranslation && translated && (
-                                  <span className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 mb-1">
-                                    🤖 AI 한국어 번역
-                                  </span>
-                                )}
-                                <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap line-clamp-4">{displayContent}</p>
-                                {/* 미디어 이미지 */}
-                                {post.mediaUrls && Array.isArray(post.mediaUrls) && post.mediaUrls.length > 0 && (
-                                  <div className={`mt-2 grid gap-1 ${
-                                    post.mediaUrls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'
-                                  }`}>
-                                    {post.mediaUrls.slice(0, 4).map((url: string, idx: number) => (
-                                      <a key={idx} href={url} target="_blank" rel="noopener noreferrer">
-                                        <img src={url} alt={`media-${idx}`}
-                                          className="w-full rounded-lg object-cover max-h-40 hover:opacity-90 transition-opacity" />
-                                      </a>
-                                    ))}
+                                <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap line-clamp-3">{displayContent}</p>
+                                {/* 미디어 이미지/동영상 */}
+                                {mediaList.length > 0 && (
+                                  <div className={`grid gap-1 mt-2 ${mediaList.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                                    {mediaList.slice(0, 4).map((url, idx) => {
+                                      const isVideo = url.includes('video') || url.endsWith('.mp4') || url.endsWith('.m3u8');
+                                      return (
+                                        <div key={idx} className="relative rounded overflow-hidden bg-muted aspect-video">
+                                          {isVideo ? (
+                                            <>
+                                              <div className="w-full h-full bg-black/60 flex items-center justify-center">
+                                                <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center">
+                                                  <svg className="w-4 h-4 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                                </div>
+                                              </div>
+                                              <span className="absolute bottom-1 left-1 text-[9px] bg-black/70 text-white px-1 rounded">동영상</span>
+                                            </>
+                                          ) : (
+                                            <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                                          )}
+                                        </div>
+                                      );
+                                    })}
                                   </div>
                                 )}
                                 <div className="flex items-center gap-3 mt-1.5 flex-wrap">
@@ -678,19 +711,23 @@ export default function SnsPage() {
                                   )}
                                   {/* 번역 버튼 */}
                                   <button
-                                    onClick={handleTranslate}
-                                    disabled={isTranslating}
-                                    className={`text-[10px] font-medium px-2 py-0.5 rounded-full border transition-all ${
-                                      isShowingTranslation && translated
-                                        ? "bg-emerald-100 border-emerald-300 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-emerald-400"
-                                        : "bg-muted border-border text-muted-foreground hover:bg-accent"
-                                    } disabled:opacity-50 disabled:cursor-wait`}
+                                    className="text-[10px] text-purple-500 hover:text-purple-700 flex items-center gap-0.5 disabled:opacity-50"
+                                    disabled={translatingPostId === post.id}
+                                    onClick={() => {
+                                      if (post.translatedContent) {
+                                        setShowTranslated(prev => ({ ...prev, [post.id]: !prev[post.id] }));
+                                      } else {
+                                        setTranslatingPostId(post.id);
+                                        translatePostMutation.mutate({ postId: post.id, targetLang: 'ko' });
+                                      }
+                                    }}
                                   >
-                                    {isTranslating ? "⟳ 번역 중..."
-                                      : isShowingTranslation && translated ? "🌐 원문"
-                                      : translated ? "🌐 번역"
-                                      : "🤖 한국어"}
+                                    <Bot className={`w-3 h-3 ${translatingPostId === post.id ? 'animate-spin' : ''}`} />
+                                    {translatingPostId === post.id ? '번역중...' : isShowingTranslated ? '원문보기' : '한국어'}
                                   </button>
+                                  {post.translatedContent && (
+                                    <span className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1 rounded">당일 번역</span>
+                                  )}
                                 </div>
                               </div>
                               <div className="flex items-start gap-1 flex-shrink-0">
@@ -773,25 +810,9 @@ export default function SnsPage() {
               </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">Twitter User ID (X API v2)</label>
-                <div className="flex gap-2">
-                  <Input placeholder="숫자 ID (예: 44196397)" value={infForm.twitterUserId}
-                    onChange={e => setInfForm(f => ({ ...f, twitterUserId: e.target.value }))} />
-                  {infForm.handle && (
-                    <a
-                      href={`https://tweeterid.com/?input=${infForm.handle}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 text-[10px] text-blue-400 hover:text-blue-300 underline flex items-center"
-                    >
-                      ID 조회
-                    </a>
-                  )}
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  {infForm.twitterUserId
-                    ? <span className="text-green-400">✓ ID 입력됨 — 자동수집 활성화 시 즉시 수집 시작</span>
-                    : "비워두면 핸들(@)로 자동 조회 (API 호출 1회 소모)"}
-                </p>
+                <Input placeholder="숫자 ID (예: 123456789)" value={infForm.twitterUserId}
+                  onChange={e => setInfForm(f => ({ ...f, twitterUserId: e.target.value }))} />
+                <p className="text-[10px] text-muted-foreground mt-0.5">비워두면 핸들로 자동 조회됩니다</p>
               </div>
               <div className="flex items-center justify-between">
                 <div>

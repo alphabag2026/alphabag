@@ -2110,7 +2110,7 @@ Return this exact JSON structure:
       if (!database) return [];
       const { snsPosts, snsInfluencers } = await import("../drizzle/schema");
       const { desc } = await import("drizzle-orm");
-      const selectFields = {
+      let query = database.select({
         id: snsPosts.id,
         influencerId: snsPosts.influencerId,
         content: snsPosts.content,
@@ -2119,24 +2119,33 @@ Return this exact JSON structure:
         likes: snsPosts.likes,
         retweets: snsPosts.retweets,
         replies: snsPosts.replies,
-        translatedContent: snsPosts.translatedContent,
-        mediaUrls: snsPosts.mediaUrls,
-        translatedAt: snsPosts.translatedAt,
         postedAt: snsPosts.postedAt,
         isActive: snsPosts.isActive,
         influencerName: snsInfluencers.name,
         influencerHandle: snsInfluencers.handle,
-        influencerCategory: snsInfluencers.category,
         influencerAvatarUrl: snsInfluencers.avatarUrl,
         influencerTwitterUrl: snsInfluencers.twitterUrl,
-        influencerFollowerCount: snsInfluencers.followerCount,
-      };
-      let query = database.select(selectFields).from(snsPosts)
+      }).from(snsPosts)
         .innerJoin(snsInfluencers, eq(snsPosts.influencerId, snsInfluencers.id))
         .where(eq(snsPosts.isActive, true)) as any;
       if (input.influencerId) {
         const { and } = await import("drizzle-orm");
-        query = database.select(selectFields).from(snsPosts)
+        query = database.select({
+          id: snsPosts.id,
+          influencerId: snsPosts.influencerId,
+          content: snsPosts.content,
+          tweetUrl: snsPosts.tweetUrl,
+          tweetId: snsPosts.tweetId,
+          likes: snsPosts.likes,
+          retweets: snsPosts.retweets,
+          replies: snsPosts.replies,
+          postedAt: snsPosts.postedAt,
+          isActive: snsPosts.isActive,
+          influencerName: snsInfluencers.name,
+          influencerHandle: snsInfluencers.handle,
+          influencerAvatarUrl: snsInfluencers.avatarUrl,
+          influencerTwitterUrl: snsInfluencers.twitterUrl,
+        }).from(snsPosts)
           .innerJoin(snsInfluencers, eq(snsPosts.influencerId, snsInfluencers.id))
           .where(and(eq(snsPosts.isActive, true), eq(snsPosts.influencerId, input.influencerId)));
       }
@@ -2325,78 +2334,102 @@ Return this exact JSON structure:
       await database.delete(snsPosts).where(eq(snsPosts.id, input.id));
       return { success: true };
     }),
-    // 트윗 AI 번역 (한국어)
-    translatePost: publicProcedure.input(z.object({
+    // 어드민: 단일 포스트 번역
+    translatePost: adminProcedure.input(z.object({
       postId: z.number(),
+      targetLang: z.string().default("ko"),
     })).mutation(async ({ input }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { snsPosts } = await import("../drizzle/schema");
-      const rows = await database.select().from(snsPosts).where(eq(snsPosts.id, input.postId));
-      const post = rows[0];
-      if (!post) throw new TRPCError({ code: "NOT_FOUND", message: "포스트를 찾을 수 없습니다" });
-      // 이미 번역된 경우 캐시 반환
-      if (post.translatedContent) {
-        return { translatedContent: post.translatedContent, cached: true };
-      }
-      // LLM으로 한국어 번역
+      const { eq } = await import("drizzle-orm");
+      const posts = await database.select().from(snsPosts).where(eq(snsPosts.id, input.postId)).limit(1);
+      if (!posts.length) throw new TRPCError({ code: "NOT_FOUND" });
+      const post = posts[0];
+      if (post.translatedContent) return { translatedContent: post.translatedContent };
+      const langNames: Record<string, string> = {
+        ko: "Korean", zh: "Chinese", ja: "Japanese", vi: "Vietnamese",
+        th: "Thai", id: "Indonesian", ms: "Malay", ru: "Russian",
+        ar: "Arabic", es: "Spanish", pt: "Portuguese", fr: "French",
+        de: "German", it: "Italian", tr: "Turkish", hi: "Hindi",
+      };
+      const targetLangName = langNames[input.targetLang] || "Korean";
       const response = await invokeLLM({
         messages: [
-          {
-            role: "system",
-            content: "You are a professional translator specializing in cryptocurrency, finance, and technology content. Translate the following tweet/post to Korean naturally and accurately. Preserve hashtags (#), mentions (@), URLs, and emojis as-is. Only return the translated text, nothing else.",
-          },
-          {
-            role: "user",
-            content: post.content,
-          },
+          { role: "system", content: `You are a professional crypto/finance translator. Translate the following tweet to ${targetLangName}. Keep hashtags, cashtags ($BTC), @mentions, URLs, and emojis unchanged. Return ONLY the translated text, no explanation.` },
+          { role: "user", content: post.content },
         ],
       });
-      const rawContent = response.choices?.[0]?.message?.content;
-      const translatedContent = (typeof rawContent === "string" ? rawContent : "").trim();
-      // DB에 저장
+      const translated = (response.choices[0].message.content as string)?.trim() || post.content;
       await database.update(snsPosts).set({
-        translatedContent,
+        translatedContent: translated,
         translatedAt: new Date(),
       }).where(eq(snsPosts.id, input.postId));
-      return { translatedContent, cached: false };
+      return { translatedContent: translated };
     }),
-    // 여러 포스트 일괄 번역
-    translatePosts: adminProcedure.input(z.object({
-      postIds: z.array(z.number()).max(20),
+    // 어드민: 미번역 트윗 일괄 번역
+    translateAllPosts: adminProcedure.input(z.object({
+      targetLang: z.string().default("ko"),
+      batchSize: z.number().default(10),
     })).mutation(async ({ input }) => {
       const database = await getDb();
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { snsPosts } = await import("../drizzle/schema");
-      const { inArray } = await import("drizzle-orm");
-      const rows = await database.select().from(snsPosts)
-        .where(inArray(snsPosts.id, input.postIds));
+      const { isNull, eq } = await import("drizzle-orm");
+      // 미번역 포스트 조회 (최대 batchSize개)
+      const untranslated = await database.select({ id: snsPosts.id, content: snsPosts.content })
+        .from(snsPosts)
+        .where(isNull(snsPosts.translatedContent))
+        .limit(input.batchSize);
+      if (!untranslated.length) return { translated: 0, remaining: 0 };
+      const langNames: Record<string, string> = {
+        ko: "Korean", zh: "Chinese", ja: "Japanese", vi: "Vietnamese",
+        th: "Thai", id: "Indonesian", ms: "Malay", ru: "Russian",
+        ar: "Arabic", es: "Spanish", pt: "Portuguese", fr: "French",
+        de: "German", it: "Italian", tr: "Turkish", hi: "Hindi",
+      };
+      const targetLangName = langNames[input.targetLang] || "Korean";
       let translated = 0;
-      let cached = 0;
-      for (const post of rows) {
-        if (post.translatedContent) { cached++; continue; }
+      for (const post of untranslated) {
         try {
           const response = await invokeLLM({
             messages: [
-              {
-                role: "system",
-                content: "You are a professional translator specializing in cryptocurrency, finance, and technology content. Translate the following tweet/post to Korean naturally and accurately. Preserve hashtags (#), mentions (@), URLs, and emojis as-is. Only return the translated text, nothing else.",
-              },
+              { role: "system", content: `You are a professional crypto/finance translator. Translate the following tweet to ${targetLangName}. Keep hashtags, cashtags ($BTC), @mentions, URLs, and emojis unchanged. Return ONLY the translated text, no explanation.` },
               { role: "user", content: post.content },
             ],
           });
-          const rawContent2 = response.choices?.[0]?.message?.content;
-          const translatedContent = (typeof rawContent2 === "string" ? rawContent2 : "").trim();
+          const translatedText = (response.choices[0].message.content as string)?.trim() || post.content;
           await database.update(snsPosts).set({
-            translatedContent,
+            translatedContent: translatedText,
             translatedAt: new Date(),
           }).where(eq(snsPosts.id, post.id));
           translated++;
         } catch (e) {
-          console.error("[SNS] Translation error for post", post.id, e);
+          console.error(`[translateAllPosts] Failed for post ${post.id}:`, e);
         }
+        // LLM rate limit 방지
+        await new Promise((r) => setTimeout(r, 200));
       }
-      return { translated, cached, total: rows.length };
+      // 남은 미번역 수 계산
+      const remaining = await database.select({ id: snsPosts.id })
+        .from(snsPosts)
+        .where(isNull(snsPosts.translatedContent));
+      return { translated, remaining: remaining.length };
+    }),
+    // 어드민: KOL별 트윗 수 조회
+    influencerPostCounts: adminProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) return [];
+      const { snsInfluencers, snsPosts } = await import("../drizzle/schema");
+      const { count, eq } = await import("drizzle-orm");
+      const results = await database
+        .select({
+          influencerId: snsPosts.influencerId,
+          postCount: count(snsPosts.id),
+        })
+        .from(snsPosts)
+        .groupBy(snsPosts.influencerId);
+      return results;
     }),
     // 어드민: KOL 비용 통계 (비용 정산 대시보드용)
     snsStats: adminProcedure.query(async () => {

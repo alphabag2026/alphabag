@@ -9,7 +9,6 @@
 import { getDb } from "./db";
 import { snsInfluencers, snsPosts } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
-import { autoTranslatePost } from "./tweetTranslationHelper";
 
 const TWITTER_BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -29,27 +28,16 @@ interface StreamRulesResponse {
   errors?: Array<{ message: string }>;
 }
 
-interface StreamMedia {
-  media_key: string;
-  type: "photo" | "video" | "animated_gif";
-  url?: string;
-  preview_image_url?: string;
-}
-
 interface StreamTweet {
   data: {
     id: string;
     text: string;
     author_id?: string;
     created_at?: string;
-    attachments?: {
-      media_keys?: string[];
-    };
   };
   matching_rules?: Array<{ id: string; tag?: string }>;
   includes?: {
     users?: Array<{ id: string; name: string; username: string }>;
-    media?: StreamMedia[];
   };
 }
 
@@ -252,22 +240,8 @@ async function processTweet(
 
   if (existing.length > 0) return;
 
-  // 미디어 URL 수집
-  const mediaUrls: string[] = [];
-  if (tweet.data.attachments?.media_keys && tweet.includes?.media) {
-    const mediaMap = new Map<string, string>();
-    for (const media of tweet.includes.media) {
-      const url = media.url || media.preview_image_url;
-      if (url) mediaMap.set(media.media_key, url);
-    }
-    for (const key of tweet.data.attachments.media_keys) {
-      const url = mediaMap.get(key);
-      if (url) mediaUrls.push(url);
-    }
-  }
-
   // DB 저장
-  const inserted = await db.insert(snsPosts).values({
+  await db.insert(snsPosts).values({
     influencerId: influencer.id,
     content,
     tweetId,
@@ -275,18 +249,9 @@ async function processTweet(
     likes: 0,
     retweets: 0,
     replies: 0,
-    mediaUrls: mediaUrls.length > 0 ? mediaUrls : null,
     postedAt,
     isActive: true,
   });
-
-  // 자동 번역 (비동기)
-  const insertId = (inserted as any).insertId ?? (inserted as any)[0]?.insertId;
-  if (insertId) {
-    autoTranslatePost(insertId, content).catch((e) =>
-      console.error(`[TwitterStream] Auto-translate error for post #${insertId}:`, e)
-    );
-  }
 
   console.log(`[TwitterStream] 🔴 LIVE: @${authorUser.username}: ${content.substring(0, 80)}...`);
 
@@ -328,10 +293,9 @@ async function connectStream(
   const { signal } = streamController;
 
   const params = new URLSearchParams({
-    "tweet.fields": "created_at,author_id,attachments",
+    "tweet.fields": "created_at,author_id",
     "user.fields": "username,name",
-    "media.fields": "url,preview_image_url,type",
-    expansions: "author_id,attachments.media_keys",
+    expansions: "author_id",
   });
 
   console.log(`[TwitterStream] Connecting to filtered stream...`);

@@ -648,13 +648,9 @@ export default function Home() {
   // SNS 인플루언서
   const [selectedInfluencerId, setSelectedInfluencerId] = useState<number | null>(null);
   const [snsCategory, setSnsCategory] = useState<string>("all");
-  const [translatingPostId, setTranslatingPostId] = useState<number | null>(null);
-  const [translatedPosts, setTranslatedPosts] = useState<Record<number, string>>({});
-  const [showTranslation, setShowTranslation] = useState<Record<number, boolean>>({});
   const { data: snsInfluencers = [] } = trpc.sns.influencers.useQuery();
   const snsPostsInput = useMemo(() => ({ influencerId: selectedInfluencerId ?? undefined, limit: 30 }), [selectedInfluencerId]);
   const { data: snsPosts = [], isLoading: snsPostsLoading } = trpc.sns.posts.useQuery(snsPostsInput);
-  const translatePostMutation = trpc.sns.translatePost.useMutation();
   // 카테고리 필터 적용
   const filteredSnsPosts = useMemo(() => {
     if (snsCategory === "all") return snsPosts as any[];
@@ -669,6 +665,21 @@ export default function Home() {
     return Array.from(cats) as string[];
   }, [snsInfluencers]);
   const snsCategoryLabels: Record<string, string> = { crypto: t("home.snsCrypto"), defi: "DeFi", trading: t("home.snsTrading"), nft: "NFT", web3: "Web3", vc: t("home.snsVC") };
+  // SNS 번역 state
+  const snsUtils = trpc.useUtils();
+  const [snsShowTranslated, setSnsShowTranslated] = useState<Record<number, boolean>>({});
+  const [snsTranslatingId, setSnsTranslatingId] = useState<number | null>(null);
+  const snsTranslateMutation = trpc.sns.translatePost.useMutation({
+    onSuccess: (_, vars) => {
+      snsUtils.sns.posts.invalidate();
+      setSnsShowTranslated(prev => ({ ...prev, [vars.postId]: true }));
+      setSnsTranslatingId(null);
+    },
+    onError: () => setSnsTranslatingId(null),
+  });
+  const userLang = i18n.language;
+  const isNonEnglish = userLang && userLang !== 'en';
+
   // 장바구니 (로칼스토리지))
   const [cartCount, setCartCount] = useState(0);
   useEffect(() => {
@@ -1274,42 +1285,7 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {filteredSnsPosts.map((post: any) => {
-                      const isTranslating = translatingPostId === post.id;
-                      const translated = translatedPosts[post.id] || post.translatedContent;
-
-                      // 사용자 언어 기준 자동 번역 표시 로직
-                      // - 한국어(ko) 사용자: 번역본 우선 표시 (번역본이 있으면 자동으로 번역 보기)
-                      // - 영어(en) 사용자: 원문 우선 표시
-                      // - 기타 언어: 번역본이 있으면 자동 표시
-                      const userLangBase = lang.slice(0, 2).toLowerCase();
-                      const isNonEnglishUser = userLangBase !== "en";
-                      // showTranslation이 명시적으로 설정된 경우 그것을 따르고,
-                      // 아닌 경우 비영어 사용자 + 번역본 있으면 자동으로 번역 표시
-                      const isShowingTranslation = showTranslation[post.id] !== undefined
-                        ? showTranslation[post.id]
-                        : (isNonEnglishUser && !!translated);
-                      const displayContent = isShowingTranslation && translated ? translated : post.content;
-
-                      const handleTranslate = async () => {
-                        if (translated) {
-                          // 명시적 토글
-                          setShowTranslation(prev => ({ ...prev, [post.id]: !isShowingTranslation }));
-                          return;
-                        }
-                        setTranslatingPostId(post.id);
-                        try {
-                          const result = await translatePostMutation.mutateAsync({ postId: post.id });
-                          setTranslatedPosts(prev => ({ ...prev, [post.id]: result.translatedContent }));
-                          setShowTranslation(prev => ({ ...prev, [post.id]: true }));
-                        } catch (e) {
-                          console.error("Translation failed", e);
-                        } finally {
-                          setTranslatingPostId(null);
-                        }
-                      };
-
-                      return (
+                    {filteredSnsPosts.map((post: any) => (
                       <div
                         key={post.id}
                         className={`rounded-xl border p-3.5 transition-all hover:shadow-md ${
@@ -1320,47 +1296,20 @@ export default function Home() {
                         <div className="flex items-center justify-between mb-2.5">
                           <div className="flex items-center gap-2">
                             {post.influencerAvatarUrl ? (
-                              <img
-                                src={post.influencerAvatarUrl}
-                                alt={post.influencerName}
-                                className="w-9 h-9 rounded-full object-cover border-2 border-sky-400/30 flex-shrink-0"
-                                onError={(e) => {
-                                  const target = e.currentTarget;
-                                  target.style.display = 'none';
-                                  const fallback = target.nextElementSibling as HTMLElement;
-                                  if (fallback) fallback.style.display = 'flex';
-                                }}
-                              />
-                            ) : null}
-                            <div className={`w-9 h-9 rounded-full flex-shrink-0 items-center justify-center text-sm font-bold ${
-                              isDark ? "bg-sky-500/20 text-sky-300" : "bg-sky-100 text-sky-600"
-                            } ${post.influencerAvatarUrl ? 'hidden' : 'flex'}`}>
-                              {post.influencerName?.[0] || "?"}
-                            </div>
+                              <img src={post.influencerAvatarUrl} alt={post.influencerName} className="w-8 h-8 rounded-full object-cover border-2 border-sky-400/30" />
+                            ) : (
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                                isDark ? "bg-sky-500/20 text-sky-300" : "bg-sky-100 text-sky-600"
+                              }`}>
+                                {post.influencerName?.[0] || "?"}
+                              </div>
+                            )}
                             <div>
-                              <div className="flex items-center gap-1">
-                                <span className={`text-xs font-bold ${textPrimary}`}>{post.influencerName}</span>
-                                {post.influencerFollowerCount && (
-                                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
-                                    isDark ? "bg-white/8 text-gray-400" : "bg-gray-100 text-gray-500"
-                                  }`}>{post.influencerFollowerCount}</span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <span className={`text-[10px] ${textSecondary}`}>@{post.influencerHandle}</span>
-                                {post.influencerCategory && (
-                                  <span className={`text-[9px] px-1 py-0.5 rounded font-medium ${
-                                    post.influencerCategory === 'crypto' ? (isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-600') :
-                                    post.influencerCategory === 'defi' ? (isDark ? 'bg-purple-500/15 text-purple-400' : 'bg-purple-50 text-purple-600') :
-                                    post.influencerCategory === 'trading' ? (isDark ? 'bg-green-500/15 text-green-400' : 'bg-green-50 text-green-600') :
-                                    post.influencerCategory === 'vc' ? (isDark ? 'bg-blue-500/15 text-blue-400' : 'bg-blue-50 text-blue-600') :
-                                    (isDark ? 'bg-white/8 text-gray-400' : 'bg-gray-100 text-gray-500')
-                                  }`}>{post.influencerCategory.toUpperCase()}</span>
-                                )}
-                              </div>
+                              <div className={`text-xs font-bold ${textPrimary}`}>{post.influencerName}</div>
+                              <div className={`text-[10px] ${textSecondary}`}>@{post.influencerHandle}</div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-2">
                             <span className={`text-[10px] ${textSecondary}`}>
                               {new Date(post.postedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}
                             </span>
@@ -1374,82 +1323,82 @@ export default function Home() {
                                 }`}
                                 onClick={e => e.stopPropagation()}
                               >
-                                𝕏
+                                🐦 X
                               </a>
                             )}
                           </div>
                         </div>
-
-                        {/* 번역 상태 배지 */}
-                        {isShowingTranslation && translated && (
-                          <div className={`flex items-center gap-1 mb-1.5 text-[9px] font-medium px-2 py-0.5 rounded-full w-fit ${
-                            isDark ? "bg-emerald-500/15 text-emerald-400" : "bg-emerald-50 text-emerald-600"
-                          }`}>
-                            🤖 {t("home.aiTranslatedBadge", "AI Translated")}
-                          </div>
-                        )}
-
                         {/* 포스트 내용 */}
-                        <p className={`text-xs leading-relaxed ${textPrimary} whitespace-pre-wrap`}>{displayContent}</p>
-
-                        {/* 미디어 이미지 */}
-                        {post.mediaUrls && Array.isArray(post.mediaUrls) && post.mediaUrls.length > 0 && (
-                          <div className={`mt-2.5 grid gap-1.5 ${
-                            post.mediaUrls.length === 1 ? 'grid-cols-1' :
-                            post.mediaUrls.length === 2 ? 'grid-cols-2' :
-                            'grid-cols-2'
-                          }`}>
-                            {post.mediaUrls.slice(0, 4).map((url: string, idx: number) => (
-                              <a key={idx} href={url} target="_blank" rel="noopener noreferrer">
-                                <img
-                                  src={url}
-                                  alt={`media-${idx}`}
-                                  className="w-full rounded-lg object-cover max-h-48 hover:opacity-90 transition-opacity"
-                                />
-                              </a>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* 하단 액션 바 */}
-                        <div className={`flex items-center justify-between mt-2.5 pt-2.5 border-t ${
+                        {(() => {
+                          const isShowingTr = snsShowTranslated[post.id];
+                          const displayContent = isShowingTr && post.translatedContent ? post.translatedContent : post.content;
+                          const mediaList: string[] = (() => { try { return JSON.parse(post.mediaUrls || '[]'); } catch { return []; } })();
+                          return (
+                            <>
+                              <p className={`text-xs leading-relaxed ${textPrimary} whitespace-pre-wrap`}>{displayContent}</p>
+                              {/* 미디어 이미지/동영상 그리드 */}
+                              {mediaList.length > 0 && (
+                                <div className={`grid gap-1 mt-2 ${mediaList.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                                  {mediaList.slice(0, 4).map((url: string, idx: number) => {
+                                    const isVideo = url.includes('video') || url.endsWith('.mp4') || url.endsWith('.m3u8');
+                                    return (
+                                      <div key={idx} className="relative rounded-lg overflow-hidden bg-black/20 aspect-video">
+                                        {isVideo ? (
+                                          <>
+                                            <div className="w-full h-full bg-black/50 flex items-center justify-center">
+                                              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors cursor-pointer">
+                                                <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                              </div>
+                                            </div>
+                                            <span className="absolute bottom-1.5 left-1.5 text-[9px] bg-black/70 text-white px-1.5 py-0.5 rounded">동영상</span>
+                                          </>
+                                        ) : (
+                                          <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
+                        {/* 에끼 지표 + 번역 버튼 */}
+                        <div className={`flex items-center gap-3 mt-2.5 pt-2.5 border-t flex-wrap ${
                           isDark ? "border-white/5" : "border-gray-100"
                         }`}>
-                          <div className="flex items-center gap-3">
-                            <span className={`flex items-center gap-1 text-[10px] ${textSecondary}`}>
-                              ❤️ {post.likes?.toLocaleString() || 0}
-                            </span>
-                            <span className={`flex items-center gap-1 text-[10px] ${textSecondary}`}>
-                              🔁 {post.retweets?.toLocaleString() || 0}
-                            </span>
-                            <span className={`flex items-center gap-1 text-[10px] ${textSecondary}`}>
-                              💬 {post.replies?.toLocaleString() || 0}
-                            </span>
-                          </div>
-                          {/* 번역 버튼 */}
-                          <button
-                            onClick={handleTranslate}
-                            disabled={isTranslating}
-                            className={`flex items-center gap-1 text-[10px] font-medium px-2.5 py-1 rounded-full border transition-all ${
-                              isShowingTranslation && translated
-                                ? isDark ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400" : "bg-emerald-50 border-emerald-300 text-emerald-600"
-                                : isDark ? "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10" : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100"
-                            } disabled:opacity-50 disabled:cursor-wait`}
-                          >
-                            {isTranslating ? (
-                              <><span className="animate-spin">⟳</span> {t("home.translating", "Translating...")}</>
-                            ) : isShowingTranslation && translated ? (
-                              <>🌐 {t("home.showOriginal", "Show Original")}</>
-                            ) : translated ? (
-                              <>🌐 {t("home.showTranslation", "Show Translation")}</>
-                            ) : (
-                              <>🤖 {t("home.translateBtn", "AI Translate")}</>
-                            )}
-                          </button>
+                          <span className={`flex items-center gap-1 text-[10px] ${textSecondary}`}>
+                            ❤️ {post.likes?.toLocaleString() || 0}
+                          </span>
+                          <span className={`flex items-center gap-1 text-[10px] ${textSecondary}`}>
+                            🔁 {post.retweets?.toLocaleString() || 0}
+                          </span>
+                          <span className={`flex items-center gap-1 text-[10px] ${textSecondary}`}>
+                            💬 {post.replies?.toLocaleString() || 0}
+                          </span>
+                          {/* 번역 버튼: 영어가 아닌 사용자에게만 표시 */}
+                          {(post.translatedContent || isNonEnglish) && (
+                            <button
+                              className={`ml-auto flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full transition-colors ${
+                                isDark ? 'bg-purple-500/15 text-purple-400 hover:bg-purple-500/25' : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                              } disabled:opacity-50`}
+                              disabled={snsTranslatingId === post.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (post.translatedContent) {
+                                  setSnsShowTranslated(prev => ({ ...prev, [post.id]: !prev[post.id] }));
+                                } else {
+                                  setSnsTranslatingId(post.id);
+                                  snsTranslateMutation.mutate({ postId: post.id, targetLang: userLang || 'ko' });
+                                }
+                              }}
+                            >
+                              🤖 {snsTranslatingId === post.id ? '번역중...' : snsShowTranslated[post.id] ? '원문' : '번역'}
+                            </button>
+                          )}
                         </div>
                       </div>
-                      );
-                    })}
+                    ))}
                   </div>
                 )}
               </div>

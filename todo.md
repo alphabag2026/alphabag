@@ -819,22 +819,20 @@
 - [x] 인플루언서 다이얼로그에 수집주기/일평균트윗/실시간알림 필드 추가
 - [x] 인플루언서 목록에 실시간 알림 배지 추가
 
-## Phase 60 완료 - KOL 프로필 이미지 + 번역 기능
-- [x] KOL 105명 프로필 이미지 URL (unavatar.io) 업데이트
-- [x] snsPosts DB에 translatedContent, mediaUrls, translatedAt 컬럼 추가
-- [x] 서버: translatePost (LLM 한국어 번역) 프로시저 구현 (캐시 지원)
-- [x] 서버: translatePosts (일괄 번역) 프로시저 구현
-- [x] posts 쿼리에 translatedContent, mediaUrls, influencerFollowerCount, influencerCategory 필드 추가
-- [x] Home.tsx SNS 피드: KOL 아바타 이미지 표시 개선 (팔로워수 배지, 카테고리 배지)
-- [x] Home.tsx SNS 피드: 미디어 이미지 그리드 표시
-- [x] Home.tsx SNS 피드: 🤖 한국어 번역 버튼 (클릭 시 AI 번역, 재클릭 시 원문 토글)
-- [x] 백오피스 Sns.tsx: 포스트 번역 버튼 추가
-- [x] 백오피스 Sns.tsx: 미디어 이미지 표시 추가
+## Phase 62 - 일괄 번역 버튼 + 동영상 오버레이 + KOL 트윗 수 컬럼
+- [ ] 서버: translateAllPosts 프로시저 (미번역 트윗 일괄 번역)
+- [ ] 백오피스 Sns.tsx: 일괄 번역 실행 버튼 + 진행 상태 표시
+- [ ] 백오피스 Sns.tsx: KOL 목록에 수집된 트윗 수 컬럼 추가
+- [ ] Home.tsx: 동영상 미디어 재생 버튼 오버레이 UI
+- [ ] Sns.tsx: 동영상 미디어 재생 버튼 오버레이 UI
 
-## Phase 61 완료 - 트윗 자동 번역 + twitterUserId 입력 + 미디어 이미지 수집
-- [x] tweetTranslationHelper.ts: 다국어 번역 헬퍼 (22개 언어 지원, 암호화폐 전문 번역)
-- [x] twitterFetchScheduler: 미디어 URL 수집 (photo/video/gif) + 자동 번역 연동
-- [x] twitterStreamScheduler: 미디어 URL 수집 + 자동 번역 연동 (Filtered Stream)
-- [x] 백오피스 Sns.tsx: twitterUserId 입력 UX 개선 (ID 조회 링크, 입력 상태 안내)
-- [x] 프론트엔드 SNS 피드: 사용자 언어 기준 자동 번역 표시 (비영어 사용자는 번역본 우선)
-- [x] 번역 버튼/배지 텍스트 i18n 다국어 처리
+## Phase 62 완료 - 일괄 번역 버튼 + 동영상 오버레이 + KOL 트윗 수 컬럼
+- [x] 서버: translateAllPosts 프로시저 (미번역 트윗 일괄 번역, batchSize 지원)
+- [x] 서버: translatePost 프로시저 (targetLang 파라미터 지원)
+- [x] DB: snsPosts에 translatedContent, mediaUrls, translatedAt 컬럼 추가
+- [x] 백오피스 Sns.tsx: 일괄 번역 버튼 (보라색, 스피너 애니메이션)
+- [x] 백오피스 Sns.tsx: 번역 결과 배너 (완료 개수 + 남은 미번역 개수)
+- [x] 백오피스 Sns.tsx: 포스트별 번역 버튼 + 동영상 오버레이 (재생 버튼)
+- [x] Home.tsx: SNS 피드 동영상 재생 버튼 오버레이 (backdrop-blur 원형 버튼)
+- [x] Home.tsx: 미디어 이미지 그리드 (1개=1컬, 2개+=2컬)
+- [x] Home.tsx: 사용자 언어 기준 번역 버튼 (영어 사용자 제외)

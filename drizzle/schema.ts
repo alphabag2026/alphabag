@@ -500,11 +500,11 @@ export const snsPosts = mysqlTable("snsPosts", {
   likes: int("likes").default(0).notNull(),
   retweets: int("retweets").default(0).notNull(),
   replies: int("replies").default(0).notNull(),
-  translatedContent: text("translatedContent"),
-  mediaUrls: json("mediaUrls").$type<string[]>(),
-  translatedAt: timestamp("translatedAt"),
   postedAt: timestamp("postedAt").defaultNow().notNull(),
   isActive: boolean("isActive").default(true).notNull(),
+  translatedContent: text("translatedContent"),
+  mediaUrls: text("mediaUrls"), // JSON array of image/video URLs
+  translatedAt: timestamp("translatedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type SnsPost = typeof snsPosts.$inferSelect;
