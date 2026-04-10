@@ -870,3 +870,14 @@
 - [x] 번역 완료 후 로컬 캐시(snsLocalTranslations)에 즉시 저장하여 UI 즉시 업데이트
 - [x] 번역 버튼 표시 조건 개선: isNonEnglish 기준으로 항상 표시, 로컬 캐시 우선 참조
 - [x] onError 핸들러에 console.error 추가 (디버깅 개선)
+
+## Phase 67 - CBAG 보험 컬렉션 구현 (2026-04-11)
+- [x] DB: investments 테이블에 cbagPlanId, cbagPercent, cbagAmount 필드 추가
+- [x] DB: cbagSettings 테이블 추가 (CBAG 전역 이름/설명/활성화 설정)
+- [x] tRPC: cbag.settings, cbag.updateSettings, cbag.autoDescribe(LLM) 프로시저
+- [x] tRPC: invest 프로시저에 cbagPlanId, cbagPercent 파라미터 추가
+- [x] UI: 투자 플로우 마지막에 CBAG 추가 여부 모달 (% 직접 설정)
+- [x] UI: 골든 섹션에 CBAG 필수 포함 배너/섹션
+- [ ] UI: CbagPage 개선 (보험 컬렉션 컨셉으로 리디자인)
+- [x] 백오피스: CBAG 전용 관리 탭 (이름 설정, 상품 관리, LLM 자동 정리)
+- [ ] 백오피스: Plans.tsx에 CBAG 탭 추가

@@ -190,6 +190,27 @@
       "when": 1775794686448,
       "tag": "0026_loose_speed",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "5",
+      "when": 1775837575330,
+      "tag": "0027_smiling_maestro",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "5",
+      "when": 1775842774791,
+      "tag": "0028_confused_fallen_one",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "5",
+      "when": 1775843621823,
+      "tag": "0029_pink_christian_walker",
+      "breakpoints": true
     }
   ]
 }

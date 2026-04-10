@@ -8,13 +8,15 @@ import { useWallet } from "@/contexts/WalletContext";
 import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import { MainNav } from "@/components/MainNav";
-
+import { CbagInvestModal } from "@/components/CbagInvestModal";
 const ALPHABAG_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/alphabag-logo_df90878d.png";
 
 function PlanCard({ plan }: { plan: any }) {
   const { isAuthenticated } = useAuth();
   const { isConnected, openModal } = useWallet();
   const utils = trpc.useUtils();
+  const [cbagModalOpen, setCbagModalOpen] = useState(false);
+  const [pendingAmount, setPendingAmount] = useState("");
   const { data: favList = [] } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
   const isFav = (favList as any[]).some((f: any) => f.planId === plan.id);
   const toggleFav = trpc.favorites.toggle.useMutation({
@@ -22,7 +24,7 @@ function PlanCard({ plan }: { plan: any }) {
     onError: () => toast.error("로그인이 필요합니다."),
   });
   const invest = trpc.user.invest.useMutation({
-    onSuccess: () => toast.success("Investment submitted!"),
+    onSuccess: () => { toast.success("Investment submitted!"); setCbagModalOpen(false); },
     onError: (e) => toast.error(e.message),
   });
 
@@ -32,13 +34,28 @@ function PlanCard({ plan }: { plan: any }) {
     if (!isAuthenticated) { window.dispatchEvent(new CustomEvent("open-wallet-modal")); return; }
     const amount = prompt("Enter investment amount (USDT):");
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return;
-    invest.mutate({ planId: plan.id, amount });
+    setPendingAmount(amount);
+    setCbagModalOpen(true);
+  };
+
+  const handleCbagConfirm = (cbagPlanId?: number, cbagPercent?: string) => {
+    invest.mutate({ planId: plan.id, amount: pendingAmount, cbagPlanId, cbagPercent });
   };
 
   const badges: string[] = Array.isArray(plan.badgeLabels) ? plan.badgeLabels : [];
   const rating = Number(plan.rating) || 4.0;
 
   return (
+    <>
+    <CbagInvestModal
+      open={cbagModalOpen}
+      onClose={() => setCbagModalOpen(false)}
+      mainPlanId={plan.id}
+      mainPlanName={plan.name}
+      mainAmount={pendingAmount}
+      onConfirm={handleCbagConfirm}
+      isPending={invest.isPending}
+    />
     <Link href={`/plan/${plan.id}`}>
       <div className="relative bg-card border border-amber-200/60 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-amber-200/60 hover:border-amber-400/80 group flex flex-col">
         {/* 카드 이미지 영역 */}
@@ -155,6 +172,7 @@ function PlanCard({ plan }: { plan: any }) {
         </div>
       </div>
     </Link>
+    </>
   );
 }
 
@@ -196,6 +214,18 @@ export default function GoldenPage() {
             <div><div className="text-lg font-bold text-foreground">{avgRate}%</div><div className="text-xs text-muted-foreground">Avg Daily Rate</div></div>
             <div><div className="text-lg font-bold text-foreground">{plans.filter((p: any) => p.isHighlight).length}</div><div className="text-xs text-muted-foreground">Featured</div></div>
           </div>
+        </div>
+
+        {/* CBAG 필수 포함 배너 */}
+        <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-cyan-500/10 border border-cyan-500/30 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+            <span className="text-lg">🛡️</span>
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-bold text-cyan-300">C-BAG Insurance 필수 포함</div>
+            <div className="text-xs text-gray-400 mt-0.5">Golden Collection 투자 시 CBAG 보험 콜렉션을 추가할 수 있습니다. 투자금의 일부를 보험으로 운용하여 리스크를 분산하세요.</div>
+          </div>
+          <div className="text-xs text-cyan-400 font-semibold bg-cyan-500/10 px-2 py-1 rounded-lg border border-cyan-500/30 flex-shrink-0">CBAG</div>
         </div>
 
         {/* 정렬 필터 */}

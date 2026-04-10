@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ENV } from "./_core/env";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -1872,14 +1872,28 @@ Return this exact JSON structure:
       planId: z.number(),
       amount: z.string(),
       txHash: z.string().optional(),
+      cbagPlanId: z.number().optional(),
+      cbagPercent: z.string().optional(), // 투자금 대비 CBAG 비율 (%)
     })).mutation(async ({ input, ctx }) => {
       const plan = await db.getInvestmentPlanById(input.planId);
       if (!plan) throw new TRPCError({ code: "NOT_FOUND", message: "Plan not found" });
+      // CBAG 연결 처리
+      let cbagAmount: string | undefined;
+      if (input.cbagPlanId && input.cbagPercent) {
+        const pct = parseFloat(input.cbagPercent);
+        const mainAmt = parseFloat(input.amount);
+        if (!isNaN(pct) && !isNaN(mainAmt) && pct > 0) {
+          cbagAmount = ((mainAmt * pct) / 100).toFixed(2);
+        }
+      }
       await db.createInvestment({
         userId: ctx.user.id,
         planId: input.planId,
         amount: input.amount,
         status: "active",
+        ...(input.cbagPlanId ? { cbagPlanId: input.cbagPlanId } : {}),
+        ...(input.cbagPercent ? { cbagPercent: input.cbagPercent } : {}),
+        ...(cbagAmount ? { cbagAmount } : {}),
       });
       return { success: true };
     }),
@@ -3459,6 +3473,100 @@ Return ONLY valid JSON.`;
         await createAuditLog({ adminId: ctx.user.id, action: "DISTRIBUTE_VOTE_REWARDS", targetType: "submission", targetId: input.submissionId, details: { voterCount: votes.length, rewardPerVoter } });
         return { success: true, voterCount: votes.length, rewardPerVoter, totalDistributed: voterPool };
       }),
+  }),
+
+  // ─── CBAG (보험 콜렉션) ────────────────────────────────────────────────────────────────────
+  cbag: router({
+    // CBAG 전역 설정 조회
+    settings: publicProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return null;
+      const { cbagSettings } = await import("../drizzle/schema");
+      const [setting] = await drizzleDb.select().from(cbagSettings).limit(1);
+      return setting || null;
+    }),
+
+    // CBAG 설정 수정 (관리자)
+    updateSettings: adminProcedure.input(z.object({
+      name: z.string().min(1).optional(),
+      subtitle: z.string().optional(),
+      description: z.string().optional(),
+      isActive: z.boolean().optional(),
+      defaultPercent: z.string().optional(),
+      minPercent: z.string().optional(),
+      maxPercent: z.string().optional(),
+      goldenRequired: z.boolean().optional(),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { cbagSettings } = await import("../drizzle/schema");
+      const [existing] = await drizzleDb.select().from(cbagSettings).limit(1);
+      if (existing) {
+        await drizzleDb.update(cbagSettings).set({
+          ...(input.name !== undefined ? { name: input.name } : {}),
+          ...(input.subtitle !== undefined ? { subtitle: input.subtitle } : {}),
+          ...(input.description !== undefined ? { description: input.description } : {}),
+          ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+          ...(input.defaultPercent !== undefined ? { defaultPercent: input.defaultPercent } : {}),
+          ...(input.minPercent !== undefined ? { minPercent: input.minPercent } : {}),
+          ...(input.maxPercent !== undefined ? { maxPercent: input.maxPercent } : {}),
+          ...(input.goldenRequired !== undefined ? { goldenRequired: input.goldenRequired } : {}),
+        }).where(eq(cbagSettings.id, existing.id));
+      } else {
+        await drizzleDb.insert(cbagSettings).values({
+          name: input.name || "C-BAG Insurance",
+          subtitle: input.subtitle || "Crypto Bag Insurance Collection",
+          description: input.description,
+          isActive: input.isActive ?? true,
+          defaultPercent: input.defaultPercent || "10.00",
+          minPercent: input.minPercent || "1.00",
+          maxPercent: input.maxPercent || "50.00",
+          goldenRequired: input.goldenRequired ?? true,
+        });
+      }
+      return { success: true };
+    }),
+
+    // LLM으로 CBAG 설명 자동 생성
+    autoDescribe: adminProcedure.input(z.object({
+      planId: z.number().optional(), // 특정 상품 ID (null=전체 콜렉션 설명)
+    })).mutation(async ({ input }) => {
+      const { invokeLLM } = await import("./_core/llm");
+      let planInfo = "";
+      if (input.planId) {
+        const plan = await db.getInvestmentPlanById(input.planId);
+        if (plan) {
+          planInfo = `상품명: ${plan.name}\n일일수익률: ${plan.dailyRate}%\n최소투자: $${plan.minAmount}\n설명: ${plan.description || ""}`;
+        }
+      }
+      const prompt = input.planId
+        ? `다음 CBAG 보험 상품에 대한 전문적인 마케팅 설명문을 한국어로 작성해주세요. 3문단 이내로 짧고 임팩트 있게 \n\n${planInfo}\n\n출력 형식(JSON): {"description": "...", "highlights": ["...", "...", "..."]}`
+        : `AlphaBag의 CBAG 보험 콜렉션에 대한 전문적인 소개 문구를 한국어로 작성해주세요.\nCBAG는 투자금의 일부를 보험으로 운용하는 헤지 전략 콜렉션입니다.\n손실 위험 분산과 안정적 수익을 특징으로 하세요.\n출력 형식(JSON): {"description": "...", "highlights": ["...", "...", "..."]}`;
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are a professional crypto investment marketing expert. Always respond in valid JSON format." },
+          { role: "user", content: prompt },
+        ],
+        response_format: { type: "json_schema", json_schema: { name: "cbag_description", strict: true, schema: { type: "object", properties: { description: { type: "string" }, highlights: { type: "array", items: { type: "string" } } }, required: ["description", "highlights"], additionalProperties: false } } },
+      });
+      const content = response?.choices?.[0]?.message?.content || "{}";
+      const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
+      return { description: parsed.description || "", highlights: parsed.highlights || [] };
+    }),
+
+    // CBAG 상품 목록 (투자 모달용 - collectionType=cbag 필터)
+    plans: publicProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      const { investmentPlans } = await import("../drizzle/schema");
+      return drizzleDb.select().from(investmentPlans)
+        .where(and(
+          eq(investmentPlans.isActive, true),
+          eq(investmentPlans.isHidden, false),
+          eq(investmentPlans.collectionType, "cbag" as any)
+        ))
+        .orderBy(investmentPlans.sortOrder);
+    }),
   }),
 });
 export type AppRouter = typeof appRouter;

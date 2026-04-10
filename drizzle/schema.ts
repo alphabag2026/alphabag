@@ -115,6 +115,10 @@ export const investments = mysqlTable("investments", {
   status: mysqlEnum("status", ["active", "completed", "cancelled"]).default("active").notNull(),
   startDate: timestamp("startDate").defaultNow().notNull(),
   endDate: timestamp("endDate"),
+  // CBAG 보험 연결 필드
+  cbagPlanId: int("cbagPlanId"),           // 연결된 CBAG 상품 ID (null=미선택)
+  cbagPercent: decimal("cbagPercent", { precision: 5, scale: 2 }), // 투자금 대비 CBAG 비율 (%)
+  cbagAmount: decimal("cbagAmount", { precision: 18, scale: 2 }),   // CBAG 투자 금액 (USDT)
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -728,3 +732,20 @@ export const qnaQuestions = mysqlTable("qnaQuestions", {
 });
 export type QnaQuestion = typeof qnaQuestions.$inferSelect;
 export type InsertQnaQuestion = typeof qnaQuestions.$inferInsert;
+
+// ─── CBAG Settings (보험 콜렉션 전역 설정) ──────────────────────────────────────────────
+export const cbagSettings = mysqlTable("cbagSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).default("C-BAG Insurance").notNull(),
+  subtitle: varchar("subtitle", { length: 200 }).default("Crypto Bag Insurance Collection"),
+  description: text("description"),
+  isActive: boolean("isActive").default(true).notNull(),
+  defaultPercent: decimal("defaultPercent", { precision: 5, scale: 2 }).default("10.00"),
+  minPercent: decimal("minPercent", { precision: 5, scale: 2 }).default("1.00"),
+  maxPercent: decimal("maxPercent", { precision: 5, scale: 2 }).default("50.00"),
+  goldenRequired: boolean("goldenRequired").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type CbagSettings = typeof cbagSettings.$inferSelect;
+export type InsertCbagSettings = typeof cbagSettings.$inferInsert;
