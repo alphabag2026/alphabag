@@ -190,6 +190,13 @@
       "when": 1775794686448,
       "tag": "0026_loose_speed",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "5",
+      "when": 1775837575330,
+      "tag": "0027_smiling_maestro",
+      "breakpoints": true
     }
   ]
 }

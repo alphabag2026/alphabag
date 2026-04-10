@@ -13,8 +13,11 @@ import { toast } from "sonner";
 import {
   ArrowLeft, Loader2, Wallet, User, Shield, Copy,
   CheckCircle2, AlertCircle, Clock, Send, ExternalLink, Link2,
-  MessageSquare, Lock, ChevronDown, ChevronUp, Trash2, Pencil, Bell
+  MessageSquare, Lock, ChevronDown, ChevronUp, Trash2, Pencil, Bell,
+  Plane, Hotel, FileText, Upload, Download, Plus, X, Calendar, StickyNote
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useWallet } from "@/contexts/WalletContext";
 
 export default function ProfilePage() {
@@ -93,6 +96,103 @@ export default function ProfilePage() {
     },
     onError: (err: any) => toast.error(err.message || "알림 설정 저장에 실패했습니다."),
   });
+
+  // ─── Travel Documents (입국심사 체크리스트) ─────────────────────────────────
+  const { data: travelDocs, refetch: refetchDocs } = trpc.travelDocs.list.useQuery(undefined, { enabled: isAuthenticated });
+  const [docDialogOpen, setDocDialogOpen] = useState(false);
+  const [editingDoc, setEditingDoc] = useState<null | { id?: number; docType: string; title: string; fileUrl?: string; expiryDate?: string; note?: string }>(null);
+  const [docFile, setDocFile] = useState<File | null>(null);
+  const [docUploading, setDocUploading] = useState(false);
+
+  const upsertDoc = trpc.travelDocs.upsert.useMutation({
+    onSuccess: () => {
+      toast.success(editingDoc?.id ? "서류가 수정되었습니다." : "서류가 등록되었습니다.");
+      setDocDialogOpen(false);
+      setEditingDoc(null);
+      setDocFile(null);
+      refetchDocs();
+    },
+    onError: (err: any) => toast.error(err.message || "저장에 실패했습니다."),
+  });
+
+  const uploadDocFile = trpc.travelDocs.uploadFile.useMutation();
+
+  const deleteDoc = trpc.travelDocs.delete.useMutation({
+    onSuccess: () => {
+      toast.success("서류가 삭제되었습니다.");
+      refetchDocs();
+    },
+    onError: (err: any) => toast.error(err.message || "삭제에 실패했습니다."),
+  });
+
+  const docTypeConfig: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+    passport: { label: "여권", icon: <User className="w-4 h-4" />, color: "text-blue-400" },
+    flight_ticket: { label: "항공권", icon: <Plane className="w-4 h-4" />, color: "text-sky-400" },
+    hotel_voucher: { label: "호텔 바우처", icon: <Hotel className="w-4 h-4" />, color: "text-amber-400" },
+    visa: { label: "비자", icon: <Shield className="w-4 h-4" />, color: "text-purple-400" },
+    travel_insurance: { label: "여행자 보험", icon: <FileText className="w-4 h-4" />, color: "text-green-400" },
+    other: { label: "기타", icon: <StickyNote className="w-4 h-4" />, color: "text-muted-foreground" },
+  };
+
+  const CHECKLIST_TYPES = ["passport", "flight_ticket", "hotel_voucher", "visa", "travel_insurance"];
+
+  // PDF 생성 (파일 없는 서류의 정보를 텍스트 PDF로 생성)
+  const handleGeneratePdf = (doc: { docType: string; title: string; expiryDate?: string | null; note?: string | null }) => {
+    const cfg = docTypeConfig[doc.docType] ?? docTypeConfig.other;
+    const content = [
+      `AlphaBag - 여행 서류`,
+      ``,
+      `서류 종류: ${cfg.label}`,
+      `제목: ${doc.title}`,
+      doc.expiryDate ? `만료일: ${doc.expiryDate}` : '',
+      doc.note ? `메모: ${doc.note}` : '',
+      ``,
+      `생성일시: ${new Date().toLocaleString('ko-KR')}`,
+    ].filter(Boolean).join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${cfg.label}_${doc.title.replace(/[^a-zA-Z0-9가-힣]/g, '_')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('서류 정보가 다운로드되었습니다.');
+  };
+
+  const handleDocSave = async () => {
+    if (!editingDoc) return;
+    let fileUrl = editingDoc.fileUrl;
+    if (docFile) {
+      setDocUploading(true);
+      try {
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve((reader.result as string).split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(docFile);
+        });
+        const result = await uploadDocFile.mutateAsync({
+          fileName: docFile.name,
+          fileType: docFile.type,
+          fileBase64: base64,
+        });
+        fileUrl = result.url;
+      } catch (e: any) {
+        toast.error("파일 업로드 실패: " + e.message);
+        setDocUploading(false);
+        return;
+      }
+      setDocUploading(false);
+    }
+    upsertDoc.mutate({
+      id: editingDoc.id,
+      docType: editingDoc.docType as any,
+      title: editingDoc.title,
+      fileUrl,
+      expiryDate: editingDoc.expiryDate,
+      note: editingDoc.note,
+    });
+  };
 
   const generateCode = trpc.user.generateReferralCode.useMutation({
     onSuccess: (data) => {
@@ -652,7 +752,182 @@ export default function ProfilePage() {
             )}
           </CardContent>
         </Card>
+        {/* 입국심사 체크리스트 */}
+        <Card className="border-border/40">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Plane className="w-4 h-4 text-primary" /> 입국심사 체크리스트
+              </CardTitle>
+              <Button size="sm" variant="outline" className="gap-1" onClick={() => { setEditingDoc({ docType: 'passport', title: '' }); setDocDialogOpen(true); }}>
+                <Plus className="w-3 h-3" /> 서류 등록
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* 체크리스트 요약 */}
+            <div className="grid grid-cols-5 gap-2">
+              {CHECKLIST_TYPES.map((type) => {
+                const cfg = docTypeConfig[type];
+                const registered = travelDocs?.some(d => d.docType === type);
+                return (
+                  <div key={type} className={`flex flex-col items-center gap-1 p-2 rounded-lg border text-center ${
+                    registered ? 'border-green-500/40 bg-green-500/10' : 'border-border/40 bg-muted/20'
+                  }`}>
+                    <div className={`${registered ? 'text-green-400' : 'text-muted-foreground'}`}>
+                      {registered ? <CheckCircle2 className="w-5 h-5" /> : cfg.icon}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground leading-tight">{cfg.label}</span>
+                    {registered && <span className="text-[9px] text-green-400 font-medium">등록완료</span>}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 등록된 서류 목록 */}
+            {travelDocs && travelDocs.length > 0 ? (
+              <div className="space-y-2">
+                {travelDocs.map((doc) => {
+                  const cfg = docTypeConfig[doc.docType] ?? docTypeConfig.other;
+                  return (
+                    <div key={doc.id} className="flex items-center gap-3 p-3 rounded-lg border border-border/40 bg-muted/10 hover:bg-muted/20 transition-colors">
+                      <div className={`${cfg.color} flex-shrink-0`}>{cfg.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-muted-foreground">{cfg.label}</span>
+                          {doc.expiryDate && (
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <Calendar className="w-3 h-3" /> {doc.expiryDate}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm font-medium truncate">{doc.title}</p>
+                        {doc.note && <p className="text-xs text-muted-foreground truncate">{doc.note}</p>}
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {doc.fileUrl && (
+                          <>
+                            <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
+                              <Button size="icon" variant="ghost" className="w-7 h-7" title="파일 보기">
+                                <ExternalLink className="w-3 h-3" />
+                              </Button>
+                            </a>
+                            <a href={doc.fileUrl} download>
+                              <Button size="icon" variant="ghost" className="w-7 h-7" title="PDF/파일 다운로드">
+                                <Download className="w-3 h-3" />
+                              </Button>
+                            </a>
+                          </>
+                        )}
+                        {!doc.fileUrl && (
+                          <Button size="icon" variant="ghost" className="w-7 h-7" title="PDF 생성" onClick={() => handleGeneratePdf(doc)}>
+                            <Download className="w-3 h-3" />
+                          </Button>
+                        )}
+                        <Button size="icon" variant="ghost" className="w-7 h-7" onClick={() => {
+                          setEditingDoc({ id: doc.id, docType: doc.docType, title: doc.title, fileUrl: doc.fileUrl ?? undefined, expiryDate: doc.expiryDate ?? undefined, note: doc.note ?? undefined });
+                          setDocDialogOpen(true);
+                        }}>
+                          <Pencil className="w-3 h-3" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="w-7 h-7 text-destructive hover:text-destructive" onClick={() => deleteDoc.mutate({ id: doc.id })}>
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground text-sm">
+                <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                <p>등록된 여행 서류가 없습니다.</p>
+                <p className="text-xs mt-1">여권, 항공권, 호텔 바우처를 등록하세요.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* 서류 등록/수정 다이얼로그 */}
+      <Dialog open={docDialogOpen} onOpenChange={(open) => { if (!open) { setDocDialogOpen(false); setEditingDoc(null); setDocFile(null); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingDoc?.id ? '여행 서류 수정' : '여행 서류 등록'}</DialogTitle>
+          </DialogHeader>
+          {editingDoc && (
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <Label>서류 종류</Label>
+                <Select value={editingDoc.docType} onValueChange={(v) => setEditingDoc({ ...editingDoc, docType: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(docTypeConfig).map(([key, cfg]) => (
+                      <SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>제목 <span className="text-destructive">*</span></Label>
+                <Input
+                  placeholder="예: 인천→하노이 왕복 항공권"
+                  value={editingDoc.title}
+                  onChange={(e) => setEditingDoc({ ...editingDoc, title: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>만료일 (선택)</Label>
+                <Input
+                  type="date"
+                  value={editingDoc.expiryDate ?? ''}
+                  onChange={(e) => setEditingDoc({ ...editingDoc, expiryDate: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>메모 (선택)</Label>
+                <Textarea
+                  placeholder="추가 메모..."
+                  value={editingDoc.note ?? ''}
+                  onChange={(e) => setEditingDoc({ ...editingDoc, note: e.target.value })}
+                  rows={2}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>파일 쳊부 (이미지/PDF, 선택)</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept="image/*,.pdf"
+                    className="text-sm"
+                    onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
+                  />
+                  {editingDoc.fileUrl && !docFile && (
+                    <a href={editingDoc.fileUrl} target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" variant="outline" className="gap-1 flex-shrink-0">
+                        <ExternalLink className="w-3 h-3" /> 보기
+                      </Button>
+                    </a>
+                  )}
+                </div>
+                {docFile && <p className="text-xs text-muted-foreground">선택된 파일: {docFile.name}</p>}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDocDialogOpen(false); setEditingDoc(null); setDocFile(null); }}>취소</Button>
+            <Button
+              onClick={handleDocSave}
+              disabled={!editingDoc?.title || upsertDoc.isPending || docUploading}
+            >
+              {(upsertDoc.isPending || docUploading) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {editingDoc?.id ? '수정' : '등록'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
