@@ -857,3 +857,10 @@
 - [x] 백오피스 Sns.tsx: KOL 설정 다이얼로그에 자동 번역 토글 + 번역 언어 선택 추가
 - [x] 백오피스 Sns.tsx: ID 일괄 등록 버튼 (주황색) + 다이얼로그 (핸들,ID 형식 입력)
 - [x] 백오피스 Sns.tsx: 일괄 등록 결과 토스트 (업데이트 수 + 미발견 핸들 표시)
+
+## Phase 64 완료 - infoweb4 → 1page.to 브랜딩 교체
+- [x] i18n.ts: 25개 언어 전체에서 InfoWeb4 → 1page.to 텍스트 교체
+- [x] Home.tsx: infoweb4 탭 아이콘 🌐 → 1page 텍스트 로고로 교체
+- [x] Home.tsx: infoweb4 탭 섹션 내 링크/텍스트 1page.to로 통일
+- [x] PlanDetailModal.tsx: infoweb4 주석 → 1page.to 주석 교체
+- [x] TypeScript 오류 없음 확인

@@ -284,6 +284,7 @@ async function runFetch(): Promise<void> {
     return;
   }
 
+  const tbl = snsInfluencers as any;
   const activeInfluencers = await db
     .select({
       id: snsInfluencers.id,
@@ -291,8 +292,8 @@ async function runFetch(): Promise<void> {
       handle: snsInfluencers.handle,
       twitterUserId: snsInfluencers.twitterUserId,
       snsTelegramChatId: snsInfluencers.snsTelegramChatId,
-      autoTranslate: snsInfluencers.autoTranslate,
-      autoTranslateLang: snsInfluencers.autoTranslateLang,
+      autoTranslate: tbl.autoTranslate,
+      autoTranslateLang: tbl.autoTranslateLang,
     })
     .from(snsInfluencers)
     .where(

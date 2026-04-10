@@ -48,7 +48,7 @@ function HighlightText({ text, query, className }: { text: string; query: string
 const SUB_MENUS = [
   { id: "recommend", label: "recommend", icon: "⭐" },
   { id: "bbag", label: "B bag", icon: "💰" },
-  { id: "infoweb4", label: "1page.to", icon: "🌐" },
+  { id: "infoweb4", label: "1page.to", icon: "1page" },
   { id: "sns", label: "SNS", icon: "📱" },
   { id: "trending", label: "trending", icon: "🚀" },
   { id: "airdrop", label: "airdrop", icon: "🎁" },
@@ -1107,7 +1107,13 @@ export default function Home() {
                     : `border-transparent ${tabInactiveBg}`
                 }`}
               >
-                <span className="text-base">{menu.icon}</span>
+                {menu.icon === "1page" ? (
+                  <span className={`text-[10px] font-black tracking-tight px-1 py-0.5 rounded ${activeTab === menu.id ? "text-amber-400" : "text-current"}`} style={{fontFamily: 'monospace', letterSpacing: '-0.05em'}}>
+                    1page
+                  </span>
+                ) : (
+                  <span className="text-base">{menu.icon}</span>
+                )}
                 <span>{t(`home.tabs.${menu.id}`) || menu.label}</span>
               </button>
             ))}

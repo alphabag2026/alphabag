@@ -495,7 +495,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                     </a>
                   )}
 
-                  {/* infoweb4 링크 */}
+                  {/* 1page.to 링크 */}
                   {infoweb4Url && (
                     <div className="border border-border rounded-xl overflow-hidden">
                       <div className="flex items-center justify-between px-3 py-2 bg-muted/50">
