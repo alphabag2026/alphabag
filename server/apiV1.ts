@@ -6,13 +6,16 @@
  */
 import { Router, Request, Response, NextFunction } from "express";
 import crypto from "crypto";
-import { getDb } from "./db";
+import { getDb, getUserById } from "./db";
+import { jwtVerify } from "jose";
 import {
   apiKeys, apiLogs,
   investmentPlans, nodes, notices, airdrops, referrals,
-  snsPosts, announcements,
+  snsPosts, announcements, userFavorites,
 } from "../drizzle/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
+
+const JWT_SECRET = process.env.JWT_SECRET ?? "alphabag-secret-key";
 
 const router = Router();
 
@@ -337,6 +340,71 @@ router.get("/tabs/nodes", requireApiKey, async (req: ApiRequest, res: Response) 
   } catch (e) { err(res, 500, String(e)); }
 });
 
+// GET /api/v1/tabs/favorites  (사용자 JWT 토큰 필요: X-User-Token 헤더)
+router.get("/tabs/favorites", requireApiKey, async (req: ApiRequest, res: Response) => {
+  try {
+    const userToken = req.headers["x-user-token"] as string | undefined;
+    if (!userToken) {
+      return res.status(401).json({
+        success: false,
+        error: "X-User-Token header required",
+        message: "즐겨찾기는 사용자 JWT 토큰이 필요합니다. X-User-Token 헤더에 사용자 세션 토큰을 전달하세요.",
+      });
+    }
+    // JWT 검증
+    const secret = new TextEncoder().encode(JWT_SECRET);
+    let userId: number;
+    try {
+      const { payload } = await jwtVerify(userToken, secret);
+      const uid = payload.userId as number | undefined;
+      if (!uid) throw new Error("Invalid token payload");
+      userId = uid;
+    } catch {
+      return res.status(401).json({ success: false, error: "Invalid or expired user token" });
+    }
+    // 사용자 확인
+    const user = await getUserById(userId);
+    if (!user) return res.status(401).json({ success: false, error: "User not found" });
+
+    const d = await db();
+    // 즐겨찾기 planId 목록 조회
+    const favRows = await d.select({ planId: userFavorites.planId, createdAt: userFavorites.createdAt })
+      .from(userFavorites)
+      .where(eq(userFavorites.userId, userId))
+      .orderBy(desc(userFavorites.createdAt))
+      .limit(100);
+
+    if (favRows.length === 0) {
+      return ok(res, [], { total: 0, userId });
+    }
+
+    const planIds = favRows.map((f) => f.planId);
+    const plans = await d.select({
+      id: investmentPlans.id,
+      name: investmentPlans.name,
+      logoUrl: investmentPlans.logoUrl,
+      dailyRate: investmentPlans.dailyRate,
+      label: investmentPlans.label,
+      tags: investmentPlans.tags,
+      isHighlight: investmentPlans.isHighlight,
+      planType: investmentPlans.planType,
+      collectionType: investmentPlans.collectionType,
+      rating: investmentPlans.rating,
+      urlId: investmentPlans.urlId,
+      minAmount: investmentPlans.minAmount,
+    }).from(investmentPlans)
+      .where(and(inArray(investmentPlans.id, planIds), eq(investmentPlans.isActive, true)));
+
+    // 즐겨찾기 등록 시간 포함하여 정렬
+    const planMap = new Map(plans.map((p) => [p.id, p]));
+    const result = favRows
+      .map((f) => ({ ...planMap.get(f.planId), favoritedAt: f.createdAt }))
+      .filter((p) => p.id !== undefined);
+
+    ok(res, result, { total: result.length, userId });
+  } catch (e) { err(res, 500, String(e)); }
+});
+
 // GET /api/v1/info
 router.get("/info", requireApiKey, async (req: ApiRequest, res: Response) => {
   ok(res, {
@@ -356,6 +424,7 @@ router.get("/info", requireApiKey, async (req: ApiRequest, res: Response) => {
       "GET /api/v1/tabs/meetup",
       "GET /api/v1/tabs/expo",
       "GET /api/v1/tabs/nodes",
+      "GET /api/v1/tabs/favorites (X-User-Token required)",
       "GET /api/v1/info",
     ],
     docs: "/api/docs",

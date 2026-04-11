@@ -3626,6 +3626,56 @@ Return ONLY valid JSON.`;
       await drizzleDb.delete(apiKeys).where(eq(apiKeys.id, input.id));
       return { success: true };
     }),
+    regenerate: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { apiKeys } = await import("../drizzle/schema");
+      const { generateApiKey } = await import("./apiV1");
+      const { key, prefix, hash } = generateApiKey();
+      await drizzleDb.update(apiKeys).set({
+        keyHash: hash,
+        keyPrefix: prefix,
+        callCount: 0,
+        lastUsedAt: null,
+        isActive: true,
+      }).where(eq(apiKeys.id, input.id));
+      return { key, prefix };
+    }),
+    stats: adminProcedure.input(z.object({ apiKeyId: z.number().optional() })).query(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return { byEndpoint: [], byDay: [] };
+      const { apiLogs, apiKeys } = await import("../drizzle/schema");
+      const { sql, count } = await import("drizzle-orm");
+      const baseWhere = input.apiKeyId ? eq(apiLogs.apiKeyId, input.apiKeyId) : undefined;
+      // Endpoint stats
+      const byEndpoint = await drizzleDb.select({
+        endpoint: apiLogs.endpoint,
+        count: count(),
+        avgDuration: sql<number>`AVG(${apiLogs.responseTimeMs})`,
+      }).from(apiLogs)
+        .where(baseWhere)
+        .groupBy(apiLogs.endpoint)
+        .orderBy(desc(count()));
+      // Daily stats (last 30 days)
+      const byDay = await drizzleDb.select({
+        date: sql<string>`DATE(FROM_UNIXTIME(${apiLogs.createdAt}/1000))`,
+        count: count(),
+      }).from(apiLogs)
+        .where(baseWhere)
+        .groupBy(sql`DATE(FROM_UNIXTIME(${apiLogs.createdAt}/1000))`)
+        .orderBy(sql`DATE(FROM_UNIXTIME(${apiLogs.createdAt}/1000)) DESC`)
+        .limit(30);
+      // Partner summary
+      const partnerSummary = await drizzleDb.select({
+        id: apiKeys.id,
+        name: apiKeys.name,
+        partnerName: apiKeys.partnerName,
+        callCount: apiKeys.callCount,
+        lastUsedAt: apiKeys.lastUsedAt,
+        isActive: apiKeys.isActive,
+      }).from(apiKeys).orderBy(desc(apiKeys.callCount));
+      return { byEndpoint, byDay, partnerSummary };
+    }),
     logs: adminProcedure.input(z.object({ apiKeyId: z.number(), limit: z.number().default(50) })).query(async ({ input }) => {
       const drizzleDb = await getDb();
       if (!drizzleDb) return [];

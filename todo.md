@@ -900,3 +900,17 @@
 - [x] 백오피스: /admin/api-keys 페이지 (키 발급/비활성화/사용량 통계)
 - [x] 문서: GET /api/docs (OpenAPI JSON + AI 친화적 마크다운 문서 페이지)
 - [x] AdminLayout에 API 키 관리 메뉴 추가
+
+## Phase 69 - API 키 고도화 + 즐겨찾기 탭 API (2026-04-11)
+- [x] 백오피스: API 키 비활성화/재활성화 토글 버튼
+- [x] 백오피스: API 키 재발급 버튼 (기존 키 무효화 + 새 키 발급)
+- [x] tRPC: apiKeys.toggleActive 프로시저 (활성화/비활성화)
+- [x] tRPC: apiKeys.regenerate 프로시저 (재발급)
+- [x] 백오피스: 파트너사별 일별/시간별 API 호출량 차트
+- [x] 백오피스: 엔드포인트별 호출 빈도 통계 테이블
+- [x] tRPC: apiKeys.logs 프로시저 (apiLogs 집계 조회)
+- [x] REST API: GET /api/v1/tabs/favorites (사용자 JWT 토큰 기반 즐겨찾기)
+- [x] DB: userFavorites 테이블 이미 존재 (userId, planId, createdAt)
+- [ ] REST API: POST /api/v1/tabs/favorites (즐겨찾기 추가) - 추후 구현
+- [ ] REST API: DELETE /api/v1/tabs/favorites/:planId (즐겨찾기 삭제) - 추후 구현
+- [x] /api/v1/info 엔드포인트 목록에 favorites 추가
