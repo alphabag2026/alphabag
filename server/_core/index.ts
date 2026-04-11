@@ -14,6 +14,8 @@ import { registerTelegramWebhook } from "../telegramWebhook";
 import { startPaymentChecker } from "../paymentChecker";
 import { startVoteDeadlineScheduler } from "../voteDeadlineScheduler";
 import { startTwitterStreamScheduler } from "../twitterStreamScheduler";
+import apiV1Router from "../apiV1";
+import apiDocsRouter from "../apiDocs";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -44,6 +46,10 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Telegram Webhook
   registerTelegramWebhook(app);
+  // Public REST API v1
+  app.use("/api/v1", apiV1Router);
+  // API Documentation (Swagger UI + OpenAPI JSON)
+  app.use("/api", apiDocsRouter);
   // tRPC API
   app.use(
     "/api/trpc",

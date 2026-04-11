@@ -43,6 +43,7 @@ import MySubmissions from "./pages/MySubmissions";
 import AdminSubmissions from "./pages/admin/Submissions";
 import AdminRewards from "./pages/admin/Rewards";
 import AdminCbag from "./pages/admin/Cbag";
+import AdminApiKeys from "./pages/admin/ApiKeys";
 import { WalletConnectModal } from "./components/WalletConnectModal";
 import GoldenPage from "./pages/GoldenPage";
 import SelfPage from "./pages/SelfPage";
@@ -105,6 +106,7 @@ function Router() {
       <Route path="/admin/submissions" component={AdminSubmissions} />
       <Route path="/admin/rewards" component={AdminRewards} />
       <Route path="/admin/cbag" component={AdminCbag} />
+      <Route path="/admin/api-keys" component={AdminApiKeys} />
       <Route path="/submit-plan" component={SubmitPlan} />
       <Route path="/vote" component={VotePage} />
       <Route path="/my-submissions" component={MySubmissions} />

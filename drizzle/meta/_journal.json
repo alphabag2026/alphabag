@@ -211,6 +211,13 @@
       "when": 1775843621823,
       "tag": "0029_pink_christian_walker",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1775920905316,
+      "tag": "0030_heavy_polaris",
+      "breakpoints": true
     }
   ]
 }

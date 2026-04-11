@@ -749,3 +749,37 @@ export const cbagSettings = mysqlTable("cbagSettings", {
 });
 export type CbagSettings = typeof cbagSettings.$inferSelect;
 export type InsertCbagSettings = typeof cbagSettings.$inferInsert;
+
+// ─── API Keys (파트너 API 키 관리) ──────────────────────────────────────────────
+export const apiKeys = mysqlTable("apiKeys", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  keyHash: varchar("keyHash", { length: 64 }).notNull().unique(),
+  keyPrefix: varchar("keyPrefix", { length: 12 }).notNull(),
+  partnerName: varchar("partnerName", { length: 100 }),
+  partnerEmail: varchar("partnerEmail", { length: 200 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  callCount: int("callCount").default(0).notNull(),
+  lastUsedAt: timestamp("lastUsedAt"),
+  expiresAt: timestamp("expiresAt"),
+  note: text("note"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKey = typeof apiKeys.$inferInsert;
+
+// ─── API Logs (API 호출 로그) ──────────────────────────────────────────────────
+export const apiLogs = mysqlTable("apiLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  apiKeyId: int("apiKeyId").notNull(),
+  endpoint: varchar("endpoint", { length: 200 }).notNull(),
+  method: varchar("method", { length: 10 }).default("GET").notNull(),
+  statusCode: int("statusCode").default(200).notNull(),
+  responseTimeMs: int("responseTimeMs"),
+  ip: varchar("ip", { length: 45 }),
+  userAgent: varchar("userAgent", { length: 500 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ApiLog = typeof apiLogs.$inferSelect;
+export type InsertApiLog = typeof apiLogs.$inferInsert;

@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ENV } from "./_core/env";
 import { z } from "zod";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -3566,6 +3566,74 @@ Return ONLY valid JSON.`;
           eq(investmentPlans.collectionType, "cbag" as any)
         ))
         .orderBy(investmentPlans.sortOrder);
+    }),
+  }),
+
+  // ─── API Keys 관리 (백오피스) ───────────────────────────────────────────────
+  apiKeysMgmt: router({
+    list: adminProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      const { apiKeys } = await import("../drizzle/schema");
+      return drizzleDb.select({
+        id: apiKeys.id,
+        name: apiKeys.name,
+        keyPrefix: apiKeys.keyPrefix,
+        partnerName: apiKeys.partnerName,
+        partnerEmail: apiKeys.partnerEmail,
+        isActive: apiKeys.isActive,
+        callCount: apiKeys.callCount,
+        lastUsedAt: apiKeys.lastUsedAt,
+        expiresAt: apiKeys.expiresAt,
+        note: apiKeys.note,
+        createdAt: apiKeys.createdAt,
+      }).from(apiKeys).orderBy(desc(apiKeys.createdAt));
+    }),
+    create: adminProcedure.input(z.object({
+      name: z.string().min(1),
+      partnerName: z.string().optional(),
+      partnerEmail: z.string().email().optional(),
+      note: z.string().optional(),
+      expiresAt: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { apiKeys } = await import("../drizzle/schema");
+      const { generateApiKey } = await import("./apiV1");
+      const { key, prefix, hash } = generateApiKey();
+      await drizzleDb.insert(apiKeys).values({
+        name: input.name,
+        keyHash: hash,
+        keyPrefix: prefix,
+        partnerName: input.partnerName,
+        partnerEmail: input.partnerEmail,
+        note: input.note,
+        expiresAt: input.expiresAt ? new Date(input.expiresAt) : undefined,
+      });
+      return { key, prefix };
+    }),
+    toggle: adminProcedure.input(z.object({ id: z.number(), isActive: z.boolean() })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { apiKeys } = await import("../drizzle/schema");
+      await drizzleDb.update(apiKeys).set({ isActive: input.isActive }).where(eq(apiKeys.id, input.id));
+      return { success: true };
+    }),
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { apiKeys } = await import("../drizzle/schema");
+      await drizzleDb.delete(apiKeys).where(eq(apiKeys.id, input.id));
+      return { success: true };
+    }),
+    logs: adminProcedure.input(z.object({ apiKeyId: z.number(), limit: z.number().default(50) })).query(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      const { apiLogs } = await import("../drizzle/schema");
+      return drizzleDb.select().from(apiLogs)
+        .where(eq(apiLogs.apiKeyId, input.apiKeyId))
+        .orderBy(desc(apiLogs.createdAt))
+        .limit(input.limit);
     }),
   }),
 });

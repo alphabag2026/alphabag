@@ -881,3 +881,22 @@
 - [ ] UI: CbagPage 개선 (보험 컬렉션 컨셉으로 리디자인)
 - [x] 백오피스: CBAG 전용 관리 탭 (이름 설정, 상품 관리, LLM 자동 정리)
 - [ ] 백오피스: Plans.tsx에 CBAG 탭 추가
+
+## Phase 68 - 전체 탭 REST API + API 키 인증 시스템 (2026-04-11)
+- [x] DB: apiKeys 테이블 (id, name, key, partnerId, isActive, callCount, lastUsedAt)
+- [x] DB: apiLogs 테이블 (id, apiKeyId, endpoint, method, statusCode, createdAt)
+- [x] 서버: API 키 인증 미들웨어 (Bearer 토큰 검증, 로그 기록)
+- [x] REST API: GET /api/v1/tabs/recommended (추천 플랜)
+- [x] REST API: GET /api/v1/tabs/bbag (B-BAG 상품)
+- [x] REST API: GET /api/v1/tabs/sns (SNS 피드)
+- [x] REST API: GET /api/v1/tabs/trending (급등토큰 - CoinGecko)
+- [x] REST API: GET /api/v1/tabs/airdrop (에어드럽)
+- [x] REST API: GET /api/v1/tabs/news (뉴스)
+- [x] REST API: GET /api/v1/tabs/contents (콘텐츠)
+- [x] REST API: GET /api/v1/tabs/live (라이브)
+- [x] REST API: GET /api/v1/tabs/mlm (MLM/레퍼럴)
+- [x] REST API: GET /api/v1/tabs/meetup (밋업)
+- [x] REST API: GET /api/v1/tabs/expo (엑스포)
+- [x] 백오피스: /admin/api-keys 페이지 (키 발급/비활성화/사용량 통계)
+- [x] 문서: GET /api/docs (OpenAPI JSON + AI 친화적 마크다운 문서 페이지)
+- [x] AdminLayout에 API 키 관리 메뉴 추가
