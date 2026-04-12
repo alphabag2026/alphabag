@@ -1862,14 +1862,15 @@ export default function Home() {
       {selectedNotice && <NoticeDetailModal notice={selectedNotice} onClose={() => setSelectedNotice(null)} isDark={isDark} />}
 
       {/* ─── 푸터 ─── */}
-      <footer className={`border-t py-6 ${isDark ? "border-white/5 bg-[#050505]" : "border-gray-200 bg-white"}`}>
-        <div className="max-w-7xl mx-auto px-4">
+      <footer className={`border-t ${isDark ? "border-white/5 bg-[#050505]" : "border-gray-200 bg-white"}`}>
+        {/* 상단: 로고 + 링크 */}
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
               <img src={ALPHABAG_LOGO} alt="AlphaBag" className="w-7 h-7 rounded object-contain bg-black" />
               <div>
                 <div className={`text-sm font-bold ${isDark ? "text-gray-400" : "text-gray-600"}`}>AlphaBag</div>
-                <div className="text-[10px] text-gray-500">Multi-Asset Investment Platform</div>
+                <div className="text-[10px] text-gray-500">Decentralized Community Platform</div>
               </div>
             </div>
             <div className={`flex items-center gap-5 text-xs ${textSecondary}`}>
@@ -1879,6 +1880,34 @@ export default function Home() {
               <Link href="/#airdrop"><span className="hover:text-emerald-400 cursor-pointer transition-colors">Airdrop</span></Link>
             </div>
             <div className={`text-xs ${textSecondary}`}>© 2026 AlphaBag. All rights reserved.</div>
+          </div>
+        </div>
+
+        {/* 하단: 알파백 철학 + 면책조항 */}
+        <div className={`border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
+          <div className="max-w-4xl mx-auto px-4 py-5 space-y-4">
+            {/* 알파백 철학 */}
+            <p className={`text-xs text-center leading-relaxed ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+              <span className="font-semibold text-amber-400">AlphaBag</span>는 투자를 권유하는 플랫폼이 아닙니다.
+              &nbsp;&#34;투자하지 말자&#34;가 첫 번째 원칙이지만, 투자로 수익을 추구하는 분들이 존재하기에,
+              정확한 분석과 분산투자를 통해 리스크를 줄이는 습관을 함께 기르고자 시작된
+              <span className="font-medium"> 탈중심화 커뮤니티 플랫폼</span>입니다.
+            </p>
+
+            {/* 면책조항 */}
+            <div className={`rounded-xl p-4 ${isDark ? "bg-white/3 border border-white/5" : "bg-gray-50 border border-gray-200"}`}>
+              <p className={`text-[10px] leading-relaxed text-center ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                <span className={`font-semibold text-[11px] block mb-1.5 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                  ⚠️ 면책조항 (Disclaimer)
+                </span>
+                이 웹사이트, 하이퍼링크, 관련 애플리케이션, 포럼, 블로그, 미디어 계정 및 기타 플랫폼에서 제공되는 모든 콘텐츠는
+                서드파티 소스에서 제공됩니다. 웹사이트 또는 그 콘텐츠에 대해 어떠한 보증도 하지 않습니다.
+                사이트의 모든 블록체인 관련 데이터 및 정보는 사용자의 학습 및 연구 목적으로만 제공되며,
+                투자, 법률 또는 기타 조언을 구성하지 않습니다.
+                사용자는 데이터 및 콘텐츠를 신중히 사용해야 하며, 모든 위험을 감수해야 합니다.
+                독립적인 조사, 검토, 분석, 검증을 강력히 권장합니다.
+              </p>
+            </div>
           </div>
         </div>
       </footer>
