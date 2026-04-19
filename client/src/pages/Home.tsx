@@ -1863,7 +1863,7 @@ export default function Home() {
 
       {/* ─── 푸터 ─── */}
       <footer className={`border-t ${isDark ? "border-white/5 bg-[#050505]" : "border-gray-200 bg-white"}`}>
-        {/* 상단: 로고 + 링크 */}
+        {/* 상단: 로고 + 링크 + 소셜 아이콘 */}
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
@@ -1879,34 +1879,66 @@ export default function Home() {
               <Link href="/notices"><span className="hover:text-amber-400 cursor-pointer transition-colors">Notices</span></Link>
               <Link href="/#airdrop"><span className="hover:text-emerald-400 cursor-pointer transition-colors">Airdrop</span></Link>
             </div>
-            <div className={`text-xs ${textSecondary}`}>© 2026 AlphaBag. All rights reserved.</div>
+            {/* 소셜 링크 아이콘 */}
+            <div className="flex items-center gap-3">
+              <a href="https://t.me/alphabag_official" target="_blank" rel="noopener noreferrer"
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-white/5 hover:bg-blue-500/20 text-gray-400 hover:text-blue-400" : "bg-gray-100 hover:bg-blue-50 text-gray-500 hover:text-blue-500"}`}
+                title="Telegram">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                </svg>
+              </a>
+              <a href="https://twitter.com/alphabag_io" target="_blank" rel="noopener noreferrer"
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-white/5 hover:bg-gray-700 text-gray-400 hover:text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-900"}`}
+                title="X (Twitter)">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </a>
+              <a href="https://youtube.com/@alphabag" target="_blank" rel="noopener noreferrer"
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400" : "bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500"}`}
+                title="YouTube">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              </a>
+            </div>
           </div>
         </div>
 
-        {/* 하단: 알파백 철학 + 면책조항 */}
+        {/* 하단: 알파백 철학 + 면책조항 + 약관 링크 */}
         <div className={`border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
           <div className="max-w-4xl mx-auto px-4 py-5 space-y-4">
             {/* 알파백 철학 */}
             <p className={`text-xs text-center leading-relaxed ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-              <span className="font-semibold text-amber-400">AlphaBag</span>는 투자를 권유하는 플랫폼이 아닙니다.
-              &nbsp;&#34;투자하지 말자&#34;가 첫 번째 원칙이지만, 투자로 수익을 추구하는 분들이 존재하기에,
-              정확한 분석과 분산투자를 통해 리스크를 줄이는 습관을 함께 기르고자 시작된
-              <span className="font-medium"> 탈중심화 커뮤니티 플랫폼</span>입니다.
+              {t("footer.philosophy")}
             </p>
 
             {/* 면책조항 */}
             <div className={`rounded-xl p-4 ${isDark ? "bg-white/3 border border-white/5" : "bg-gray-50 border border-gray-200"}`}>
               <p className={`text-[10px] leading-relaxed text-center ${isDark ? "text-gray-500" : "text-gray-400"}`}>
                 <span className={`font-semibold text-[11px] block mb-1.5 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                  ⚠️ 면책조항 (Disclaimer)
+                  ⚠️ Disclaimer
                 </span>
-                이 웹사이트, 하이퍼링크, 관련 애플리케이션, 포럼, 블로그, 미디어 계정 및 기타 플랫폼에서 제공되는 모든 콘텐츠는
-                서드파티 소스에서 제공됩니다. 웹사이트 또는 그 콘텐츠에 대해 어떠한 보증도 하지 않습니다.
-                사이트의 모든 블록체인 관련 데이터 및 정보는 사용자의 학습 및 연구 목적으로만 제공되며,
-                투자, 법률 또는 기타 조언을 구성하지 않습니다.
-                사용자는 데이터 및 콘텐츠를 신중히 사용해야 하며, 모든 위험을 감수해야 합니다.
-                독립적인 조사, 검토, 분석, 검증을 강력히 권장합니다.
+                {t("footer.disclaimer")}
               </p>
+            </div>
+
+            {/* 약관 링크 */}
+            <div className={`flex items-center justify-center gap-4 text-[10px] ${isDark ? "text-gray-600" : "text-gray-400"}`}>
+              <Link href="/terms">
+                <span className="hover:text-amber-400 cursor-pointer transition-colors underline">
+                  {t("footer.termsLink", "Terms of Service")}
+                </span>
+              </Link>
+              <span>·</span>
+              <Link href="/privacy">
+                <span className="hover:text-amber-400 cursor-pointer transition-colors underline">
+                  {t("footer.privacyLink", "Privacy Policy")}
+                </span>
+              </Link>
+              <span>·</span>
+              <span className={isDark ? "text-gray-600" : "text-gray-400"}>{t("footer.rights", "© 2026 AlphaBag. All rights reserved.")}</span>
             </div>
           </div>
         </div>

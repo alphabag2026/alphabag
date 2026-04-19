@@ -914,3 +914,11 @@
 - [ ] REST API: POST /api/v1/tabs/favorites (즐겨찾기 추가) - 추후 구현
 - [ ] REST API: DELETE /api/v1/tabs/favorites/:planId (즐겨찾기 삭제) - 추후 구현
 - [x] /api/v1/info 엔드포인트 목록에 favorites 추가
+
+## Phase 71 - 푸터 고도화 (다국어/약관/소셜)
+- [ ] i18n: footer.disclaimer, footer.philosophy 번역 키 추가 (21개 언어)
+- [ ] 이용약관 페이지 (/terms)
+- [ ] 개인정보처리방침 페이지 (/privacy)
+- [ ] App.tsx에 /terms, /privacy 라우트 등록
+- [ ] 푸터 소셜 링크 아이콘 (텔레그램, 트위터, 유튜브)
+- [ ] 푸터 하단에 이용약관/개인정보처리방침 링크 추가

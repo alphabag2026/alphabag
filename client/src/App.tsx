@@ -57,6 +57,8 @@ import About from "./pages/About";
 import Introduction from "./pages/Introduction";
 import FaqQnaPage from "./pages/FaqQnaPage";
 import CartPage from "./pages/CartPage";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 
 function Router() {
   return (
@@ -114,6 +116,8 @@ function Router() {
       <Route path="/introduction" component={Introduction} />
       <Route path="/faq" component={FaqQnaPage} />
       <Route path="/cart" component={CartPage} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
