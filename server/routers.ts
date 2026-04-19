@@ -3686,5 +3686,126 @@ Return ONLY valid JSON.`;
         .limit(input.limit);
     }),
   }),
+  // ─── Settings (소셜 링크 관리) ─────────────────────────────────────────────────────────────────────────────
+  settings: router({
+    getSocialLinks: publicProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return { telegramUrl: "https://t.me/alphabag_official", twitterUrl: "https://twitter.com/alphabag_io", youtubeUrl: "https://youtube.com/@alphabag" };
+      const { siteSettings } = await import("../drizzle/schema");
+      const [setting] = await drizzleDb.select().from(siteSettings).limit(1);
+      if (!setting) return { telegramUrl: "https://t.me/alphabag_official", twitterUrl: "https://twitter.com/alphabag_io", youtubeUrl: "https://youtube.com/@alphabag" };
+      return { telegramUrl: setting.telegramUrl ?? "https://t.me/alphabag_official", twitterUrl: setting.twitterUrl ?? "https://twitter.com/alphabag_io", youtubeUrl: setting.youtubeUrl ?? "https://youtube.com/@alphabag" };
+    }),
+    updateSocialLinks: adminProcedure.input(z.object({
+      telegramUrl: z.string().url().optional(),
+      twitterUrl: z.string().url().optional(),
+      youtubeUrl: z.string().url().optional(),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { siteSettings } = await import("../drizzle/schema");
+      const [existing] = await drizzleDb.select().from(siteSettings).limit(1);
+      if (existing) {
+        await drizzleDb.update(siteSettings).set({
+          ...(input.telegramUrl !== undefined ? { telegramUrl: input.telegramUrl } : {}),
+          ...(input.twitterUrl !== undefined ? { twitterUrl: input.twitterUrl } : {}),
+          ...(input.youtubeUrl !== undefined ? { youtubeUrl: input.youtubeUrl } : {}),
+        }).where(eq(siteSettings.id, existing.id));
+      } else {
+        await drizzleDb.insert(siteSettings).values({
+          telegramUrl: input.telegramUrl ?? "https://t.me/alphabag_official",
+          twitterUrl: input.twitterUrl ?? "https://twitter.com/alphabag_io",
+          youtubeUrl: input.youtubeUrl ?? "https://youtube.com/@alphabag",
+        });
+      }
+      return { success: true };
+    }),
+  }),
+  // ─── Legal (이용약관/개인정보처리방침 관리) ───────────────────────────────────────────────────────────
+  legal: router({
+    getDocument: publicProcedure.input(z.object({
+      type: z.enum(["terms", "privacy"]),
+      language: z.string().default("ko"),
+    })).query(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return null;
+      const { legalDocuments } = await import("../drizzle/schema");
+      // 해당 type의 모든 문서를 가져와 JS로 언어 우선순위 적용
+      const allDocs = await drizzleDb.select().from(legalDocuments)
+        .where(eq(legalDocuments.type, input.type as string));
+      const doc = allDocs.find(d => d.language === input.language)
+        ?? allDocs.find(d => d.language === "ko")
+        ?? allDocs[0]
+        ?? null;
+      return doc;
+    }),
+    listDocuments: adminProcedure.input(z.object({ type: z.enum(["terms", "privacy"]) })).query(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      const { legalDocuments } = await import("../drizzle/schema");
+      return drizzleDb.select().from(legalDocuments)
+        .where(eq(legalDocuments.type, input.type as string))
+        .orderBy(legalDocuments.language);
+    }),
+    updateDocument: adminProcedure.input(z.object({
+      type: z.enum(["terms", "privacy"]),
+      language: z.string().default("ko"),
+      content: z.string(),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { legalDocuments } = await import("../drizzle/schema");
+      const [existing] = await drizzleDb.select().from(legalDocuments)
+        .where(and(eq(legalDocuments.type, input.type as string), eq(legalDocuments.language, input.language)));
+      if (existing) {
+        await drizzleDb.update(legalDocuments).set({ content: input.content })
+          .where(eq(legalDocuments.id, existing.id));
+      } else {
+        await drizzleDb.insert(legalDocuments).values({ type: input.type as string, language: input.language, content: input.content });
+      }
+      return { success: true };
+    }),
+    autoGenerate: adminProcedure.input(z.object({
+      type: z.enum(["terms", "privacy"]),
+      language: z.string().default("ko"),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { invokeLLM: _invokeLLMForLegal } = await import("./_core/llm");
+      const langNames: Record<string, string> = {
+        ko: "한국어", en: "English", zh: "中文", ja: "日本語", vi: "Tiếng Việt",
+        th: "ภาษาไทย", id: "Bahasa Indonesia", ms: "Bahasa Melayu", ru: "Русский",
+        ar: "العрبية", es: "Español", pt: "Português", fr: "Français", de: "Deutsch",
+        it: "Italiano", tr: "Türkçe", hi: "हिंجी", pl: "Polski", nl: "Nederlands",
+        uk: "Українська", tl: "Filipino",
+      };
+      const langName = langNames[input.language] ?? input.language;
+      const docType = input.type === "terms" ? "이용약관 (Terms of Service)" : "개인정보처리방침 (Privacy Policy)";
+      const systemPrompt = `You are a legal document writer for AlphaBag, a decentralized cryptocurrency community platform. AlphaBag's first principle is "Don't invest" - it provides educational content only, not investment advice. Write professional, clear legal documents in ${langName}.`;
+      const userPrompt = `Write a complete ${docType} for AlphaBag platform in ${langName}. Include all standard sections appropriate for a crypto community platform. The document should:
+- Clearly state AlphaBag is NOT an investment platform
+- Explain it provides educational/community content only
+- Include sections on: platform purpose, user responsibilities, content disclaimer, data usage, liability limitations, governing law
+- Be professional and legally sound
+- Use markdown formatting with ## headings
+- Be comprehensive but readable
+Write the full document now:`;
+      const response = await _invokeLLMForLegal({ messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ]});
+      const content = (response.choices[0]?.message?.content as string) ?? "";
+      // DB에 저장
+      const { legalDocuments: legalDocsForGen } = await import("../drizzle/schema");
+      const [existingForGen] = await drizzleDb.select().from(legalDocsForGen)
+        .where(and(eq(legalDocsForGen.type, input.type as string), eq(legalDocsForGen.language, input.language)));
+      if (existingForGen) {
+        await drizzleDb.update(legalDocsForGen).set({ content }).where(eq(legalDocsForGen.id, existingForGen.id));
+      } else {
+        await drizzleDb.insert(legalDocsForGen).values({ type: input.type as string, language: input.language, content });
+      }
+      return { content };
+    }),
+  }),
 });
 export type AppRouter = typeof appRouter;

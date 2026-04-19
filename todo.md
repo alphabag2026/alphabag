@@ -916,9 +916,28 @@
 - [x] /api/v1/info 엔드포인트 목록에 favorites 추가
 
 ## Phase 71 - 푸터 고도화 (다국어/약관/소셜)
-- [ ] i18n: footer.disclaimer, footer.philosophy 번역 키 추가 (21개 언어)
-- [ ] 이용약관 페이지 (/terms)
-- [ ] 개인정보처리방침 페이지 (/privacy)
-- [ ] App.tsx에 /terms, /privacy 라우트 등록
-- [ ] 푸터 소셜 링크 아이콘 (텔레그램, 트위터, 유튜브)
-- [ ] 푸터 하단에 이용약관/개인정보처리방침 링크 추가
+- [x] i18n: footer.disclaimer, footer.philosophy 번역 키 추가 (21개 언어)
+- [x] 이용약관 페이지 (/terms)
+- [x] 개인정보처리방침 페이지 (/privacy)
+- [x] App.tsx에 /terms, /privacy 라우트 등록
+- [x] 푸터 소셜 링크 아이콘 (텔레그램, 트위터, 유튜브)
+- [x] 푸터 하단에 이용약관/개인정보처리방침 링크 추가
+
+## Phase 72 - 소셜 링크 백오피스 관리 + 약관 백오피스 편집 + Terms/Privacy 다국어 (2026-04-19)
+- [x] DB: siteSettings 테이블 추가 (telegramUrl, twitterUrl, youtubeUrl)
+- [x] DB: legalDocuments 테이블 추가 (type, language, content, updatedAt)
+- [x] DB 마이그레이션 실행
+- [x] tRPC: settings.getSocialLinks (publicProcedure)
+- [x] tRPC: settings.updateSocialLinks (adminProcedure)
+- [x] tRPC: legal.getDocument (publicProcedure)
+- [x] tRPC: legal.updateDocument (adminProcedure)
+- [x] tRPC: legal.autoGenerate (adminProcedure, LLM 자동 생성)
+- [x] 백오피스: /admin/site-settings 페이지 (소셜 링크 편집)
+- [x] 백오피스: /admin/legal 페이지 (약관/개인정보처리방침 편집 + LLM 버튼)
+- [x] AdminLayout: 사이트 설정, 법적 문서 메뉴 추가
+- [x] Home.tsx: 소셜 링크 하드코딩 → DB 동적 로드
+- [x] i18n: terms/privacy 다국어 번역 키 추가 (21개 언어)
+- [x] Terms.tsx: i18n 다국어 + DB 동적 콘텐츠 렌더링
+- [x] Privacy.tsx: i18n 다국어 + DB 동적 콘텐츠 렌더링
+- [x] App.tsx: /admin/site-settings, /admin/legal 라우트 등록
+- [x] 테스트 작성 (125개 모두 통과)

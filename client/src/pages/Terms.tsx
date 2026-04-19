@@ -1,7 +1,21 @@
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Link } from "wouter";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Clock, FileText } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import i18n from "@/lib/i18n";
+
+function renderMarkdown(text: string): string {
+  return text
+    .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-8 mb-3 text-amber-400">$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold mt-5 mb-2 text-amber-300">$1</h3>')
+    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-6 mb-4 text-amber-400">$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+    .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
+    .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 list-decimal">$2</li>')
+    .replace(/\n\n/g, '</p><p class="mb-3 leading-relaxed">')
+    .replace(/\n/g, '<br/>');
+}
 
 export default function Terms() {
   const { t } = useTranslation();
@@ -14,6 +28,9 @@ export default function Terms() {
   const subHeading = isDark ? "text-gray-300" : "text-gray-700";
   const body = isDark ? "text-gray-400" : "text-gray-600";
 
+  const currentLang = i18n.language?.split("-")[0] ?? "ko";
+  const { data: doc, isLoading } = trpc.legal.getDocument.useQuery({ type: "terms", language: currentLang });
+
   return (
     <div className={`min-h-screen ${bg}`}>
       <div className="max-w-3xl mx-auto px-4 py-12">
@@ -25,11 +42,35 @@ export default function Terms() {
           </button>
         </Link>
 
-        <h1 className={`text-3xl font-bold mb-2 ${headingColor}`}>
-          {t("footer.termsLink", "Terms of Service")}
-        </h1>
-        <p className={`text-sm mb-8 ${body}`}>Last updated: April 2026</p>
+        <div className="flex items-center gap-3 mb-2">
+          <FileText className={`w-7 h-7 ${headingColor}`} />
+          <h1 className={`text-3xl font-bold ${headingColor}`}>
+            {t("footer.termsLink", "Terms of Service")}
+          </h1>
+        </div>
+        {doc?.updatedAt && (
+          <div className={`flex items-center gap-1.5 text-xs ${body} mb-8`}>
+            <Clock className="w-3.5 h-3.5" />
+            Last updated: {new Date(doc.updatedAt).toLocaleDateString()}
+          </div>
+        )}
+        {!doc?.updatedAt && <p className={`text-sm mb-8 ${body}`}>Last updated: April 2026</p>}
 
+        {/* DB 동적 콘텐츠 */}
+        {doc?.content ? (
+          <div className={`rounded-2xl border p-6 ${cardBg} ${body}`}>
+            <div
+              className="text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: `<p class="mb-3 leading-relaxed">${renderMarkdown(doc.content)}</p>` }}
+            />
+          </div>
+        ) : isLoading ? (
+          <div className={`rounded-2xl border p-6 ${cardBg} animate-pulse space-y-3`}>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className={`h-4 rounded ${isDark ? "bg-white/10" : "bg-gray-200"}`} style={{ width: `${50 + (i * 10) % 50}%` }} />
+            ))}
+          </div>
+        ) : (
         <div className={`rounded-2xl border p-6 space-y-8 ${cardBg}`}>
 
           <section>
@@ -96,6 +137,7 @@ export default function Terms() {
           </section>
 
         </div>
+        )}
 
         {/* Footer disclaimer */}
         <div className={`mt-8 rounded-xl border p-4 ${cardBg}`}>

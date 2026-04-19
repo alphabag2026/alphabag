@@ -783,3 +783,25 @@ export const apiLogs = mysqlTable("apiLogs", {
 });
 export type ApiLog = typeof apiLogs.$inferSelect;
 export type InsertApiLog = typeof apiLogs.$inferInsert;
+
+// ─── Site Settings (사이트 전역 설정) ────────────────────────────────────────────
+export const siteSettings = mysqlTable("siteSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  telegramUrl: varchar("telegramUrl", { length: 500 }).default("https://t.me/alphabag_official"),
+  twitterUrl: varchar("twitterUrl", { length: 500 }).default("https://twitter.com/alphabag_io"),
+  youtubeUrl: varchar("youtubeUrl", { length: 500 }).default("https://youtube.com/@alphabag"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type SiteSettings = typeof siteSettings.$inferSelect;
+export type InsertSiteSettings = typeof siteSettings.$inferInsert;
+
+// ─── Legal Documents (이용약관/개인정보처리방침) ────────────────────────────────
+export const legalDocuments = mysqlTable("legalDocuments", {
+  id: int("id").autoincrement().primaryKey(),
+  type: varchar("type", { length: 20 }).notNull(), // 'terms' | 'privacy'
+  language: varchar("language", { length: 10 }).notNull().default("ko"),
+  content: text("content").notNull().default(""),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type LegalDocument = typeof legalDocuments.$inferSelect;
+export type InsertLegalDocument = typeof legalDocuments.$inferInsert;

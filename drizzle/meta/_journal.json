@@ -218,6 +218,13 @@
       "when": 1775920905316,
       "tag": "0030_heavy_polaris",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1776589230693,
+      "tag": "0031_marvelous_red_hulk",
+      "breakpoints": true
     }
   ]
 }
