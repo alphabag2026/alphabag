@@ -955,3 +955,10 @@
 - [x] planType 자동 감지 (golden/self/leader/influencer/meme/node)
 - [x] 등록 완료 후 플랜 상세 페이지 바로가기 링크
 - [x] 테스트 작성 (138개 모두 통과)
+
+## Phase 74 - 백오피스 사이드바 수정 + 메뉴 다국어 (2026-04-22)
+- [x] AdminLayout 사이드바 스크롤 수정 (메뉴 잊림 방지, overflow-y-auto)
+- [x] AdminLayout 메뉴 전체 한국어/영어 혼재 → i18n 다국어 처리
+- [x] 백오피스 사이드바에 언어 선택기 추가 (21개 언어 드롭다운)
+- [x] i18n.ts 21개 언어 adminNav 번역 키 추가
+- [x] 테스트 확인 및 체크포인트 저장
