@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import {
@@ -55,6 +55,18 @@ export default function AdminLayout({ children, title = "Admin Panel" }: AdminLa
     { href: "/admin/legal",              label: t("adminNav.legal"),             icon: "ScrollText" },
   ];
 
+  // 인증 체크: admin_token 쿠키 검증
+  const { data: adminMe, isLoading: authLoading } = trpc.adminAuth.me.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (!authLoading && !adminMe) {
+      window.location.href = "/admin/login";
+    }
+  }, [authLoading, adminMe]);
+
   const logoutMutation = trpc.adminAuth.logout.useMutation({
     onSuccess: () => {
       localStorage.removeItem("admin_token");
@@ -68,8 +80,8 @@ export default function AdminLayout({ children, title = "Admin Panel" }: AdminLa
     },
   });
 
-  const adminName = localStorage.getItem("admin_name") || t("adminNav.adminLabel");
-  const adminRole = localStorage.getItem("admin_role") || "admin";
+  const adminName = adminMe?.username || localStorage.getItem("admin_name") || t("adminNav.adminLabel");
+  const adminRole = adminMe?.role || localStorage.getItem("admin_role") || "admin";
   const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
 
   return (

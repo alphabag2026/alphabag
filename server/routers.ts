@@ -1946,8 +1946,8 @@ Return this exact JSON structure:
       );
       ctx.res.cookie("admin_token", token, {
         httpOnly: true,
-        secure: ctx.req.protocol === "https",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
         maxAge: 24 * 60 * 60 * 1000,
         path: "/",
       });
