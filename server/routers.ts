@@ -2852,6 +2852,214 @@ Return ONLY valid JSON.`;
       await createAuditLog({ adminId: ctx.user.id, action: "CREATE_PLAN", targetType: "plan", details: { name: input.name, source: "ai_import" } });
       return { success: true };
     }),
+
+    // 로고 AI 자동 생성 (플랜명 기반 3가지 옵션)
+    generateLogo: adminProcedure.input(z.object({
+      planName: z.string().min(1),
+      planType: z.string().optional(),
+      description: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      const { generateImage } = await import("./_core/imageGeneration");
+      const stylePrompts = [
+        `Professional investment fund logo for "${input.planName}". Clean, modern, minimalist design. Gold and dark navy color scheme. Geometric shapes, financial/crypto theme. White background. Square format, high quality.`,
+        `Crypto investment platform logo for "${input.planName}". Futuristic, sleek design. Gradient gold to amber colors. Abstract symbol representing growth and stability. Dark background. Professional branding.`,
+        `Financial brand logo for "${input.planName}". Bold typography with icon. Blue and gold palette. Trust, security, innovation theme. Clean vector style. Suitable for DeFi/crypto investment platform.`,
+      ];
+      const results = await Promise.allSettled(
+        stylePrompts.map(prompt => generateImage({ prompt }))
+      );
+      const logos = results
+        .map((r, i) => r.status === "fulfilled" ? { url: r.value.url, style: ["Minimalist", "Futuristic", "Bold"][i] } : null)
+        .filter(Boolean);
+      return { success: true, logos };
+    }),
+
+    // YouTube 관련 영상 자동 검색
+    searchYouTube: adminProcedure.input(z.object({
+      query: z.string().min(1),
+      maxResults: z.number().default(6),
+    })).mutation(async ({ input }) => {
+      // YouTube Data API v3 검색 (YOUTUBE_API_KEY 환경변수 사용)
+      const apiKey = process.env.YOUTUBE_API_KEY;
+      if (!apiKey) {
+        // API 키 없을 때 LLM으로 관련 YouTube 검색어 제안
+        const { invokeLLM } = await import("./_core/llm");
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "You are a YouTube search expert. Given an investment plan name, suggest 5 relevant YouTube search queries that would find promotional or educational videos about this plan. Return JSON array of strings." },
+            { role: "user", content: `Investment plan: ${input.query}` },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "search_queries",
+              strict: true,
+              schema: { type: "object", properties: { queries: { type: "array", items: { type: "string" } } }, required: ["queries"], additionalProperties: false },
+            },
+          },
+        });
+        const content = response.choices[0].message.content;
+        const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
+        return { success: true, videos: [], suggestedQueries: parsed.queries ?? [], noApiKey: true };
+      }
+      try {
+        const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(input.query + " investment crypto")}&maxResults=${input.maxResults}&type=video&key=${apiKey}`;
+        const res = await fetch(searchUrl);
+        const data = await res.json() as { items?: Array<{ id: { videoId: string }; snippet: { title: string; description: string; thumbnails: { medium: { url: string } }; channelTitle: string; publishedAt: string } }> };
+        const videos = (data.items ?? []).map((item) => ({
+          videoId: item.id.videoId,
+          title: item.snippet.title,
+          description: item.snippet.description,
+          thumbnail: item.snippet.thumbnails.medium.url,
+          channelTitle: item.snippet.channelTitle,
+          publishedAt: item.snippet.publishedAt,
+          url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+          embedUrl: `https://www.youtube.com/embed/${item.id.videoId}`,
+        }));
+        return { success: true, videos, suggestedQueries: [], noApiKey: false };
+      } catch (e) {
+        return { success: false, videos: [], suggestedQueries: [], noApiKey: false, error: String(e) };
+      }
+    }),
+
+    // 원페이지 URL 크롤링 + LLM 파싱
+    parseFromUrl: adminProcedure.input(z.object({
+      url: z.string().url(),
+    })).mutation(async ({ input }) => {
+      const { invokeLLM } = await import("./_core/llm");
+      // 페이지 HTML 크롤링
+      let pageText = "";
+      try {
+        const res = await fetch(input.url, {
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; AlphaBagBot/1.0)" },
+          signal: AbortSignal.timeout(10000),
+        });
+        const html = await res.text();
+        // HTML 태그 제거 후 텍스트 추출 (간단 버전)
+        pageText = html
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 8000); // 최대 8000자
+      } catch (e) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: `URL 크롤링 실패: ${String(e)}` });
+      }
+      const systemPrompt = `You are an expert at extracting investment plan information from webpage text.
+Extract the following fields from the provided webpage content and return a JSON object.
+Fields:
+- name: Plan name (string)
+- label: Short label/subtitle (string, optional)
+- dailyRate: Daily return rate as decimal string e.g. "0.35" for 0.35% (string)
+- minAmount: Minimum investment amount in USDT (string, optional)
+- recommendedAmount: Recommended investment amount in USDT (string, optional)
+- allocation: Asset allocation ratio (string, optional)
+- strategy: Investment strategy description (string, optional)
+- badgeLabels: Array of strategy tags/badges (array of strings)
+- tags: Array of feature tags (array of strings)
+- description: Full description (string, optional)
+- planType: One of "investment", "staking", "golden", "self", "leader", "influencer", "meme", "node" (string)
+- yieldInfo: Yield range info (string, optional)
+- ratioInfo: Ratio info (string, optional)
+- rating: Rating from 1-5 (number, default 4.0)
+- telegramUrl: Telegram community URL if found (string, optional)
+- twitterUrl: Twitter/X URL if found (string, optional)
+- videoUrl: YouTube video URL if found (string, optional)
+- logoUrl: Logo image URL if found (string, optional)
+Return ONLY valid JSON.`;
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Webpage URL: ${input.url}\n\nPage content:\n${pageText}` },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "plan_info_from_url",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                name: { type: "string" }, label: { type: "string" }, dailyRate: { type: "string" },
+                minAmount: { type: "string" }, recommendedAmount: { type: "string" }, allocation: { type: "string" },
+                strategy: { type: "string" }, badgeLabels: { type: "array", items: { type: "string" } },
+                tags: { type: "array", items: { type: "string" } }, description: { type: "string" },
+                planType: { type: "string" }, yieldInfo: { type: "string" }, ratioInfo: { type: "string" },
+                rating: { type: "number" }, telegramUrl: { type: "string" }, twitterUrl: { type: "string" },
+                videoUrl: { type: "string" }, logoUrl: { type: "string" },
+              },
+              required: ["name", "dailyRate", "badgeLabels", "tags", "description", "planType"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const content = response.choices[0].message.content;
+      const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
+      return { success: true, plan: parsed, sourceUrl: input.url };
+    }),
+
+    // 전체 자동 채우기 (파싱 후 로고 생성 + YouTube 검색 동시 실행)
+    fullAutoFill: adminProcedure.input(z.object({
+      planName: z.string().min(1),
+      parsedPlan: z.object({
+        name: z.string(),
+        label: z.string().optional(),
+        dailyRate: z.string(),
+        minAmount: z.string().optional(),
+        recommendedAmount: z.string().optional(),
+        allocation: z.string().optional(),
+        strategy: z.string().optional(),
+        badgeLabels: z.array(z.string()).optional(),
+        tags: z.array(z.string()).optional(),
+        description: z.string().optional(),
+        planType: z.string().optional(),
+        yieldInfo: z.string().optional(),
+        ratioInfo: z.string().optional(),
+        rating: z.number().optional(),
+        telegramUrl: z.string().optional(),
+        twitterUrl: z.string().optional(),
+        videoUrl: z.string().optional(),
+        logoUrl: z.string().optional(),
+      }),
+      generateLogo: z.boolean().default(true),
+      searchVideos: z.boolean().default(true),
+    })).mutation(async ({ input }) => {
+      const { generateImage } = await import("./_core/imageGeneration");
+      const results: { logos: Array<{ url: string; style: string }> | null; videos: Array<{ videoId: string; title: string; url: string; thumbnail: string; channelTitle: string }> | null } = { logos: null, videos: null };
+
+      // 로고 생성 (1개만 빠르게)
+      if (input.generateLogo && !input.parsedPlan.logoUrl) {
+        try {
+          const logo = await generateImage({
+            prompt: `Professional investment fund logo for "${input.planName}". Clean, modern, minimalist design. Gold and dark navy color scheme. Geometric shapes, financial/crypto theme. White background. Square format, high quality.`,
+          });
+          if (logo.url) results.logos = [{ url: logo.url, style: "Auto" }];
+        } catch {}
+      }
+
+      // YouTube 검색
+      if (input.searchVideos && !input.parsedPlan.videoUrl) {
+        const apiKey = process.env.YOUTUBE_API_KEY;
+        if (apiKey) {
+          try {
+            const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(input.planName + " investment crypto")}&maxResults=4&type=video&key=${apiKey}`;
+            const res = await fetch(searchUrl);
+            const data = await res.json() as { items?: Array<{ id: { videoId: string }; snippet: { title: string; thumbnails: { medium: { url: string } }; channelTitle: string } }> };
+            results.videos = (data.items ?? []).map((item) => ({
+              videoId: item.id.videoId,
+              title: item.snippet.title,
+              url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+              thumbnail: item.snippet.thumbnails.medium.url,
+              channelTitle: item.snippet.channelTitle,
+            }));
+          } catch {}
+        }
+      }
+
+      return { success: true, ...results };
+    }),
   }),
 
   // ─── Plan Submissions (공개 플랜 등록 신청) ──────────────────────────────────

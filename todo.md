@@ -941,3 +941,17 @@
 - [x] Privacy.tsx: i18n 다국어 + DB 동적 콘텐츠 렌더링
 - [x] App.tsx: /admin/site-settings, /admin/legal 라우트 등록
 - [x] 테스트 작성 (125개 모두 통과)
+
+## Phase 73 - AI 자동화 플랜 등록 고도화 (2026-04-21)
+- [x] tRPC: aiPlanImport.generateLogo (AI 로고 자동 생성 - 플랜명 기반)
+- [x] tRPC: aiPlanImport.searchYouTube (YouTube 관련 영상 자동 검색)
+- [x] tRPC: aiPlanImport.parseFromUrl (원페이지 URL 크롤링 + LLM 파싱)
+- [x] tRPC: aiPlanImport.fullAutoFill (PPT/이미지/텍스트 → 전체 필드 + 로고 + 영상 한번에)
+- [x] AiPlanImport.tsx 전면 개편: 3단계 마법사 UI (파싱 → 로고/영상 → 최종 등록)
+- [x] 로고 AI 생성 탭: 생성된 로고 3개 옵션 중 선택
+- [x] YouTube 영상 검색 탭: 검색 결과 카드에서 선택 → videoUrl/videoUrl2 자동 채우기
+- [x] 원페이지 URL 입력 탭: URL 붙여넣기 → 자동 파싱
+- [x] 전체 필드 미리보기 편집기: 파싱된 결과 모든 필드 인라인 수정 가능
+- [x] planType 자동 감지 (golden/self/leader/influencer/meme/node)
+- [x] 등록 완료 후 플랜 상세 페이지 바로가기 링크
+- [x] 테스트 작성 (138개 모두 통과)
