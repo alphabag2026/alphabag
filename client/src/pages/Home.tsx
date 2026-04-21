@@ -651,6 +651,13 @@ export default function Home() {
   const { data: airdropList = [] } = trpc.airdropSection.list.useQuery();
   // 소셜 링크 (DB 동적)
   const { data: socialLinks } = trpc.settings.getSocialLinks.useQuery();
+  // 뉴스/라이브/이벤트 (DB 동적)
+  const { data: newsItems = [], isLoading: newsLoading } = trpc.news.list.useQuery();
+  const { data: liveStreamItems = [], isLoading: liveLoading } = trpc.liveStreams.list.useQuery();
+  const meetupInput = useMemo(() => ({ type: "meetup" }), []);
+  const expoInput = useMemo(() => ({ type: "expo" }), []);
+  const { data: meetupItems = [], isLoading: meetupLoading } = trpc.events.list.useQuery(meetupInput);
+  const { data: expoItems = [], isLoading: expoLoading } = trpc.events.list.useQuery(expoInput);
   const { data: favoritesList = [], refetch: refetchFavorites } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
   const toggleFavoriteMutation = trpc.favorites.toggle.useMutation({ onSuccess: () => refetchFavorites() });
   // SNS 인플루언서
@@ -1433,24 +1440,46 @@ export default function Home() {
             {activeTab === "news" && (
               <div>
                 <div className={`text-xs font-bold mb-3 ${textPrimary}`}>{t("home.tabTitles.news")}</div>
-                <div className="space-y-3">
-                  {[
-                    { title: t("home.newsItem1"), time: t("home.news2hAgo"), category: t("home.newsNotice") },
-                    { title: t("home.newsItem2"), time: t("home.news4hAgo"), category: t("home.newsMarket") },
-                    { title: t("home.newsItem3"), time: t("home.news1dAgo"), category: t("home.newsUpdate") },
-                    { title: t("home.newsItem4"), time: t("home.news2dAgo"), category: t("home.newsEvent") },
-                  ].map((news, i) => (
-                    <div key={i} className={`flex items-start gap-3 pb-3 border-b last:border-0 ${isDark ? "border-white/5" : "border-gray-100"}`}>
-                      <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                        <Newspaper className="w-4 h-4 text-amber-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className={`text-xs font-medium ${textPrimary} leading-relaxed`}>{news.title}</div>
-                        <div className={`text-[10px] ${textSecondary} mt-0.5`}>{news.category} · {news.time}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {newsLoading ? (
+                  <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                    <div className={`text-xs ${textSecondary}`}>{t("home.loading") || "Loading..."}</div>
+                  </div>
+                ) : (newsItems as any[]).length === 0 ? (
+                  <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                    <Newspaper className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                    <div className={`text-xs ${textSecondary}`}>{t("home.noNews") || "No news yet."}</div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {(newsItems as any[]).map((item: any) => {
+                      const title = lang === "ko" && item.titleKo ? item.titleKo
+                        : lang === "zh" && item.titleZh ? item.titleZh
+                        : item.titleEn || item.title;
+                      const timeAgo = item.publishedAt
+                        ? new Date(item.publishedAt).toLocaleDateString()
+                        : "";
+                      return (
+                        <div
+                          key={item.id}
+                          className={`flex items-start gap-3 pb-3 border-b last:border-0 ${isDark ? "border-white/5" : "border-gray-100"} ${item.url ? "cursor-pointer hover:opacity-80" : ""}`}
+                          onClick={() => item.url && window.open(item.url, "_blank")}
+                        >
+                          {item.imageUrl ? (
+                            <img src={item.imageUrl} alt={title} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                              <Newspaper className="w-4 h-4 text-amber-400" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-xs font-medium ${textPrimary} leading-relaxed`}>{title}</div>
+                            <div className={`text-[10px] ${textSecondary} mt-0.5`}>{item.category || "News"} · {timeAgo}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
             {activeTab === "contents" && (
@@ -1690,10 +1719,48 @@ export default function Home() {
                   <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                   <span className={`text-xs font-bold ${textPrimary}`}>🔴 Live</span>
                 </div>
-                <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
-                  <Tv className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-                  <div className={`text-xs ${textSecondary}`}>{t("home.liveComingSoon")}</div>
-                </div>
+                {liveLoading ? (
+                  <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                    <div className={`text-xs ${textSecondary}`}>{t("home.loading") || "Loading..."}</div>
+                  </div>
+                ) : (liveStreamItems as any[]).length === 0 ? (
+                  <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                    <Tv className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                    <div className={`text-xs ${textSecondary}`}>{t("home.liveComingSoon")}</div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {(liveStreamItems as any[]).map((item: any) => (
+                      <div
+                        key={item.id}
+                        className={`rounded-xl border overflow-hidden ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"} ${item.streamUrl ? "cursor-pointer hover:opacity-90" : ""}`}
+                        onClick={() => item.streamUrl && window.open(item.streamUrl, "_blank")}
+                      >
+                        {item.thumbnailUrl && (
+                          <div className="relative h-28 overflow-hidden">
+                            <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />
+                            {item.isLive && (
+                              <div className="absolute top-2 left-2">
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500 text-white font-bold flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse inline-block" /> LIVE
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className="p-3">
+                          <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{item.title}</div>
+                          {item.description && <div className={`text-[10px] ${textSecondary} mb-1`}>{item.description}</div>}
+                          {item.scheduledAt && !item.isLive && (
+                            <div className={`text-[10px] ${textSecondary}`}>
+                              📅 {new Date(item.scheduledAt).toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             {activeTab === "mlm" && (
@@ -1727,10 +1794,47 @@ export default function Home() {
                 <div className={`text-xs font-bold mb-3 ${textPrimary} flex items-center gap-1.5`}>
                   🤝 Meetup
                 </div>
-                <div className={`rounded-xl border p-4 mb-3 ${cardBg}`}>
-                  <div className={`text-xs font-semibold ${textPrimary} mb-2`}>{t("home.upcomingMeetup")}</div>
-                  <div className={`text-[11px] ${textSecondary}`}>{t("home.noMeetupScheduled")}</div>
-                </div>
+                {meetupLoading ? (
+                  <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                    <div className={`text-xs ${textSecondary}`}>{t("home.loading") || "Loading..."}</div>
+                  </div>
+                ) : (meetupItems as any[]).length === 0 ? (
+                  <div className={`rounded-xl border p-4 mb-3 ${cardBg}`}>
+                    <div className={`text-xs font-semibold ${textPrimary} mb-2`}>{t("home.upcomingMeetup")}</div>
+                    <div className={`text-[11px] ${textSecondary}`}>{t("home.noMeetupScheduled")}</div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {(meetupItems as any[]).map((item: any) => {
+                      const title = lang === "ko" && item.titleKo ? item.titleKo : item.title;
+                      return (
+                        <div
+                          key={item.id}
+                          className={`rounded-xl border overflow-hidden ${isDark ? "border-white/5" : "border-gray-200"} ${item.registrationUrl ? "cursor-pointer hover:opacity-90" : ""}`}
+                          onClick={() => item.registrationUrl && window.open(item.registrationUrl, "_blank")}
+                        >
+                          {item.imageUrl && (
+                            <div className="h-24 overflow-hidden">
+                              <img src={item.imageUrl} alt={title} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div className={`p-3 ${isDark ? "bg-[#0d0d0d]" : "bg-gray-50"}`}>
+                            {item.isFeatured && (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500 text-black font-bold mr-1">★ Featured</span>
+                            )}
+                            <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{title}</div>
+                            {item.description && <div className={`text-[10px] ${textSecondary} mb-1`}>{item.description}</div>}
+                            <div className={`text-[10px] ${textSecondary} flex items-center gap-2`}>
+                              {item.startAt && <span>📅 {new Date(item.startAt).toLocaleDateString()}</span>}
+                              {item.location && <span>📍 {item.location}</span>}
+                              {!item.location && item.onlineUrl && <span>💻 Online</span>}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1740,10 +1844,49 @@ export default function Home() {
                 <div className={`text-xs font-bold mb-3 ${textPrimary} flex items-center gap-1.5`}>
                   🏛️ Expo &amp; Conference
                 </div>
-                {/* NEXUS 2140 베트남 행사 카드 */}
+                {/* DB 동적 엑스포 이벤트 */}
+                {expoLoading ? (
+                  <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                    <div className={`text-xs ${textSecondary}`}>{t("home.loading") || "Loading..."}</div>
+                  </div>
+                ) : (expoItems as any[]).length > 0 && (
+                  <div className="space-y-3 mb-3">
+                    {(expoItems as any[]).map((item: any) => {
+                      const title = lang === "ko" && item.titleKo ? item.titleKo : item.title;
+                      return (
+                        <div
+                          key={item.id}
+                          className={`rounded-xl border overflow-hidden ${isDark ? "border-white/5" : "border-gray-200"} ${item.registrationUrl ? "cursor-pointer hover:opacity-90" : ""}`}
+                          onClick={() => item.registrationUrl && window.open(item.registrationUrl, "_blank")}
+                        >
+                          {(item.bannerUrl || item.imageUrl) && (
+                            <div className="relative h-32 overflow-hidden">
+                              <img src={item.bannerUrl || item.imageUrl} alt={title} className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                              {item.isFeatured && (
+                                <div className="absolute bottom-2 left-3">
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-black font-bold">★ Featured</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          <div className={`p-3 ${isDark ? "bg-[#0d0d0d]" : "bg-gray-50"}`}>
+                            <div className={`font-bold text-xs ${textPrimary} mb-1`}>{title}</div>
+                            {item.description && <div className={`text-[10px] ${textSecondary} mb-1`}>{item.description}</div>}
+                            <div className={`text-[10px] ${textSecondary} flex items-center gap-2`}>
+                              {item.startAt && <span>📅 {new Date(item.startAt).toLocaleDateString()}</span>}
+                              {item.location && <span>📍 {item.location}</span>}
+                              {!item.location && item.onlineUrl && <span>💻 Online</span>}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {/* NEXUS 2140 베트남 행사 카드 (고정 스폰서 카드) */}
                 <a href="https://nexus2140.org/" target="_blank" rel="noopener noreferrer" className="block">
                   <div className={`rounded-xl border overflow-hidden mb-3 cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg ${isDark ? "border-purple-500/30 bg-purple-900/10" : "border-purple-200 bg-purple-50"}`}>
-                    {/* 배너 이미지 */}
                     <div className="relative h-32 overflow-hidden">
                       <img
                         src="https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/nexus2140-banner-en-ekn9NJTBoRGqyBfj6jKYUJ.webp"

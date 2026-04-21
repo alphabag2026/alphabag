@@ -805,3 +805,63 @@ export const legalDocuments = mysqlTable("legalDocuments", {
 });
 export type LegalDocument = typeof legalDocuments.$inferSelect;
 export type InsertLegalDocument = typeof legalDocuments.$inferInsert;
+
+// ─── News Items (뉴스/공지 피드) ────────────────────────────────────────────
+export const newsItems = mysqlTable("newsItems", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 300 }).notNull(),
+  titleKo: varchar("titleKo", { length: 300 }),
+  titleEn: varchar("titleEn", { length: 300 }),
+  titleZh: varchar("titleZh", { length: 300 }),
+  url: varchar("url", { length: 1000 }),
+  category: varchar("category", { length: 50 }).default("notice"),
+  imageUrl: varchar("imageUrl", { length: 1000 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  publishedAt: timestamp("publishedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type NewsItem = typeof newsItems.$inferSelect;
+export type InsertNewsItem = typeof newsItems.$inferInsert;
+
+// ─── Live Streams (라이브 방송) ────────────────────────────────────────────
+export const liveStreams = mysqlTable("liveStreams", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 300 }).notNull(),
+  description: text("description"),
+  streamUrl: varchar("streamUrl", { length: 1000 }),
+  thumbnailUrl: varchar("thumbnailUrl", { length: 1000 }),
+  isLive: boolean("isLive").default(false).notNull(),
+  scheduledAt: timestamp("scheduledAt"),
+  endedAt: timestamp("endedAt"),
+  viewerCount: int("viewerCount").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type LiveStream = typeof liveStreams.$inferSelect;
+export type InsertLiveStream = typeof liveStreams.$inferInsert;
+
+// ─── Events (밋업/엑스포/컨퍼런스) ────────────────────────────────────────────
+export const events = mysqlTable("events", {
+  id: int("id").autoincrement().primaryKey(),
+  type: mysqlEnum("type", ["meetup", "expo", "conference", "webinar"]).default("meetup").notNull(),
+  title: varchar("title", { length: 300 }).notNull(),
+  titleKo: varchar("titleKo", { length: 300 }),
+  description: text("description"),
+  location: varchar("location", { length: 300 }),
+  onlineUrl: varchar("onlineUrl", { length: 1000 }),
+  imageUrl: varchar("imageUrl", { length: 1000 }),
+  bannerUrl: varchar("bannerUrl", { length: 1000 }),
+  registrationUrl: varchar("registrationUrl", { length: 1000 }),
+  startAt: timestamp("startAt").notNull(),
+  endAt: timestamp("endAt"),
+  isActive: boolean("isActive").default(true).notNull(),
+  isFeatured: boolean("isFeatured").default(false).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Event = typeof events.$inferSelect;
+export type InsertEvent = typeof events.$inferInsert;

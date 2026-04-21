@@ -14,7 +14,7 @@ import * as db from "./db";
 import { getDb } from "./db";
 import { createAuditLog } from "./db";
 import { adminAccounts } from "../drizzle/schema";
-import { referralMessages as referralMessagesTable } from "../drizzle/schema.js";
+import { referralMessages as referralMessagesTable, newsItems as newsItemsTable, liveStreams as liveStreamsTable, events as eventsTable } from "../drizzle/schema.js";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
 
@@ -106,6 +106,24 @@ export const appRouter = router({
     }),
     planDistribution: adminProcedure.query(async () => {
       return await db.getPlanDistribution();
+    }),
+    // 사이드바 알림 배지용 미처리 카운트
+    adminBadges: adminProcedure.query(async () => {
+      const { supportTickets, nodeOrders, planSubmissions } = await import("../drizzle/schema");
+      const { count } = await import("drizzle-orm");
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return { tickets: 0, nodeOrders: 0, submissions: 0 };
+      const [ticketRow] = await drizzleDb.select({ cnt: count() }).from(supportTickets)
+        .where(eq(supportTickets.status, "open"));
+      const [nodeRow] = await drizzleDb.select({ cnt: count() }).from(nodeOrders)
+        .where(eq(nodeOrders.status, "pending"));
+      const [subRow] = await drizzleDb.select({ cnt: count() }).from(planSubmissions)
+        .where(eq(planSubmissions.status, "draft"));
+      return {
+        tickets: Number(ticketRow?.cnt ?? 0),
+        nodeOrders: Number(nodeRow?.cnt ?? 0),
+        submissions: Number(subRow?.cnt ?? 0),
+      };
     }),
   }),
 
@@ -4015,5 +4033,179 @@ Write the full document now:`;
       return { content };
     }),
   }),
+
+  // ─── News Items ─────────────────────────────────────────────────────
+  news: router({
+    list: publicProcedure.query(async () => {
+      const drizzleDb = (await getDb())!;
+      return drizzleDb.select().from(newsItemsTable)
+        .where(eq(newsItemsTable.isActive, true))
+        .orderBy(desc(newsItemsTable.sortOrder), desc(newsItemsTable.publishedAt));
+    }),
+    listAll: adminProcedure.query(async () => {
+      const drizzleDb = (await getDb())!;
+      return drizzleDb.select().from(newsItemsTable)
+        .orderBy(desc(newsItemsTable.sortOrder), desc(newsItemsTable.publishedAt));
+    }),
+    create: adminProcedure.input(z.object({
+      title: z.string().min(1),
+      titleKo: z.string().optional(),
+      titleEn: z.string().optional(),
+      titleZh: z.string().optional(),
+      url: z.string().optional(),
+      category: z.string().optional(),
+      imageUrl: z.string().optional(),
+      isActive: z.boolean().default(true),
+      sortOrder: z.number().default(0),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = (await getDb())!;
+      const [result] = await drizzleDb.insert(newsItemsTable).values(input);
+      return { id: (result as any).insertId };
+    }),
+    update: adminProcedure.input(z.object({
+      id: z.number(),
+      title: z.string().optional(),
+      titleKo: z.string().optional(),
+      titleEn: z.string().optional(),
+      titleZh: z.string().optional(),
+      url: z.string().optional(),
+      category: z.string().optional(),
+      imageUrl: z.string().optional(),
+      isActive: z.boolean().optional(),
+      sortOrder: z.number().optional(),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = (await getDb())!;
+      const { id, ...data } = input;
+      await drizzleDb.update(newsItemsTable).set(data).where(eq(newsItemsTable.id, id));
+      return { success: true };
+    }),
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const drizzleDb = (await getDb())!;
+      await drizzleDb.delete(newsItemsTable).where(eq(newsItemsTable.id, input.id));
+      return { success: true };
+    }),
+  }),
+
+  // ─── Live Streams ──────────────────────────────────────────────────
+  liveStreams: router({
+    list: publicProcedure.query(async () => {
+      const drizzleDb = (await getDb())!;
+      return drizzleDb.select().from(liveStreamsTable)
+        .where(eq(liveStreamsTable.isActive, true))
+        .orderBy(desc(liveStreamsTable.isLive), desc(liveStreamsTable.scheduledAt));
+    }),
+    listAll: adminProcedure.query(async () => {
+      const drizzleDb = (await getDb())!;
+      return drizzleDb.select().from(liveStreamsTable)
+        .orderBy(desc(liveStreamsTable.createdAt));
+    }),
+    create: adminProcedure.input(z.object({
+      title: z.string().min(1),
+      description: z.string().optional(),
+      streamUrl: z.string().optional(),
+      thumbnailUrl: z.string().optional(),
+      isLive: z.boolean().default(false),
+      scheduledAt: z.string().optional(),
+      isActive: z.boolean().default(true),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = (await getDb())!;
+      const data: any = { ...input };
+      if (input.scheduledAt) data.scheduledAt = new Date(input.scheduledAt);
+      const [result] = await drizzleDb.insert(liveStreamsTable).values(data);
+      return { id: (result as any).insertId };
+    }),
+    update: adminProcedure.input(z.object({
+      id: z.number(),
+      title: z.string().optional(),
+      description: z.string().optional(),
+      streamUrl: z.string().optional(),
+      thumbnailUrl: z.string().optional(),
+      isLive: z.boolean().optional(),
+      scheduledAt: z.string().optional(),
+      isActive: z.boolean().optional(),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = (await getDb())!;
+      const { id, scheduledAt, ...rest } = input;
+      const data: any = { ...rest };
+      if (scheduledAt) data.scheduledAt = new Date(scheduledAt);
+      await drizzleDb.update(liveStreamsTable).set(data).where(eq(liveStreamsTable.id, id));
+      return { success: true };
+    }),
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const drizzleDb = (await getDb())!;
+      await drizzleDb.delete(liveStreamsTable).where(eq(liveStreamsTable.id, input.id));
+      return { success: true };
+    }),
+  }),
+
+  // ─── Events (Meetup/Expo) ──────────────────────────────────────────────
+  events: router({
+    list: publicProcedure.input(z.object({ type: z.string().optional() })).query(async ({ input }) => {
+      const drizzleDb = (await getDb())!;
+      const conditions = [eq(eventsTable.isActive, true)];
+      if (input.type) conditions.push(eq(eventsTable.type, input.type as any));
+      return drizzleDb.select().from(eventsTable)
+        .where(and(...conditions))
+        .orderBy(eventsTable.sortOrder, eventsTable.startAt);
+    }),
+    listAll: adminProcedure.query(async () => {
+      const drizzleDb = (await getDb())!;
+      return drizzleDb.select().from(eventsTable)
+        .orderBy(desc(eventsTable.createdAt));
+    }),
+    create: adminProcedure.input(z.object({
+      type: z.enum(["meetup", "expo", "conference", "webinar"]).default("meetup"),
+      title: z.string().min(1),
+      titleKo: z.string().optional(),
+      description: z.string().optional(),
+      location: z.string().optional(),
+      onlineUrl: z.string().optional(),
+      imageUrl: z.string().optional(),
+      bannerUrl: z.string().optional(),
+      registrationUrl: z.string().optional(),
+      startAt: z.string(),
+      endAt: z.string().optional(),
+      isActive: z.boolean().default(true),
+      isFeatured: z.boolean().default(false),
+      sortOrder: z.number().default(0),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = (await getDb())!;
+      const data: any = { ...input, startAt: new Date(input.startAt) };
+      if (input.endAt) data.endAt = new Date(input.endAt);
+      const [result] = await drizzleDb.insert(eventsTable).values(data);
+      return { id: (result as any).insertId };
+    }),
+    update: adminProcedure.input(z.object({
+      id: z.number(),
+      type: z.enum(["meetup", "expo", "conference", "webinar"]).optional(),
+      title: z.string().optional(),
+      titleKo: z.string().optional(),
+      description: z.string().optional(),
+      location: z.string().optional(),
+      onlineUrl: z.string().optional(),
+      imageUrl: z.string().optional(),
+      bannerUrl: z.string().optional(),
+      registrationUrl: z.string().optional(),
+      startAt: z.string().optional(),
+      endAt: z.string().optional(),
+      isActive: z.boolean().optional(),
+      isFeatured: z.boolean().optional(),
+      sortOrder: z.number().optional(),
+    })).mutation(async ({ input }) => {
+      const drizzleDb = (await getDb())!;
+      const { id, startAt, endAt, ...rest } = input;
+      const data: any = { ...rest };
+      if (startAt) data.startAt = new Date(startAt);
+      if (endAt) data.endAt = new Date(endAt);
+      await drizzleDb.update(eventsTable).set(data).where(eq(eventsTable.id, id));
+      return { success: true };
+    }),
+    delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      const drizzleDb = (await getDb())!;
+      await drizzleDb.delete(eventsTable).where(eq(eventsTable.id, input.id));
+      return { success: true };
+    }),
+  }),
 });
+
 export type AppRouter = typeof appRouter;

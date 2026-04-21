@@ -972,3 +972,51 @@
 - [x] i18n.ts 21개 언어에 adminNav.catPlan/catContent/catUsers/catSystem 번역 키 추가
 - [x] TypeScript 오류 0개 확인
 - [x] 체크포인트 저장
+
+## Phase 76 - 메인↔백오피스 매칭 + 전체 기능 상용화 (2026-04-22)
+
+### 분석 결과: 메인 페이지 탭 vs 백오피스 매칭 현황
+- recommend/bbag/mlm → 플랜 관리로 커버됨 ✅
+- sns → /admin/sns ✅
+- trending → /admin/trending-alerts ✅
+- airdrop → /admin/airdrops ✅
+- news → 백오피스 없음 ❌
+- contents → 백오피스 없음 ❌
+- live → 백오피스 없음 ❌
+- meetup → 백오피스 없음 ❌
+- expo → 백오피스 없음 ❌
+- infoweb4(1page.to) → 백오피스 없음 ❌
+- faq/qna → /admin/content 내 FAQ 탭 있음 ✅
+- about/introduction → 백오피스 없음 ❌
+- favorites → 사용자 기능 (백오피스 불필요)
+- cbag → /admin/cbag ✅
+- partners → /admin/partners ✅
+- listing → /admin/listing-requests ✅
+
+### 백오피스 추가 기능
+- [ ] 대시보드 숫자 포맷 i18n (천 단위 구분자, 통화 기호)
+- [ ] 사이드바 카테고리 접기/펼치기 상태 localStorage 저장
+- [ ] 사이드바 알림 배지 (미처리 티켓/신청/노드 주문 수)
+- [ ] /admin/news - 뉴스 관리 페이지 (news 탭 콘텐츠 관리)
+- [ ] /admin/contents - 콘텐츠/영상 관리 페이지 (contents 탭)
+- [ ] /admin/live - 라이브 방송 관리 (라이브 스트림 URL 관리)
+- [ ] /admin/meetup - 밋업/행사 일정 관리
+- [ ] /admin/expo - 엑스포/컨퍼런스 관리
+- [ ] /admin/about - About/Introduction 페이지 콘텐츠 관리
+- [ ] AdminLayout에 위 메뉴 추가 (콘텐츠 카테고리)
+- [ ] App.tsx에 위 라우트 등록
+- [ ] URL 파싱 오류 수정 (parseFromUrl CORS 우회)
+- [ ] 이미지 업로드 오류 수정 (AI 로고 생성)
+- [ ] 전체 기능 테스트 및 오류 수정
+- [ ] 체크포인트 저장
+
+## Phase 76 완료 - 메인↔백오피스 매칭 + Home.tsx DB 연동 (2026-04-22)
+- [x] AdminLayout.tsx catContent에 뉴스/라이브/이벤트 메뉴 항목 추가 (Newspaper/Tv/Calendar 아이콘)
+- [x] i18n.ts 21개 언어에 newsLabel/liveLabel/eventsLabel 번역 키 추가
+- [x] Home.tsx news 탭 → DB 동적 연동 (newsItems 쿼리, 빈 상태/로딩 처리)
+- [x] Home.tsx live 탭 → DB 동적 연동 (liveStreamItems 쿼리, 썸네일/LIVE 배지)
+- [x] Home.tsx meetup 탭 → DB 동적 연동 (meetupItems 쿼리, 이미지/날짜/장소)
+- [x] Home.tsx expo 탭 → DB 동적 연동 (expoItems 쿼리) + NEXUS 2140 고정 카드 유지
+- [x] events.list 라우터에 type 필터링 실제 적용 (and() 조건 추가)
+- [x] server/news.live.events.test.ts 테스트 파일 추가 (8개 테스트 통과)
+- [x] 전체 테스트 146개 통과 (TypeScript 오류 0개)

@@ -225,6 +225,13 @@
       "when": 1776589230693,
       "tag": "0031_marvelous_red_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1776797070892,
+      "tag": "0032_opposite_leper_queen",
+      "breakpoints": true
     }
   ]
 }

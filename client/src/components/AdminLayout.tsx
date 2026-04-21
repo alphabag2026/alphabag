@@ -7,6 +7,7 @@ import {
   ClipboardList, CalendarClock, Image, Zap, FileSearch, Handshake,
   BarChart2, GitBranch, UserCog, Radio, Sparkles, Star, Coins, Key,
   Share2, ScrollText, ChevronDown, ChevronRight, Menu, X,
+  Newspaper, Tv, CalendarDays,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { LANGUAGES } from "@/lib/i18n";
@@ -15,6 +16,7 @@ const ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
   LayoutDashboard, TrendingUp, FileText, Users, Cpu,
   TicketCheck, Bell, Gift, ShieldCheck, ClipboardList, CalendarClock, Image, Zap, FileSearch, Handshake,
   BarChart2, GitBranch, UserCog, Radio, Sparkles, Star, Coins, Shield, Key, Share2, ScrollText,
+  Newspaper, Tv, CalendarDays,
 };
 
 interface AdminLayoutProps {
@@ -27,9 +29,20 @@ export default function AdminLayout({ children, title = "Admin Panel" }: AdminLa
   const { t, i18n } = useTranslation();
   const [langOpen, setLangOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  // 카테고리 접기/펼치기 상태 (기본: 모두 펼침)
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  // 카테고리 접기/펼치기 상태 - localStorage에서 복원
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem("admin_sidebar_collapsed");
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
   const sidebarRef = useRef<HTMLDivElement>(null);
+
+  // 알림 배지 카운트
+  const { data: badges } = trpc.dashboard.adminBadges.useQuery(undefined, {
+    refetchInterval: 60000, // 1분마다 갱신
+    retry: false,
+  });
 
   // 카테고리별 메뉴 그룹 정의
   const CATEGORIES = [
@@ -57,6 +70,9 @@ export default function AdminLayout({ children, title = "Admin Panel" }: AdminLa
         { href: "/admin/notifications",      label: t("adminNav.notifications"),     icon: "Bell" },
         { href: "/admin/airdrops",           label: t("adminNav.airdrop"),           icon: "Gift" },
         { href: "/admin/analytics",          label: t("adminNav.analytics"),         icon: "BarChart2" },
+        { href: "/admin/news",                label: t("adminNav.newsLabel"),          icon: "Newspaper" },
+        { href: "/admin/live-streams",        label: t("adminNav.liveLabel"),          icon: "Tv" },
+        { href: "/admin/events",              label: t("adminNav.eventsLabel"),        icon: "CalendarDays" },
       ],
     },
     {
@@ -126,7 +142,18 @@ export default function AdminLayout({ children, title = "Admin Panel" }: AdminLa
   const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
 
   const toggleCategory = (key: string) => {
-    setCollapsed(prev => ({ ...prev, [key]: !prev[key] }));
+    setCollapsed(prev => {
+      const next = { ...prev, [key]: !prev[key] };
+      try { localStorage.setItem("admin_sidebar_collapsed", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
+  // 배지 매핑: href → 카운트
+  const BADGE_MAP: Record<string, number> = {
+    "/admin/tickets": badges?.tickets ?? 0,
+    "/admin/nodes": badges?.nodeOrders ?? 0,
+    "/admin/submissions": badges?.submissions ?? 0,
   };
 
   const SidebarContent = () => (
@@ -232,11 +259,29 @@ export default function AdminLayout({ children, title = "Admin Panel" }: AdminLa
                         href={href}
                         className={`ab-sidebar-link${isActive ? " active" : ""}`}
                         title={label}
+                        style={{ justifyContent: "space-between" }}
                       >
-                        {Icon && <Icon size={13} />}
-                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {label}
+                        <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", minWidth: 0 }}>
+                          {Icon && <Icon size={13} />}
+                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {label}
+                          </span>
                         </span>
+                        {BADGE_MAP[href] > 0 && (
+                          <span style={{
+                            background: "oklch(0.55 0.22 25)",
+                            color: "white",
+                            fontSize: "0.6rem",
+                            fontWeight: 700,
+                            borderRadius: "999px",
+                            padding: "0.05rem 0.35rem",
+                            minWidth: "16px",
+                            textAlign: "center",
+                            flexShrink: 0,
+                          }}>
+                            {BADGE_MAP[href] > 99 ? "99+" : BADGE_MAP[href]}
+                          </span>
+                        )}
                       </Link>
                     );
                   })}
