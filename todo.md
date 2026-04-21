@@ -1020,3 +1020,13 @@
 - [x] events.list 라우터에 type 필터링 실제 적용 (and() 조건 추가)
 - [x] server/news.live.events.test.ts 테스트 파일 추가 (8개 테스트 통과)
 - [x] 전체 테스트 146개 통과 (TypeScript 오류 0개)
+
+## Phase 77 - 백오피스 UX 3종 개선 (2026-04-22)
+- [x] 백엔드: dashboard.adminBadges 프로시저 (미처리 티켓/대기 노드주문/신규 신청 카운트) - 이미 구현됨
+- [x] AdminLayout.tsx: trpc.dashboard.adminBadges 쿼리 (60초 주기 폴링)
+- [x] AdminLayout.tsx: Tickets/Nodes/Submissions 메뉴 옆 빨간 숫자 배지 표시 (99+ 처리)
+- [x] AdminLayout.tsx: 카테고리 접기/펼치기 상태 localStorage 저장 (페이지 이동 후 유지) - 이미 구현됨
+- [x] 숫자 포맷 i18n 유틸 함수 (formatNumber, formatCurrency, formatCompact) - 언어별 Intl.NumberFormat
+- [x] 백오피스 Dashboard.tsx 통계 카드/차트 tooltip/테이블 금액에 formatCurrency/formatNumber 적용
+- [x] 백오피스 Analytics.tsx 통계 카드/차트/테이블 금액에 formatCurrency/formatNumber 적용
+- [x] formatNumber.test.ts 테스트 12개 추가 (전체 158개 통과)

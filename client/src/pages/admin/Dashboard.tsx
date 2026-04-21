@@ -1,6 +1,8 @@
 import { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
+import { formatNumber, formatCurrency } from "@/lib/formatNumber";
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
@@ -18,6 +20,8 @@ const RANGE_OPTIONS = [
 
 export default function AdminDashboard() {
   const [range, setRange] = useState(7);
+  const { i18n } = useTranslation();
+  const lang = i18n.language || "en";
 
   const { data: stats, isLoading: statsLoading, refetch } = trpc.dashboard.stats.useQuery();
   const { data: chartData } = trpc.dashboard.investmentTrend.useQuery({ days: range });
@@ -26,11 +30,11 @@ export default function AdminDashboard() {
   const { data: nodeSalesData } = trpc.nodes.salesStats.useQuery();
 
   const kpiCards = [
-    { label: "Total Revenue", value: `$${(stats?.totalRevenue ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, sub: "USDT", color: "gold", icon: DollarSign },
-    { label: "Total Users", value: (stats?.totalUsers ?? 0).toLocaleString(), sub: "registered", color: "blue", icon: Users },
-    { label: "Total Referrals", value: (stats?.totalReferrals ?? 0).toLocaleString(), sub: "connections", color: "green", icon: Network },
+    { label: "Total Revenue", value: formatCurrency(stats?.totalRevenue ?? 0, lang), sub: "USDT", color: "gold", icon: DollarSign },
+    { label: "Total Users", value: formatNumber(stats?.totalUsers ?? 0, lang), sub: "registered", color: "blue", icon: Users },
+    { label: "Total Referrals", value: formatNumber(stats?.totalReferrals ?? 0, lang), sub: "connections", color: "green", icon: Network },
     { label: "Conversion Rate", value: `${(stats?.conversionRate ?? 0).toFixed(1)}%`, sub: "investors/users", color: "purple", icon: TrendingUp },
-    { label: "Open Tickets", value: (stats?.openTickets ?? 0).toLocaleString(), sub: "unresolved", color: "red", icon: TicketCheck },
+    { label: "Open Tickets", value: formatNumber(stats?.openTickets ?? 0, lang), sub: "unresolved", color: "red", icon: TicketCheck },
   ];
 
   return (
@@ -93,7 +97,7 @@ export default function AdminDashboard() {
               <XAxis dataKey="date" tick={{ fill: "oklch(0.55 0.01 240)", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "oklch(0.55 0.01 240)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
               <Tooltip contentStyle={{ background: "oklch(0.11 0.008 240)", border: "1px solid oklch(0.20 0.01 240)", borderRadius: 6, fontSize: 12 }}
-                formatter={(v: number) => [`$${v.toLocaleString()}`, "Volume"]} />
+                formatter={(v: number) => [formatCurrency(v, lang, 0), "Volume"]} />
               <Area type="monotone" dataKey="amount" stroke={GOLD} fill="url(#goldGrad)" strokeWidth={2} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
@@ -108,7 +112,7 @@ export default function AdminDashboard() {
                 {(categoryData ?? []).map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
               </Pie>
               <Tooltip contentStyle={{ background: "oklch(0.11 0.008 240)", border: "1px solid oklch(0.20 0.01 240)", borderRadius: 6, fontSize: 12 }}
-                formatter={(v: number) => [`$${v.toLocaleString()}`, ""]} />
+                formatter={(v: number) => [formatCurrency(v, lang, 0), ""]} />
               <Legend iconType="circle" iconSize={8} formatter={(v) => <span style={{ color: "oklch(0.55 0.01 240)", fontSize: 11 }}>{v}</span>} />
             </PieChart>
           </ResponsiveContainer>
@@ -132,7 +136,7 @@ export default function AdminDashboard() {
                 <YAxis yAxisId="left" tick={{ fill: "oklch(0.55 0.01 240)", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis yAxisId="right" orientation="right" tick={{ fill: "oklch(0.55 0.01 240)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={{ background: "oklch(0.11 0.008 240)", border: "1px solid oklch(0.20 0.01 240)", borderRadius: 6, fontSize: 12 }}
-                  formatter={(v: number, name: string) => [name === "revenue" ? `$${v.toLocaleString()}` : v, name === "revenue" ? "Revenue" : "Orders"]} />
+                  formatter={(v: number, name: string) => [name === "revenue" ? formatCurrency(v, lang, 0) : formatNumber(v, lang), name === "revenue" ? "Revenue" : "Orders"]} />
                 <Bar yAxisId="left" dataKey="orders" fill="#4A9EBF" radius={[3, 3, 0, 0]} name="orders" />
                 <Bar yAxisId="right" dataKey="revenue" fill={GOLD} radius={[3, 3, 0, 0]} name="revenue" />
               </BarChart>
@@ -153,7 +157,7 @@ export default function AdminDashboard() {
                   {nodeSalesData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                 </Pie>
                 <Tooltip contentStyle={{ background: "oklch(0.11 0.008 240)", border: "1px solid oklch(0.20 0.01 240)", borderRadius: 6, fontSize: 12 }}
-                  formatter={(v: number) => [`$${v.toLocaleString()}`, ""]} />
+                  formatter={(v: number) => [formatCurrency(v, lang, 0), ""]} />
                 <Legend iconType="circle" iconSize={8} formatter={(v) => <span style={{ color: "oklch(0.55 0.01 240)", fontSize: 10 }}>{v}</span>} />
               </PieChart>
             </ResponsiveContainer>
@@ -185,7 +189,7 @@ export default function AdminDashboard() {
                     </td>
                     <td><span className="ab-badge ab-badge-gold">{inv.investmentCount} plans</span></td>
                     <td style={{ textAlign: "right", color: GOLD, fontWeight: 600 }}>
-                      ${(inv.totalAmount ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      {formatCurrency(Number(inv.totalAmount ?? 0), lang)}
                     </td>
                   </tr>
                 ))}
@@ -206,7 +210,7 @@ export default function AdminDashboard() {
               <XAxis dataKey="date" tick={{ fill: "oklch(0.55 0.01 240)", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "oklch(0.55 0.01 240)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
               <Tooltip contentStyle={{ background: "oklch(0.11 0.008 240)", border: "1px solid oklch(0.20 0.01 240)", borderRadius: 6, fontSize: 12 }}
-                formatter={(v: number) => [`$${v.toLocaleString()}`, "Volume"]} />
+                formatter={(v: number) => [formatCurrency(v, lang, 0), "Volume"]} />
               <Bar dataKey="amount" fill={GOLD} radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
