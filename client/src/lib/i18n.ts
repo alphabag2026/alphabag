@@ -299,6 +299,7 @@ const en = {
     rewards: "Vote Rewards", cbag: "C-BAG Insurance", apiKeys: "API Keys",
     siteSettings: "Social Links", legal: "Legal Documents", myAccount: "My Account", logout: "Logout",
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
+    catPlan: "Plan Management", catContent: "Content", catUsers: "Users", catSystem: "System",
   },
 
 };
@@ -498,6 +499,7 @@ const zh = {
     rewards: "投票奖励", cbag: "C-BAG保险", apiKeys: "API密钥",
     siteSettings: "社交链接", legal: "法律文件", myAccount: "我的账户", logout: "退出",
     adminLabel: "管理员", subAdminLabel: "副管理员",
+    catPlan: "计划管理", catContent: "内容", catUsers: "用户", catSystem: "系统",
   },
 };
 // ─── Japanesee ─────────────────────────────────────────────────────────────────
@@ -695,6 +697,7 @@ const ja = {
     rewards: "投票報酬", cbag: "C-BAG保険", apiKeys: "APIキー",
     siteSettings: "SNSリンク", legal: "法的文書", myAccount: "マイアカウント", logout: "ログアウト",
     adminLabel: "管理者", subAdminLabel: "副管理者",
+    catPlan: "プラン管理", catContent: "コンテンツ", catUsers: "ユーザー", catSystem: "システム",
   },
 };
 // ─── Vietnamesee ───────────────────────────────────────────────────────────────
@@ -892,6 +895,7 @@ const vi = {
     rewards: "Phần thưởng bỏ phiếu", cbag: "Bảo hiểm C-BAG", apiKeys: "Khóa API",
     siteSettings: "Liên kết mạng xã hội", legal: "Tài liệu pháp lý", myAccount: "Tài khoản", logout: "Đăng xuất",
     adminLabel: "Quản trị viên", subAdminLabel: "Quản trị phụ",
+    catPlan: "Quản lý kế hoạch", catContent: "Nội dung", catUsers: "Người dùng", catSystem: "Hệ thống",
   },
 };
 // ─── Koreann ───────────────────────────────────────────────────────────────────
@@ -927,6 +931,7 @@ const ko = {
     rewards: "투표 보상 관리", cbag: "C-BAG 보험", apiKeys: "API 키 관리",
     siteSettings: "소셜 링크 설정", legal: "법적 문서 관리", myAccount: "내 계정", logout: "로그아웃",
     adminLabel: "관리자", subAdminLabel: "부운영자",
+    catPlan: "플랜 관리", catContent: "콘텐츠", catUsers: "사용자", catSystem: "시스템",
   },
   footer: { rights: "© 2025 AlphaBag. 모든 권리 보유.", philosophy: "AlphaBag는 투자를 권유하는 플랫폼이 아닙니다. 투자하지 말자가 첫 번째 원칙이지만, 투자로 수익을 추구하는 분들이 존재하기에, 정확한 분석과 분산투자를 통해 리스크를 줄이는 습관을 함께 기르고자 시작된 탈중심화 커뮤니티 플랫폼입니다.", disclaimer: "이 웹사이트, 하이퍼링크, 관련 애플리케이션, 포럼, 블로그, 미디어 계정 및 기타 플랫폼에서 제공되는 모든 콘텐츠는 서드파티 소스에서 제공됩니다. 웹사이트 또는 그 콘텐츠에 대해 어떠한 보증도 하지 않습니다. 사이트의 모든 블록체인 관련 데이터 및 정보는 사용자의 학습 및 연구 목적으로만 제공되며, 투자, 법률 또는 기타 조언을 구성하지 않습니다. 사용자는 데이터 및 콘텐츠를 신중히 사용해야 하며, 모든 위험을 감수해야 합니다. 독립적인 조사, 검토, 분석, 검증을 강력히 권장합니다.", termsLink: "이용약관", privacyLink: "개인정보처리방침" },
   why: { title: "Web3 투자자를 위해 만들어졌습니다", subtitle: "왜 우리를 선택해야 하나요", globalAccess: { title: "글로벌 접근", desc: "암호화폐 지갑으로 전 세계 어디서나 투자하세요." }, nonCustodial: { title: "비수탁형", desc: "자금은 항상 본인이 관리합니다." }, analytics: { title: "실시간 분석", desc: "라이브 대시보드로 포트폴리오 성과를 추적하세요." }, referralRewards: { title: "추천 보상", desc: "친구를 추천하여 수익을 얻으세요." }, curated: { title: "엄선된 프로젝트", desc: "최고의 Binance Alpha 및 Web3 프로젝트만 제공합니다." }, instant: { title: "즉시 설정", desc: "지갑을 연결하고 몇 분 안에 투자를 시작하세요." } },
@@ -1294,6 +1299,7 @@ const th = {
     rewards: "รางวัลการโหวต", cbag: "ประกัน C-BAG", apiKeys: "API Key",
     siteSettings: "ลิงก์โซเชียล", legal: "เอกสารกฎหมาย", myAccount: "บัญชีของฉัน", logout: "ออกจากระบบ",
     adminLabel: "ผู้ดูแลระบบ", subAdminLabel: "ผู้ดูแลรอง",
+    catPlan: "การจัดการแผน", catContent: "เนื้อหา", catUsers: "ผู้ใช้", catSystem: "ระบบ",
   },
 };
 
@@ -1492,6 +1498,7 @@ const id = {
     rewards: "Hadiah Voting", cbag: "Asuransi C-BAG", apiKeys: "Kunci API",
     siteSettings: "Tautan Sosial", legal: "Dokumen Hukum", myAccount: "Akun Saya", logout: "Keluar",
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
+    catPlan: "Manajemen Rencana", catContent: "Konten", catUsers: "Pengguna", catSystem: "Sistem",
   },
 };
 
@@ -1690,6 +1697,7 @@ const ms = {
     rewards: "Ganjaran Undi", cbag: "Insurans C-BAG", apiKeys: "Kunci API",
     siteSettings: "Pautan Sosial", legal: "Dokumen Undang-undang", myAccount: "Akaun Saya", logout: "Log Keluar",
     adminLabel: "Pentadbir", subAdminLabel: "Sub-Pentadbir",
+    catPlan: "Pengurusan Pelan", catContent: "Kandungan", catUsers: "Pengguna", catSystem: "Sistem",
   },
 };
 
@@ -1888,6 +1896,7 @@ const ru = {
     rewards: "Награды", cbag: "Страхование C-BAG", apiKeys: "API ключи",
     siteSettings: "Соцсети", legal: "Правовые документы", myAccount: "Мой аккаунт", logout: "Выход",
     adminLabel: "Администратор", subAdminLabel: "Подадмин",
+    catPlan: "Управление планами", catContent: "Контент", catUsers: "Пользователи", catSystem: "Система",
   },
 };
 
@@ -2086,6 +2095,7 @@ const ar = {
     rewards: "مكافآت", cbag: "تأمين C-BAG", apiKeys: "مفاتيح API",
     siteSettings: "روابط اجتماعية", legal: "وثائق قانونية", myAccount: "حسابي", logout: "تسجيل الخروج",
     adminLabel: "مشرف", subAdminLabel: "مساعد المشرف",
+    catPlan: "إدارة الخطة", catContent: "المحتوى", catUsers: "المستخدمون", catSystem: "النظام",
   },
 };
 
@@ -2284,6 +2294,7 @@ const es = {
     rewards: "Recompensas", cbag: "Seguro C-BAG", apiKeys: "Claves API",
     siteSettings: "Redes Sociales", legal: "Documentos Legales", myAccount: "Mi Cuenta", logout: "Cerrar Sesión",
     adminLabel: "Administrador", subAdminLabel: "Sub-Admin",
+    catPlan: "Gestión de planes", catContent: "Contenido", catUsers: "Usuarios", catSystem: "Sistema",
   },
 };
 
@@ -2482,6 +2493,7 @@ const pt = {
     rewards: "Recompensas", cbag: "Seguro C-BAG", apiKeys: "Chaves API",
     siteSettings: "Redes Sociais", legal: "Documentos Legais", myAccount: "Minha Conta", logout: "Sair",
     adminLabel: "Administrador", subAdminLabel: "Sub-Admin",
+    catPlan: "Gestão de planos", catContent: "Conteúdo", catUsers: "Usuários", catSystem: "Sistema",
   },
 };
 
@@ -2680,6 +2692,7 @@ const fr = {
     rewards: "Récompenses", cbag: "Assurance C-BAG", apiKeys: "Clés API",
     siteSettings: "Réseaux sociaux", legal: "Documents légaux", myAccount: "Mon compte", logout: "Déconnexion",
     adminLabel: "Administrateur", subAdminLabel: "Sous-admin",
+    catPlan: "Gestion des plans", catContent: "Contenu", catUsers: "Utilisateurs", catSystem: "Système",
   },
 };
 
@@ -2878,6 +2891,7 @@ const de = {
     rewards: "Belohnungen", cbag: "C-BAG-Versicherung", apiKeys: "API-Schlüssel",
     siteSettings: "Soziale Links", legal: "Rechtsdokumente", myAccount: "Mein Konto", logout: "Abmelden",
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
+    catPlan: "Planverwaltung", catContent: "Inhalt", catUsers: "Benutzer", catSystem: "System",
   },
 };
 
@@ -3076,6 +3090,7 @@ const it = {
     rewards: "Premi", cbag: "Assicurazione C-BAG", apiKeys: "Chiavi API",
     siteSettings: "Social link", legal: "Documenti legali", myAccount: "Il mio account", logout: "Esci",
     adminLabel: "Amministratore", subAdminLabel: "Sub-Admin",
+    catPlan: "Gestione piani", catContent: "Contenuto", catUsers: "Utenti", catSystem: "Sistema",
   },
 };
 
@@ -3274,6 +3289,7 @@ const tr = {
     rewards: "Oy Ödülleri", cbag: "C-BAG Sigortası", apiKeys: "API Anahtarları",
     siteSettings: "Sosyal Bağlantılar", legal: "Hukuki Belgeler", myAccount: "Hesabım", logout: "Çıkış",
     adminLabel: "Yönetici", subAdminLabel: "Alt Admin",
+    catPlan: "Plan Yönetimi", catContent: "İçerik", catUsers: "Kullanıcılar", catSystem: "Sistem",
   },
 };
 
@@ -3472,6 +3488,7 @@ const hi = {
     rewards: "पुरस्कार", cbag: "C-BAG बीमा", apiKeys: "API कुंजी",
     siteSettings: "सोशल लिंक", legal: "कानूनी दस्तावेज", myAccount: "मेरा खाता", logout: "लॉगआउट",
     adminLabel: "प्रशासक", subAdminLabel: "उप-प्रशासक",
+    catPlan: "योजना प्रबंधन", catContent: "सामग्री", catUsers: "उपयोगकर्ता", catSystem: "सिस्टम",
   },
 };
 
@@ -3670,6 +3687,7 @@ const pl = {
     rewards: "Nagrody", cbag: "Ubezpieczenie C-BAG", apiKeys: "Klucze API",
     siteSettings: "Linki społecznościowe", legal: "Dokumenty prawne", myAccount: "Moje konto", logout: "Wyloguj",
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
+    catPlan: "Zarządzanie planami", catContent: "Treść", catUsers: "Użytkownicy", catSystem: "System",
   },
 };
 
@@ -3868,6 +3886,7 @@ const nl = {
     rewards: "Beloningen", cbag: "C-BAG Verzekering", apiKeys: "API Sleutels",
     siteSettings: "Sociale Links", legal: "Juridische Documenten", myAccount: "Mijn Account", logout: "Uitloggen",
     adminLabel: "Beheerder", subAdminLabel: "Sub-Admin",
+    catPlan: "Planbeheer", catContent: "Inhoud", catUsers: "Gebruikers", catSystem: "Systeem",
   },
 };
 
@@ -4066,6 +4085,7 @@ const uk = {
     rewards: "Нагороди", cbag: "Страхування C-BAG", apiKeys: "API ключі",
     siteSettings: "Соцмережі", legal: "Правові документи", myAccount: "Мій акаунт", logout: "Вихід",
     adminLabel: "Адміністратор", subAdminLabel: "Підадмін",
+    catPlan: "Управління планами", catContent: "Контент", catUsers: "Користувачі", catSystem: "Система",
   },
 };
 
@@ -4264,6 +4284,7 @@ const tl = {
     rewards: "Mga Gantimpala", cbag: "C-BAG Insurance", apiKeys: "Mga API Key",
     siteSettings: "Mga Social Link", legal: "Mga Legal na Dokumento", myAccount: "Aking Account", logout: "Mag-logout",
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
+    catPlan: "Pamamahala ng Plano", catContent: "Nilalaman", catUsers: "Mga Gumagamit", catSystem: "Sistema",
   },
 };
 // ─── i18n initt ────────────────────────────────────────────────────────────────
