@@ -20,7 +20,7 @@ const RANGE_OPTIONS = [
 
 export default function AdminDashboard() {
   const [range, setRange] = useState(7);
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language || "en";
 
   const { data: stats, isLoading: statsLoading, refetch } = trpc.dashboard.stats.useQuery();
@@ -30,11 +30,11 @@ export default function AdminDashboard() {
   const { data: nodeSalesData } = trpc.nodes.salesStats.useQuery();
 
   const kpiCards = [
-    { label: "Total Revenue", value: formatCurrency(stats?.totalRevenue ?? 0, lang), sub: "USDT", color: "gold", icon: DollarSign },
-    { label: "Total Users", value: formatNumber(stats?.totalUsers ?? 0, lang), sub: "registered", color: "blue", icon: Users },
-    { label: "Total Referrals", value: formatNumber(stats?.totalReferrals ?? 0, lang), sub: "connections", color: "green", icon: Network },
-    { label: "Conversion Rate", value: `${(stats?.conversionRate ?? 0).toFixed(1)}%`, sub: "investors/users", color: "purple", icon: TrendingUp },
-    { label: "Open Tickets", value: formatNumber(stats?.openTickets ?? 0, lang), sub: "unresolved", color: "red", icon: TicketCheck },
+    { label: t("adminNav.kpiTotalRevenue"), value: formatCurrency(stats?.totalRevenue ?? 0, lang), sub: "USDT", color: "gold", icon: DollarSign },
+    { label: t("adminNav.kpiTotalUsers"), value: formatNumber(stats?.totalUsers ?? 0, lang), sub: "registered", color: "blue", icon: Users },
+    { label: t("adminNav.kpiTotalReferrals"), value: formatNumber(stats?.totalReferrals ?? 0, lang), sub: "connections", color: "green", icon: Network },
+    { label: t("adminNav.kpiConversionRate"), value: `${(stats?.conversionRate ?? 0).toFixed(1)}%`, sub: "investors/users", color: "purple", icon: TrendingUp },
+    { label: t("adminNav.kpiOpenTickets"), value: formatNumber(stats?.openTickets ?? 0, lang), sub: "unresolved", color: "red", icon: TicketCheck },
   ];
 
   return (

@@ -40,7 +40,7 @@ export default function AdminLayout({ children, title = "Admin Panel" }: AdminLa
 
   // 알림 배지 카운트
   const { data: badges } = trpc.dashboard.adminBadges.useQuery(undefined, {
-    refetchInterval: 60000, // 1분마다 갱신
+    refetchInterval: 30000, // 30초마다 갱신
     retry: false,
   });
 

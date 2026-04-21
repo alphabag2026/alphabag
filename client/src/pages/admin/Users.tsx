@@ -1,6 +1,8 @@
 import { useState, useCallback, useMemo } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
+import { formatNumber, formatCurrency } from "@/lib/formatNumber";
 import { toast } from "sonner";
 import {
   Search, Download, UserCheck, Shield,
@@ -55,6 +57,8 @@ function WalletCell({ address }: { address?: string | null }) {
 }
 
 export default function Users() {
+  const { i18n } = useTranslation();
+  const lang = i18n.language || "en";
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -176,7 +180,7 @@ export default function Users() {
                 <Users2 className="w-4 h-4 text-primary" />
                 <span className="text-xs text-muted-foreground">Total Users</span>
               </div>
-              <p className="text-2xl font-bold">{(statsData as any)?.totalUsers?.toLocaleString() ?? total.toLocaleString()}</p>
+              <p className="text-2xl font-bold">{(statsData as any)?.totalUsers != null ? formatNumber((statsData as any).totalUsers, lang) : formatNumber(total, lang)}</p>
               <p className="text-xs text-muted-foreground mt-0.5">alphabag.net 마이그레이션 포함</p>
             </CardContent>
           </Card>
@@ -366,13 +370,13 @@ export default function Users() {
                     </td>
                     <td className="text-right">
                       <span className="text-sm font-medium text-primary">
-                        ${Number(user.totalInvested ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        {formatCurrency(Number(user.totalInvested ?? 0), lang, 0)}
                       </span>
                     </td>
                     <td className="text-right">
                       <span className="text-sm text-amber-400">
                         {Number(user.totalNodes ?? 0) > 0
-                          ? `$${Number(user.totalNodes).toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                          ? formatCurrency(Number(user.totalNodes), lang, 0)
                           : "—"}
                       </span>
                     </td>
@@ -700,7 +704,7 @@ export default function Users() {
                   </div>
                   {node.totalInvested > 0 && (
                     <span className="text-xs text-primary font-medium flex-shrink-0">
-                      ${Number(node.totalInvested).toLocaleString()}
+                      {formatCurrency(Number(node.totalInvested), lang, 0)}
                     </span>
                   )}
                   <button

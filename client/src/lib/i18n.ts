@@ -300,6 +300,7 @@ const en = {
     siteSettings: "Social Links", legal: "Legal Documents", newsLabel: "News", liveLabel: "Live Streams", eventsLabel: "Events", myAccount: "My Account", logout: "Logout",
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
     catPlan: "Plan Management", catContent: "Content", catUsers: "Users", catSystem: "System",
+    kpiTotalRevenue: "Total Revenue", kpiTotalUsers: "Total Users", kpiTotalReferrals: "Total Referrals", kpiConversionRate: "Conversion Rate", kpiOpenTickets: "Open Tickets",
   },
 
 };
@@ -500,6 +501,7 @@ const zh = {
     siteSettings: "社交链接", legal: "法律文件", newsLabel: "新闻", liveLabel: "直播", eventsLabel: "活动", myAccount: "我的账户", logout: "退出",
     adminLabel: "管理员", subAdminLabel: "副管理员",
     catPlan: "计划管理", catContent: "内容", catUsers: "用户", catSystem: "系统",
+    kpiTotalRevenue: "总收益", kpiTotalUsers: "总用户", kpiTotalReferrals: "总推荐", kpiConversionRate: "转化率", kpiOpenTickets: "待处理工单",
   },
 };
 // ─── Japanesee ─────────────────────────────────────────────────────────────────
@@ -698,6 +700,7 @@ const ja = {
     siteSettings: "SNSリンク", legal: "法的文書", newsLabel: "ニュース", liveLabel: "ライブ配信", eventsLabel: "イベント", myAccount: "マイアカウント", logout: "ログアウト",
     adminLabel: "管理者", subAdminLabel: "副管理者",
     catPlan: "プラン管理", catContent: "コンテンツ", catUsers: "ユーザー", catSystem: "システム",
+    kpiTotalRevenue: "総収益", kpiTotalUsers: "総ユーザー", kpiTotalReferrals: "総紹介数", kpiConversionRate: "コンバージョン率", kpiOpenTickets: "未処理チケット",
   },
 };
 // ─── Vietnamesee ───────────────────────────────────────────────────────────────
@@ -896,6 +899,7 @@ const vi = {
     siteSettings: "Liên kết mạng xã hội", legal: "Tài liệu pháp lý", newsLabel: "Tin tức", liveLabel: "Trực tiếp", eventsLabel: "Sự kiện", myAccount: "Tài khoản", logout: "Đăng xuất",
     adminLabel: "Quản trị viên", subAdminLabel: "Quản trị phụ",
     catPlan: "Quản lý kế hoạch", catContent: "Nội dung", catUsers: "Người dùng", catSystem: "Hệ thống",
+    kpiTotalRevenue: "Tổng doanh thu", kpiTotalUsers: "Tổng người dùng", kpiTotalReferrals: "Tổng giới thiệu", kpiConversionRate: "Tỷ lệ chuyển đổi", kpiOpenTickets: "Vé chưa xử lý",
   },
 };
 // ─── Koreann ───────────────────────────────────────────────────────────────────
@@ -932,6 +936,7 @@ const ko = {
     siteSettings: "소셜 링크 설정", legal: "법적 문서 관리", newsLabel: "뉴스 관리", liveLabel: "라이브 관리", eventsLabel: "이벤트 관리", myAccount: "내 계정", logout: "로그아웃",
     adminLabel: "관리자", subAdminLabel: "부운영자",
     catPlan: "플랜 관리", catContent: "콘텐츠", catUsers: "사용자", catSystem: "시스템",
+    kpiTotalRevenue: "총 수익", kpiTotalUsers: "총 사용자", kpiTotalReferrals: "총 추천", kpiConversionRate: "전환율", kpiOpenTickets: "미처리 티켓",
   },
   footer: { rights: "© 2025 AlphaBag. 모든 권리 보유.", philosophy: "AlphaBag는 투자를 권유하는 플랫폼이 아닙니다. 투자하지 말자가 첫 번째 원칙이지만, 투자로 수익을 추구하는 분들이 존재하기에, 정확한 분석과 분산투자를 통해 리스크를 줄이는 습관을 함께 기르고자 시작된 탈중심화 커뮤니티 플랫폼입니다.", disclaimer: "이 웹사이트, 하이퍼링크, 관련 애플리케이션, 포럼, 블로그, 미디어 계정 및 기타 플랫폼에서 제공되는 모든 콘텐츠는 서드파티 소스에서 제공됩니다. 웹사이트 또는 그 콘텐츠에 대해 어떠한 보증도 하지 않습니다. 사이트의 모든 블록체인 관련 데이터 및 정보는 사용자의 학습 및 연구 목적으로만 제공되며, 투자, 법률 또는 기타 조언을 구성하지 않습니다. 사용자는 데이터 및 콘텐츠를 신중히 사용해야 하며, 모든 위험을 감수해야 합니다. 독립적인 조사, 검토, 분석, 검증을 강력히 권장합니다.", termsLink: "이용약관", privacyLink: "개인정보처리방침" },
   why: { title: "Web3 투자자를 위해 만들어졌습니다", subtitle: "왜 우리를 선택해야 하나요", globalAccess: { title: "글로벌 접근", desc: "암호화폐 지갑으로 전 세계 어디서나 투자하세요." }, nonCustodial: { title: "비수탁형", desc: "자금은 항상 본인이 관리합니다." }, analytics: { title: "실시간 분석", desc: "라이브 대시보드로 포트폴리오 성과를 추적하세요." }, referralRewards: { title: "추천 보상", desc: "친구를 추천하여 수익을 얻으세요." }, curated: { title: "엄선된 프로젝트", desc: "최고의 Binance Alpha 및 Web3 프로젝트만 제공합니다." }, instant: { title: "즉시 설정", desc: "지갑을 연결하고 몇 분 안에 투자를 시작하세요." } },
@@ -1300,6 +1305,7 @@ const th = {
     siteSettings: "ลิงก์โซเชียล", legal: "เอกสารกฎหมาย", newsLabel: "ข่าว", liveLabel: "ถ่ายทอดสด", eventsLabel: "กิจกรรม", myAccount: "บัญชีของฉัน", logout: "ออกจากระบบ",
     adminLabel: "ผู้ดูแลระบบ", subAdminLabel: "ผู้ดูแลรอง",
     catPlan: "การจัดการแผน", catContent: "เนื้อหา", catUsers: "ผู้ใช้", catSystem: "ระบบ",
+    kpiTotalRevenue: "รายได้รวม", kpiTotalUsers: "ผู้ใช้ทั้งหมด", kpiTotalReferrals: "การแนะนำทั้งหมด", kpiConversionRate: "อัตราการแปลง", kpiOpenTickets: "ตั๋วที่ยังไม่ได้แก้ไข",
   },
 };
 
@@ -1499,6 +1505,7 @@ const id = {
     siteSettings: "Tautan Sosial", legal: "Dokumen Hukum", newsLabel: "Berita", liveLabel: "Siaran Langsung", eventsLabel: "Acara", myAccount: "Akun Saya", logout: "Keluar",
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
     catPlan: "Manajemen Rencana", catContent: "Konten", catUsers: "Pengguna", catSystem: "Sistem",
+    kpiTotalRevenue: "Total Pendapatan", kpiTotalUsers: "Total Pengguna", kpiTotalReferrals: "Total Referral", kpiConversionRate: "Tingkat Konversi", kpiOpenTickets: "Tiket Terbuka",
   },
 };
 
@@ -1698,6 +1705,7 @@ const ms = {
     siteSettings: "Pautan Sosial", legal: "Dokumen Undang-undang", newsLabel: "Berita", liveLabel: "Siaran Langsung", eventsLabel: "Acara", myAccount: "Akaun Saya", logout: "Log Keluar",
     adminLabel: "Pentadbir", subAdminLabel: "Sub-Pentadbir",
     catPlan: "Pengurusan Pelan", catContent: "Kandungan", catUsers: "Pengguna", catSystem: "Sistem",
+    kpiTotalRevenue: "Jumlah Pendapatan", kpiTotalUsers: "Jumlah Pengguna", kpiTotalReferrals: "Jumlah Rujukan", kpiConversionRate: "Kadar Penukaran", kpiOpenTickets: "Tiket Terbuka",
   },
 };
 
@@ -1897,6 +1905,7 @@ const ru = {
     siteSettings: "Соцсети", legal: "Правовые документы", newsLabel: "Новости", liveLabel: "Прямой эфир", eventsLabel: "События", myAccount: "Мой аккаунт", logout: "Выход",
     adminLabel: "Администратор", subAdminLabel: "Подадмин",
     catPlan: "Управление планами", catContent: "Контент", catUsers: "Пользователи", catSystem: "Система",
+    kpiTotalRevenue: "Общий доход", kpiTotalUsers: "Всего пользователей", kpiTotalReferrals: "Всего рефералов", kpiConversionRate: "Коэффициент конверсии", kpiOpenTickets: "Открытые тикеты",
   },
 };
 
@@ -2096,6 +2105,7 @@ const ar = {
     siteSettings: "روابط اجتماعية", legal: "وثائق قانونية", newsLabel: "الأخبار", liveLabel: "البث المباشر", eventsLabel: "الأحداث", myAccount: "حسابي", logout: "تسجيل الخروج",
     adminLabel: "مشرف", subAdminLabel: "مساعد المشرف",
     catPlan: "إدارة الخطة", catContent: "المحتوى", catUsers: "المستخدمون", catSystem: "النظام",
+    kpiTotalRevenue: "إجمالي الإيرادات", kpiTotalUsers: "إجمالي المستخدمين", kpiTotalReferrals: "إجمالي الإحالات", kpiConversionRate: "معدل التحويل", kpiOpenTickets: "التذاكر المفتوحة",
   },
 };
 
@@ -2295,6 +2305,7 @@ const es = {
     siteSettings: "Redes Sociales", legal: "Documentos Legales", newsLabel: "Noticias", liveLabel: "Transmisiones en vivo", eventsLabel: "Eventos", myAccount: "Mi Cuenta", logout: "Cerrar Sesión",
     adminLabel: "Administrador", subAdminLabel: "Sub-Admin",
     catPlan: "Gestión de planes", catContent: "Contenido", catUsers: "Usuarios", catSystem: "Sistema",
+    kpiTotalRevenue: "Ingresos Totales", kpiTotalUsers: "Usuarios Totales", kpiTotalReferrals: "Referencias Totales", kpiConversionRate: "Tasa de Conversión", kpiOpenTickets: "Tickets Abiertos",
   },
 };
 
@@ -2494,6 +2505,7 @@ const pt = {
     siteSettings: "Redes Sociais", legal: "Documentos Legais", newsLabel: "Notícias", liveLabel: "Transmissões ao Vivo", eventsLabel: "Eventos", myAccount: "Minha Conta", logout: "Sair",
     adminLabel: "Administrador", subAdminLabel: "Sub-Admin",
     catPlan: "Gestão de planos", catContent: "Conteúdo", catUsers: "Usuários", catSystem: "Sistema",
+    kpiTotalRevenue: "Receita Total", kpiTotalUsers: "Total de Usuários", kpiTotalReferrals: "Total de Indicações", kpiConversionRate: "Taxa de Conversão", kpiOpenTickets: "Tickets Abertos",
   },
 };
 
@@ -2693,6 +2705,7 @@ const fr = {
     siteSettings: "Réseaux sociaux", legal: "Documents légaux", newsLabel: "Actualités", liveLabel: "Diffusions en direct", eventsLabel: "Événements", myAccount: "Mon compte", logout: "Déconnexion",
     adminLabel: "Administrateur", subAdminLabel: "Sous-admin",
     catPlan: "Gestion des plans", catContent: "Contenu", catUsers: "Utilisateurs", catSystem: "Système",
+    kpiTotalRevenue: "Revenus Totaux", kpiTotalUsers: "Utilisateurs Totaux", kpiTotalReferrals: "Parrainages Totaux", kpiConversionRate: "Taux de Conversion", kpiOpenTickets: "Tickets Ouverts",
   },
 };
 
@@ -2892,6 +2905,7 @@ const de = {
     siteSettings: "Soziale Links", legal: "Rechtsdokumente", newsLabel: "Nachrichten", liveLabel: "Live-Streams", eventsLabel: "Veranstaltungen", myAccount: "Mein Konto", logout: "Abmelden",
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
     catPlan: "Planverwaltung", catContent: "Inhalt", catUsers: "Benutzer", catSystem: "System",
+    kpiTotalRevenue: "Gesamtumsatz", kpiTotalUsers: "Gesamtbenutzer", kpiTotalReferrals: "Gesamtempfehlungen", kpiConversionRate: "Konversionsrate", kpiOpenTickets: "Offene Tickets",
   },
 };
 
@@ -3091,6 +3105,7 @@ const it = {
     siteSettings: "Social link", legal: "Documenti legali", newsLabel: "Notizie", liveLabel: "Streaming live", eventsLabel: "Eventi", myAccount: "Il mio account", logout: "Esci",
     adminLabel: "Amministratore", subAdminLabel: "Sub-Admin",
     catPlan: "Gestione piani", catContent: "Contenuto", catUsers: "Utenti", catSystem: "Sistema",
+    kpiTotalRevenue: "Entrate Totali", kpiTotalUsers: "Utenti Totali", kpiTotalReferrals: "Referral Totali", kpiConversionRate: "Tasso di Conversione", kpiOpenTickets: "Ticket Aperti",
   },
 };
 
@@ -3290,6 +3305,7 @@ const tr = {
     siteSettings: "Sosyal Bağlantılar", legal: "Hukuki Belgeler", newsLabel: "Haberler", liveLabel: "Canlı Yayınlar", eventsLabel: "Etkinlikler", myAccount: "Hesabım", logout: "Çıkış",
     adminLabel: "Yönetici", subAdminLabel: "Alt Admin",
     catPlan: "Plan Yönetimi", catContent: "İçerik", catUsers: "Kullanıcılar", catSystem: "Sistem",
+    kpiTotalRevenue: "Toplam Gelir", kpiTotalUsers: "Toplam Kullanıcı", kpiTotalReferrals: "Toplam Referans", kpiConversionRate: "Dönüşüm Oranı", kpiOpenTickets: "Açık Biletler",
   },
 };
 
@@ -3489,6 +3505,7 @@ const hi = {
     siteSettings: "सोशल लिंक", legal: "कानूनी दस्तावेज", newsLabel: "समाचार", liveLabel: "लाइव स्ट्रीम", eventsLabel: "कार्यक्रम", myAccount: "मेरा खाता", logout: "लॉगआउट",
     adminLabel: "प्रशासक", subAdminLabel: "उप-प्रशासक",
     catPlan: "योजना प्रबंधन", catContent: "सामग्री", catUsers: "उपयोगकर्ता", catSystem: "सिस्टम",
+    kpiTotalRevenue: "कुल राजस्व", kpiTotalUsers: "कुल उपयोगकर्ता", kpiTotalReferrals: "कुल रेफरल", kpiConversionRate: "रूपांतरण दर", kpiOpenTickets: "खुले टिकट",
   },
 };
 
@@ -3688,6 +3705,7 @@ const pl = {
     siteSettings: "Linki społecznościowe", legal: "Dokumenty prawne", newsLabel: "Aktualności", liveLabel: "Transmisje na żywo", eventsLabel: "Wydarzenia", myAccount: "Moje konto", logout: "Wyloguj",
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
     catPlan: "Zarządzanie planami", catContent: "Treść", catUsers: "Użytkownicy", catSystem: "System",
+    kpiTotalRevenue: "Łączne Przychody", kpiTotalUsers: "Łączni Użytkownicy", kpiTotalReferrals: "Łączne Polecenia", kpiConversionRate: "Współczynnik Konwersji", kpiOpenTickets: "Otwarte Zgłoszenia",
   },
 };
 
@@ -3887,6 +3905,7 @@ const nl = {
     siteSettings: "Sociale Links", legal: "Juridische Documenten", newsLabel: "Nieuws", liveLabel: "Live Streams", eventsLabel: "Evenementen", myAccount: "Mijn Account", logout: "Uitloggen",
     adminLabel: "Beheerder", subAdminLabel: "Sub-Admin",
     catPlan: "Planbeheer", catContent: "Inhoud", catUsers: "Gebruikers", catSystem: "Systeem",
+    kpiTotalRevenue: "Totale Omzet", kpiTotalUsers: "Totale Gebruikers", kpiTotalReferrals: "Totale Verwijzingen", kpiConversionRate: "Conversiepercentage", kpiOpenTickets: "Open Tickets",
   },
 };
 
@@ -4086,6 +4105,7 @@ const uk = {
     siteSettings: "Соцмережі", legal: "Правові документи", newsLabel: "Новини", liveLabel: "Прямі трансляції", eventsLabel: "Події", myAccount: "Мій акаунт", logout: "Вихід",
     adminLabel: "Адміністратор", subAdminLabel: "Підадмін",
     catPlan: "Управління планами", catContent: "Контент", catUsers: "Користувачі", catSystem: "Система",
+    kpiTotalRevenue: "Загальний дохід", kpiTotalUsers: "Всього користувачів", kpiTotalReferrals: "Всього рефералів", kpiConversionRate: "Коефіцієнт конверсії", kpiOpenTickets: "Відкриті тікети",
   },
 };
 
@@ -4285,6 +4305,7 @@ const tl = {
     siteSettings: "Mga Social Link", legal: "Mga Legal na Dokumento", newsLabel: "Balita", liveLabel: "Mga Live Stream", eventsLabel: "Mga Kaganapan", myAccount: "Aking Account", logout: "Mag-logout",
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
     catPlan: "Pamamahala ng Plano", catContent: "Nilalaman", catUsers: "Mga Gumagamit", catSystem: "Sistema",
+    kpiTotalRevenue: "Kabuuang Kita", kpiTotalUsers: "Kabuuang Gumagamit", kpiTotalReferrals: "Kabuuang Referral", kpiConversionRate: "Rate ng Conversion", kpiOpenTickets: "Bukas na Tiket",
   },
 };
 // ─── i18n initt ────────────────────────────────────────────────────────────────

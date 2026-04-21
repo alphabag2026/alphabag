@@ -1030,3 +1030,10 @@
 - [x] 백오피스 Dashboard.tsx 통계 카드/차트 tooltip/테이블 금액에 formatCurrency/formatNumber 적용
 - [x] 백오피스 Analytics.tsx 통계 카드/차트/테이블 금액에 formatCurrency/formatNumber 적용
 - [x] formatNumber.test.ts 테스트 12개 추가 (전체 158개 통과)
+
+## Phase 78 - 백오피스 추가 UX 개선 (2026-04-22)
+- [x] i18n.ts 21개 언어에 adminDashboard KPI 레이블 번역 키 추가 (kpiTotalRevenue/kpiTotalUsers/kpiTotalReferrals/kpiConversionRate/kpiOpenTickets)
+- [x] Dashboard.tsx KPI 카드 레이블 하드코딩 영어 → t("adminNav.kpiXxx") i18n 키로 교체
+- [x] AdminLayout.tsx 알림 배지 갱신 주기 60초 → 30초로 단축
+- [x] Users.tsx 투자 금액 컬럼 + 레퍼럴 트리 노드 금액에 formatCurrency 적용
+- [x] 전체 테스트 158개 통과, TypeScript 오류 0개
