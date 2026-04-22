@@ -49,6 +49,7 @@
     "@trpc/client": "^11.6.0",
     "@trpc/react-query": "^11.6.0",
     "@trpc/server": "^11.6.0",
+    "@types/ws": "^8.18.1",
     "@vitalets/google-translate-api": "^9.2.1",
     "@wagmi/connectors": "^8.0.0",
     "@walletconnect/ethereum-provider": "^2.23.9",
@@ -94,6 +95,7 @@
     "viem": "^2.47.6",
     "wagmi": "^3.6.0",
     "wouter": "^3.3.5",
+    "ws": "^8.20.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

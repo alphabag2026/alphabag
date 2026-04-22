@@ -38,11 +38,42 @@ export default function AdminLayout({ children, title = "Admin Panel" }: AdminLa
   });
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // 알림 배지 카운트
-  const { data: badges } = trpc.dashboard.adminBadges.useQuery(undefined, {
-    refetchInterval: 30000, // 30초마다 갱신
-    retry: false,
-  });
+  // 알림 배지 카운트 - WebSocket 실시간 갱신
+  const [badges, setBadges] = useState<{ tickets: number; nodeOrders: number; submissions: number } | null>(null);
+
+  useEffect(() => {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws/admin-badges`;
+    let ws: WebSocket | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let active = true;
+
+    const connect = () => {
+      if (!active) return;
+      ws = new WebSocket(wsUrl);
+      ws.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === "badges") setBadges(msg.data);
+        } catch {}
+      };
+      ws.onclose = () => {
+        if (active) {
+          reconnectTimer = setTimeout(connect, 5000);
+        }
+      };
+      ws.onerror = () => {
+        ws?.close();
+      };
+    };
+
+    connect();
+    return () => {
+      active = false;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      ws?.close();
+    };
+  }, []);
 
   // 카테고리별 메뉴 그룹 정의
   const CATEGORIES = [

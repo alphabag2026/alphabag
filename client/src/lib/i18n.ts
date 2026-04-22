@@ -301,6 +301,7 @@ const en = {
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
     catPlan: "Plan Management", catContent: "Content", catUsers: "Users", catSystem: "System",
     kpiTotalRevenue: "Total Revenue", kpiTotalUsers: "Total Users", kpiTotalReferrals: "Total Referrals", kpiConversionRate: "Conversion Rate", kpiOpenTickets: "Open Tickets",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "registered", kpiSubConnections: "connections", kpiSubInvestors: "investors/users", kpiSubUnresolved: "unresolved",
   },
 
 };
@@ -502,6 +503,7 @@ const zh = {
     adminLabel: "管理员", subAdminLabel: "副管理员",
     catPlan: "计划管理", catContent: "内容", catUsers: "用户", catSystem: "系统",
     kpiTotalRevenue: "总收益", kpiTotalUsers: "总用户", kpiTotalReferrals: "总推荐", kpiConversionRate: "转化率", kpiOpenTickets: "待处理工单",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "已注册", kpiSubConnections: "连接数", kpiSubInvestors: "投资者/用户", kpiSubUnresolved: "未解决",
   },
 };
 // ─── Japanesee ─────────────────────────────────────────────────────────────────
@@ -701,6 +703,7 @@ const ja = {
     adminLabel: "管理者", subAdminLabel: "副管理者",
     catPlan: "プラン管理", catContent: "コンテンツ", catUsers: "ユーザー", catSystem: "システム",
     kpiTotalRevenue: "総収益", kpiTotalUsers: "総ユーザー", kpiTotalReferrals: "総紹介数", kpiConversionRate: "コンバージョン率", kpiOpenTickets: "未処理チケット",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "登録済み", kpiSubConnections: "接続数", kpiSubInvestors: "投資家/ユーザー", kpiSubUnresolved: "未解決",
   },
 };
 // ─── Vietnamesee ───────────────────────────────────────────────────────────────
@@ -900,6 +903,7 @@ const vi = {
     adminLabel: "Quản trị viên", subAdminLabel: "Quản trị phụ",
     catPlan: "Quản lý kế hoạch", catContent: "Nội dung", catUsers: "Người dùng", catSystem: "Hệ thống",
     kpiTotalRevenue: "Tổng doanh thu", kpiTotalUsers: "Tổng người dùng", kpiTotalReferrals: "Tổng giới thiệu", kpiConversionRate: "Tỷ lệ chuyển đổi", kpiOpenTickets: "Vé chưa xử lý",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "đã đăng ký", kpiSubConnections: "kết nối", kpiSubInvestors: "nhà đầu tư/người dùng", kpiSubUnresolved: "chưa giải quyết",
   },
 };
 // ─── Koreann ───────────────────────────────────────────────────────────────────
@@ -937,6 +941,7 @@ const ko = {
     adminLabel: "관리자", subAdminLabel: "부운영자",
     catPlan: "플랜 관리", catContent: "콘텐츠", catUsers: "사용자", catSystem: "시스템",
     kpiTotalRevenue: "총 수익", kpiTotalUsers: "총 사용자", kpiTotalReferrals: "총 추천", kpiConversionRate: "전환율", kpiOpenTickets: "미처리 티켓",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "등록됨", kpiSubConnections: "연결", kpiSubInvestors: "투자자/사용자", kpiSubUnresolved: "미해결",
   },
   footer: { rights: "© 2025 AlphaBag. 모든 권리 보유.", philosophy: "AlphaBag는 투자를 권유하는 플랫폼이 아닙니다. 투자하지 말자가 첫 번째 원칙이지만, 투자로 수익을 추구하는 분들이 존재하기에, 정확한 분석과 분산투자를 통해 리스크를 줄이는 습관을 함께 기르고자 시작된 탈중심화 커뮤니티 플랫폼입니다.", disclaimer: "이 웹사이트, 하이퍼링크, 관련 애플리케이션, 포럼, 블로그, 미디어 계정 및 기타 플랫폼에서 제공되는 모든 콘텐츠는 서드파티 소스에서 제공됩니다. 웹사이트 또는 그 콘텐츠에 대해 어떠한 보증도 하지 않습니다. 사이트의 모든 블록체인 관련 데이터 및 정보는 사용자의 학습 및 연구 목적으로만 제공되며, 투자, 법률 또는 기타 조언을 구성하지 않습니다. 사용자는 데이터 및 콘텐츠를 신중히 사용해야 하며, 모든 위험을 감수해야 합니다. 독립적인 조사, 검토, 분석, 검증을 강력히 권장합니다.", termsLink: "이용약관", privacyLink: "개인정보처리방침" },
   why: { title: "Web3 투자자를 위해 만들어졌습니다", subtitle: "왜 우리를 선택해야 하나요", globalAccess: { title: "글로벌 접근", desc: "암호화폐 지갑으로 전 세계 어디서나 투자하세요." }, nonCustodial: { title: "비수탁형", desc: "자금은 항상 본인이 관리합니다." }, analytics: { title: "실시간 분석", desc: "라이브 대시보드로 포트폴리오 성과를 추적하세요." }, referralRewards: { title: "추천 보상", desc: "친구를 추천하여 수익을 얻으세요." }, curated: { title: "엄선된 프로젝트", desc: "최고의 Binance Alpha 및 Web3 프로젝트만 제공합니다." }, instant: { title: "즉시 설정", desc: "지갑을 연결하고 몇 분 안에 투자를 시작하세요." } },
@@ -1306,6 +1311,7 @@ const th = {
     adminLabel: "ผู้ดูแลระบบ", subAdminLabel: "ผู้ดูแลรอง",
     catPlan: "การจัดการแผน", catContent: "เนื้อหา", catUsers: "ผู้ใช้", catSystem: "ระบบ",
     kpiTotalRevenue: "รายได้รวม", kpiTotalUsers: "ผู้ใช้ทั้งหมด", kpiTotalReferrals: "การแนะนำทั้งหมด", kpiConversionRate: "อัตราการแปลง", kpiOpenTickets: "ตั๋วที่ยังไม่ได้แก้ไข",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "ลงทะเบียนแล้ว", kpiSubConnections: "การเชื่อมต่อ", kpiSubInvestors: "นักลงทุน/ผู้ใช้", kpiSubUnresolved: "ยังไม่ได้แก้ไข",
   },
 };
 
@@ -1506,6 +1512,7 @@ const id = {
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
     catPlan: "Manajemen Rencana", catContent: "Konten", catUsers: "Pengguna", catSystem: "Sistem",
     kpiTotalRevenue: "Total Pendapatan", kpiTotalUsers: "Total Pengguna", kpiTotalReferrals: "Total Referral", kpiConversionRate: "Tingkat Konversi", kpiOpenTickets: "Tiket Terbuka",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "terdaftar", kpiSubConnections: "koneksi", kpiSubInvestors: "investor/pengguna", kpiSubUnresolved: "belum terselesaikan",
   },
 };
 
@@ -1706,6 +1713,7 @@ const ms = {
     adminLabel: "Pentadbir", subAdminLabel: "Sub-Pentadbir",
     catPlan: "Pengurusan Pelan", catContent: "Kandungan", catUsers: "Pengguna", catSystem: "Sistem",
     kpiTotalRevenue: "Jumlah Pendapatan", kpiTotalUsers: "Jumlah Pengguna", kpiTotalReferrals: "Jumlah Rujukan", kpiConversionRate: "Kadar Penukaran", kpiOpenTickets: "Tiket Terbuka",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "berdaftar", kpiSubConnections: "sambungan", kpiSubInvestors: "pelabur/pengguna", kpiSubUnresolved: "belum diselesaikan",
   },
 };
 
@@ -1906,6 +1914,7 @@ const ru = {
     adminLabel: "Администратор", subAdminLabel: "Подадмин",
     catPlan: "Управление планами", catContent: "Контент", catUsers: "Пользователи", catSystem: "Система",
     kpiTotalRevenue: "Общий доход", kpiTotalUsers: "Всего пользователей", kpiTotalReferrals: "Всего рефералов", kpiConversionRate: "Коэффициент конверсии", kpiOpenTickets: "Открытые тикеты",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "зарегистрировано", kpiSubConnections: "связи", kpiSubInvestors: "инвесторы/пользователи", kpiSubUnresolved: "нерешённые",
   },
 };
 
@@ -2106,6 +2115,7 @@ const ar = {
     adminLabel: "مشرف", subAdminLabel: "مساعد المشرف",
     catPlan: "إدارة الخطة", catContent: "المحتوى", catUsers: "المستخدمون", catSystem: "النظام",
     kpiTotalRevenue: "إجمالي الإيرادات", kpiTotalUsers: "إجمالي المستخدمين", kpiTotalReferrals: "إجمالي الإحالات", kpiConversionRate: "معدل التحويل", kpiOpenTickets: "التذاكر المفتوحة",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "مسجل", kpiSubConnections: "اتصالات", kpiSubInvestors: "مستثمرون/مستخدمون", kpiSubUnresolved: "غير محلول",
   },
 };
 
@@ -2306,6 +2316,7 @@ const es = {
     adminLabel: "Administrador", subAdminLabel: "Sub-Admin",
     catPlan: "Gestión de planes", catContent: "Contenido", catUsers: "Usuarios", catSystem: "Sistema",
     kpiTotalRevenue: "Ingresos Totales", kpiTotalUsers: "Usuarios Totales", kpiTotalReferrals: "Referencias Totales", kpiConversionRate: "Tasa de Conversión", kpiOpenTickets: "Tickets Abiertos",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "registrados", kpiSubConnections: "conexiones", kpiSubInvestors: "inversores/usuarios", kpiSubUnresolved: "sin resolver",
   },
 };
 
@@ -2506,6 +2517,7 @@ const pt = {
     adminLabel: "Administrador", subAdminLabel: "Sub-Admin",
     catPlan: "Gestão de planos", catContent: "Conteúdo", catUsers: "Usuários", catSystem: "Sistema",
     kpiTotalRevenue: "Receita Total", kpiTotalUsers: "Total de Usuários", kpiTotalReferrals: "Total de Indicações", kpiConversionRate: "Taxa de Conversão", kpiOpenTickets: "Tickets Abertos",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "registrados", kpiSubConnections: "conexões", kpiSubInvestors: "investidores/usuários", kpiSubUnresolved: "não resolvidos",
   },
 };
 
@@ -2706,6 +2718,7 @@ const fr = {
     adminLabel: "Administrateur", subAdminLabel: "Sous-admin",
     catPlan: "Gestion des plans", catContent: "Contenu", catUsers: "Utilisateurs", catSystem: "Système",
     kpiTotalRevenue: "Revenus Totaux", kpiTotalUsers: "Utilisateurs Totaux", kpiTotalReferrals: "Parrainages Totaux", kpiConversionRate: "Taux de Conversion", kpiOpenTickets: "Tickets Ouverts",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "inscrits", kpiSubConnections: "connexions", kpiSubInvestors: "investisseurs/utilisateurs", kpiSubUnresolved: "non résolus",
   },
 };
 
@@ -2906,6 +2919,7 @@ const de = {
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
     catPlan: "Planverwaltung", catContent: "Inhalt", catUsers: "Benutzer", catSystem: "System",
     kpiTotalRevenue: "Gesamtumsatz", kpiTotalUsers: "Gesamtbenutzer", kpiTotalReferrals: "Gesamtempfehlungen", kpiConversionRate: "Konversionsrate", kpiOpenTickets: "Offene Tickets",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "registriert", kpiSubConnections: "Verbindungen", kpiSubInvestors: "Investoren/Nutzer", kpiSubUnresolved: "ungelöst",
   },
 };
 
@@ -3106,6 +3120,7 @@ const it = {
     adminLabel: "Amministratore", subAdminLabel: "Sub-Admin",
     catPlan: "Gestione piani", catContent: "Contenuto", catUsers: "Utenti", catSystem: "Sistema",
     kpiTotalRevenue: "Entrate Totali", kpiTotalUsers: "Utenti Totali", kpiTotalReferrals: "Referral Totali", kpiConversionRate: "Tasso di Conversione", kpiOpenTickets: "Ticket Aperti",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "registrati", kpiSubConnections: "connessioni", kpiSubInvestors: "investitori/utenti", kpiSubUnresolved: "irrisolti",
   },
 };
 
@@ -3306,6 +3321,7 @@ const tr = {
     adminLabel: "Yönetici", subAdminLabel: "Alt Admin",
     catPlan: "Plan Yönetimi", catContent: "İçerik", catUsers: "Kullanıcılar", catSystem: "Sistem",
     kpiTotalRevenue: "Toplam Gelir", kpiTotalUsers: "Toplam Kullanıcı", kpiTotalReferrals: "Toplam Referans", kpiConversionRate: "Dönüşüm Oranı", kpiOpenTickets: "Açık Biletler",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "kayıtlı", kpiSubConnections: "bağlantılar", kpiSubInvestors: "yatırımcılar/kullanıcılar", kpiSubUnresolved: "çözülmemiş",
   },
 };
 
@@ -3506,6 +3522,7 @@ const hi = {
     adminLabel: "प्रशासक", subAdminLabel: "उप-प्रशासक",
     catPlan: "योजना प्रबंधन", catContent: "सामग्री", catUsers: "उपयोगकर्ता", catSystem: "सिस्टम",
     kpiTotalRevenue: "कुल राजस्व", kpiTotalUsers: "कुल उपयोगकर्ता", kpiTotalReferrals: "कुल रेफरल", kpiConversionRate: "रूपांतरण दर", kpiOpenTickets: "खुले टिकट",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "पंजीकृत", kpiSubConnections: "कनेक्शन", kpiSubInvestors: "निवेशक/उपयोगकर्ता", kpiSubUnresolved: "अनसुलझे",
   },
 };
 
@@ -3706,6 +3723,7 @@ const pl = {
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
     catPlan: "Zarządzanie planami", catContent: "Treść", catUsers: "Użytkownicy", catSystem: "System",
     kpiTotalRevenue: "Łączne Przychody", kpiTotalUsers: "Łączni Użytkownicy", kpiTotalReferrals: "Łączne Polecenia", kpiConversionRate: "Współczynnik Konwersji", kpiOpenTickets: "Otwarte Zgłoszenia",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "zarejestrowanych", kpiSubConnections: "połączenia", kpiSubInvestors: "inwestorzy/użytkownicy", kpiSubUnresolved: "nierozwiązane",
   },
 };
 
@@ -3906,6 +3924,7 @@ const nl = {
     adminLabel: "Beheerder", subAdminLabel: "Sub-Admin",
     catPlan: "Planbeheer", catContent: "Inhoud", catUsers: "Gebruikers", catSystem: "Systeem",
     kpiTotalRevenue: "Totale Omzet", kpiTotalUsers: "Totale Gebruikers", kpiTotalReferrals: "Totale Verwijzingen", kpiConversionRate: "Conversiepercentage", kpiOpenTickets: "Open Tickets",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "geregistreerd", kpiSubConnections: "verbindingen", kpiSubInvestors: "investeerders/gebruikers", kpiSubUnresolved: "onopgelost",
   },
 };
 
@@ -4106,6 +4125,7 @@ const uk = {
     adminLabel: "Адміністратор", subAdminLabel: "Підадмін",
     catPlan: "Управління планами", catContent: "Контент", catUsers: "Користувачі", catSystem: "Система",
     kpiTotalRevenue: "Загальний дохід", kpiTotalUsers: "Всього користувачів", kpiTotalReferrals: "Всього рефералів", kpiConversionRate: "Коефіцієнт конверсії", kpiOpenTickets: "Відкриті тікети",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "зареєстровано", kpiSubConnections: "зв'язки", kpiSubInvestors: "інвестори/користувачі", kpiSubUnresolved: "невирішені",
   },
 };
 
@@ -4306,6 +4326,7 @@ const tl = {
     adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
     catPlan: "Pamamahala ng Plano", catContent: "Nilalaman", catUsers: "Mga Gumagamit", catSystem: "Sistema",
     kpiTotalRevenue: "Kabuuang Kita", kpiTotalUsers: "Kabuuang Gumagamit", kpiTotalReferrals: "Kabuuang Referral", kpiConversionRate: "Rate ng Conversion", kpiOpenTickets: "Bukas na Tiket",
+    kpiSubUsdt: "USDT", kpiSubRegistered: "nairehistro", kpiSubConnections: "mga koneksyon", kpiSubInvestors: "mga mamumuhunan/gumagamit", kpiSubUnresolved: "hindi nalutas",
   },
 };
 // ─── i18n initt ────────────────────────────────────────────────────────────────

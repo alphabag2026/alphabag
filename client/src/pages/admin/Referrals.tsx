@@ -1,6 +1,8 @@
 import { useState, useCallback, useMemo } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
+import { formatCurrency } from "@/lib/formatNumber";
 import { Network, TrendingUp, Users, DollarSign, Search, ChevronDown, ChevronRight, Copy, CheckCheck, GitBranch } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +37,8 @@ interface ReferralNode {
 
 function TreeNode({ node, depth = 0 }: { node: ReferralNode; depth?: number }) {
   const [expanded, setExpanded] = useState(depth < 2);
+  const { i18n } = useTranslation();
+  const lang = i18n.language || "en";
   const hasChildren = node.children && node.children.length > 0;
 
   return (
@@ -76,7 +80,7 @@ function TreeNode({ node, depth = 0 }: { node: ReferralNode; depth?: number }) {
 
         {Number(node.totalInvested ?? 0) > 0 && (
           <span className="text-xs text-green-400 flex-shrink-0">
-            ${Number(node.totalInvested).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            {formatCurrency(Number(node.totalInvested), lang, 0)}
           </span>
         )}
 
@@ -100,6 +104,8 @@ function TreeNode({ node, depth = 0 }: { node: ReferralNode; depth?: number }) {
 
 // ── 레퍼럴 트리 뷰 ──────────────────────────────────────────────────────────
 function ReferralTreeView() {
+  const { i18n } = useTranslation();
+  const lang = i18n.language || "en";
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
@@ -264,6 +270,8 @@ function ReferralTreeView() {
 
 // ── 메인 컴포넌트 ────────────────────────────────────────────────────────────
 export default function Referrals() {
+  const { i18n } = useTranslation();
+  const lang = i18n.language || "en";
   const { data: topReferrers } = trpc.referrals.topReferrers.useQuery({ limit: 20 });
   const { data: stats } = trpc.referrals.stats.useQuery();
 
@@ -275,7 +283,7 @@ export default function Referrals() {
           {[
             { label: "총 추천인", value: stats?.totalReferrers ?? 0, icon: Users, color: "text-blue-400" },
             { label: "총 레퍼럴", value: stats?.totalReferrals ?? 0, icon: Network, color: "text-emerald-400" },
-            { label: "레퍼럴 수익", value: `$${Number(stats?.totalReferralRevenue ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: DollarSign, color: "text-primary" },
+            { label: "레퍼럴 수익", value: formatCurrency(Number(stats?.totalReferralRevenue ?? 0), lang, 0), icon: DollarSign, color: "text-primary" },
             { label: "평균 추천수", value: stats?.avgReferralsPerUser?.toFixed(1) ?? "0", icon: TrendingUp, color: "text-purple-400" },
           ].map((s, i) => (
             <Card key={i} className="border-border/40">
@@ -358,7 +366,7 @@ export default function Referrals() {
                         </td>
                         <td className="text-right">
                           <span className="font-semibold text-primary">
-                            ${Number(ref.totalEarnings ?? ref.totalEarned ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                            {formatCurrency(Number(ref.totalEarnings ?? ref.totalEarned ?? 0), lang, 2)}
                           </span>
                         </td>
                       </tr>

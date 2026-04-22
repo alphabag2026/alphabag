@@ -1037,3 +1037,12 @@
 - [x] AdminLayout.tsx 알림 배지 갱신 주기 60초 → 30초로 단축
 - [x] Users.tsx 투자 금액 컬럼 + 레퍼럴 트리 노드 금액에 formatCurrency 적용
 - [x] 전체 테스트 158개 통과, TypeScript 오류 0개
+
+## Phase 79 - 백오피스 UX 완성 (2026-04-22)
+- [x] Referrals.tsx TreeNode/통계카드/테이블 3곳 formatCurrency 통일
+- [x] i18n.ts 21개 언어 KPI 서브 레이블 번역 키 추가 (kpiSubUsdt/kpiSubRegistered/kpiSubConnections/kpiSubInvestors/kpiSubUnresolved)
+- [x] Dashboard.tsx KPI 카드 서브 레이블 t("adminNav.kpiSubXxx") i18n 키로 교체
+- [x] adminBadgesWs.ts WebSocket 서버 모듈 신규 작성 (/ws/admin-badges, 30초 브로드캐스트)
+- [x] server/_core/index.ts에 setupAdminBadgesWs 등록
+- [x] AdminLayout.tsx WebSocket 실시간 배지 갱신 (폴링 → WebSocket, 5초 재연결)
+- [x] 전체 테스트 158개 통과, TypeScript 오류 0개

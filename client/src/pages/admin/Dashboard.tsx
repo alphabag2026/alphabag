@@ -30,11 +30,11 @@ export default function AdminDashboard() {
   const { data: nodeSalesData } = trpc.nodes.salesStats.useQuery();
 
   const kpiCards = [
-    { label: t("adminNav.kpiTotalRevenue"), value: formatCurrency(stats?.totalRevenue ?? 0, lang), sub: "USDT", color: "gold", icon: DollarSign },
-    { label: t("adminNav.kpiTotalUsers"), value: formatNumber(stats?.totalUsers ?? 0, lang), sub: "registered", color: "blue", icon: Users },
-    { label: t("adminNav.kpiTotalReferrals"), value: formatNumber(stats?.totalReferrals ?? 0, lang), sub: "connections", color: "green", icon: Network },
-    { label: t("adminNav.kpiConversionRate"), value: `${(stats?.conversionRate ?? 0).toFixed(1)}%`, sub: "investors/users", color: "purple", icon: TrendingUp },
-    { label: t("adminNav.kpiOpenTickets"), value: formatNumber(stats?.openTickets ?? 0, lang), sub: "unresolved", color: "red", icon: TicketCheck },
+    { label: t("adminNav.kpiTotalRevenue"), value: formatCurrency(stats?.totalRevenue ?? 0, lang), sub: t("adminNav.kpiSubUsdt"), color: "gold", icon: DollarSign },
+    { label: t("adminNav.kpiTotalUsers"), value: formatNumber(stats?.totalUsers ?? 0, lang), sub: t("adminNav.kpiSubRegistered"), color: "blue", icon: Users },
+    { label: t("adminNav.kpiTotalReferrals"), value: formatNumber(stats?.totalReferrals ?? 0, lang), sub: t("adminNav.kpiSubConnections"), color: "green", icon: Network },
+    { label: t("adminNav.kpiConversionRate"), value: `${(stats?.conversionRate ?? 0).toFixed(1)}%`, sub: t("adminNav.kpiSubInvestors"), color: "purple", icon: TrendingUp },
+    { label: t("adminNav.kpiOpenTickets"), value: formatNumber(stats?.openTickets ?? 0, lang), sub: t("adminNav.kpiSubUnresolved"), color: "red", icon: TicketCheck },
   ];
 
   return (
