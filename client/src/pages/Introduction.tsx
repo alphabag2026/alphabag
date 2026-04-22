@@ -6,18 +6,18 @@ export default function Introduction() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  const bg = isDark ? "bg-[#0a0a0a]" : "bg-gray-50";
-  const textPrimary = isDark ? "text-white" : "text-gray-900";
-  const textSecondary = isDark ? "text-gray-400" : "text-gray-600";
-  const cardBg = isDark ? "bg-[#111] border-white/8" : "bg-white border-gray-200";
-  const sectionBg = isDark ? "bg-[#0f0f0f] border-white/5" : "bg-white border-gray-100";
+  const bg = isDark ? "bg-[#0a0a0a]" : "bg-muted/60";
+  const textPrimary = isDark ? "text-white" : "text-foreground";
+  const textSecondary = isDark ? "text-gray-400" : "text-muted-foreground";
+  const cardBg = isDark ? "bg-[#111] border-white/8" : "bg-card border-border";
+  const sectionBg = isDark ? "bg-[#0f0f0f] border-white/5" : "bg-card border-border/60";
   const accentColor = "text-amber-400";
   const accentBg = isDark ? "bg-amber-500/10 border-amber-500/20" : "bg-amber-50 border-amber-200";
 
   return (
     <div className={`min-h-screen ${bg}`}>
       {/* 헤더 네비 */}
-      <div className={`sticky top-0 z-10 border-b ${isDark ? "bg-[#0a0a0a]/95 border-white/5" : "bg-white/95 border-gray-200"} backdrop-blur-xl`}>
+      <div className={`sticky top-0 z-10 border-b ${isDark ? "bg-[#0a0a0a]/95 border-white/5" : "bg-card/95 border-border"} backdrop-blur-xl`}>
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
           <Link href="/">
             <button className={`flex items-center gap-1.5 text-xs ${textSecondary} hover:${textPrimary} transition-colors`}>

@@ -164,7 +164,7 @@ function PlanCardB({ plan, collectionColor }: { plan: any; collectionColor: stri
 
   return (
     <Link href={`/plan/${plan.id}`}>
-      <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer border-b border-gray-100 dark:border-white/5 group">
+      <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/60 dark:hover:bg-white/5 transition-colors cursor-pointer border-b border-gray-100 dark:border-white/5 group">
         {/* 로고 */}
         <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-white/5">
           {plan.logoUrl ? (
@@ -228,7 +228,7 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
 
   return (
     <Link href={`/plan/${plan.id}`}>
-      <div className={`relative border-2 ${c.border} rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl ${c.glow} group ${isDark ? "bg-[#0d0d0d]" : "bg-white shadow-sm"}`}>
+      <div className={`relative border-2 ${c.border} rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl ${c.glow} group ${isDark ? "bg-[#0d0d0d]" : "bg-card shadow-sm"}`}>
         <div className="relative h-36 overflow-hidden">
           {Array.isArray(plan.thumbnailImages) && plan.thumbnailImages.length > 0 && (
             <img src={plan.thumbnailImages[0]} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 transition-transform duration-500 group-hover:scale-110" />
@@ -251,7 +251,7 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
           </div>
         </div>
         <div className="p-4">
-          <div className={`font-bold text-sm truncate mb-1 ${isDark ? "text-white" : "text-gray-900"}`}>{plan.name}</div>
+          <div className={`font-bold text-sm truncate mb-1 ${isDark ? "text-white" : "text-foreground"}`}>{plan.name}</div>
           {plan.strategy && <div className="text-xs text-gray-500 truncate mb-2">{plan.strategy}</div>}
           {badges.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
@@ -262,8 +262,8 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
           )}
           {(plan.ratioInfo || plan.yieldInfo) && (
             <div className="grid grid-cols-2 gap-1 mb-2">
-              {plan.ratioInfo && <div className={`rounded-lg p-2 border ${isDark ? "bg-white/5 border-white/5" : "bg-gray-100 border-gray-200"}`}><div className={`text-[9px] mb-0.5 ${isDark ? "text-gray-500" : "text-gray-500"}`}>Ratio</div><div className={`text-[11px] font-bold ${isDark ? "text-white" : "text-gray-800"}`}>{plan.ratioInfo}</div></div>}
-              {plan.yieldInfo && <div className={`rounded-lg p-2 border ${isDark ? "bg-white/5 border-white/5" : "bg-gray-100 border-gray-200"}`}><div className={`text-[9px] mb-0.5 ${isDark ? "text-gray-500" : "text-gray-500"}`}>Yield</div><div className={`text-[11px] font-bold ${c.rate}`}>{plan.yieldInfo}</div></div>}
+              {plan.ratioInfo && <div className={`rounded-lg p-2 border ${isDark ? "bg-white/5 border-white/5" : "bg-muted border-border"}`}><div className={`text-[9px] mb-0.5 ${isDark ? "text-gray-500" : "text-muted-foreground"}`}>Ratio</div><div className={`text-[11px] font-bold ${isDark ? "text-white" : "text-foreground"}`}>{plan.ratioInfo}</div></div>}
+              {plan.yieldInfo && <div className={`rounded-lg p-2 border ${isDark ? "bg-white/5 border-white/5" : "bg-muted border-border"}`}><div className={`text-[9px] mb-0.5 ${isDark ? "text-gray-500" : "text-muted-foreground"}`}>Yield</div><div className={`text-[11px] font-bold ${c.rate}`}>{plan.yieldInfo}</div></div>}
             </div>
           )}
           <div className="mb-2">
@@ -271,13 +271,13 @@ function PlanCardC({ plan, collectionColor, isDark = false }: { plan: any; colle
             <div className="text-xs text-gray-500">Daily Return</div>
           </div>
           {plan.recommendedAmount && (
-            <div className={`text-xs mb-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>{t("home.recommended")}: <span className={`font-bold ${c.rate}`}>{Number(plan.recommendedAmount).toLocaleString()} USDT</span></div>
+            <div className={`text-xs mb-2 ${isDark ? "text-gray-400" : "text-muted-foreground"}`}>{t("home.recommended")}: <span className={`font-bold ${c.rate}`}>{Number(plan.recommendedAmount).toLocaleString()} USDT</span></div>
           )}
           <div className="flex items-center gap-1 mb-3">
             {[1, 2, 3, 4, 5].map((s) => (
               <Star key={s} className={`w-3 h-3 ${s <= Math.round(rating) ? "text-amber-400 fill-amber-400" : isDark ? "text-gray-600" : "text-gray-300"}`} />
             ))}
-            <span className={`text-xs ml-1 ${isDark ? "text-gray-500" : "text-gray-500"}`}>{rating.toFixed(1)}</span>
+            <span className={`text-xs ml-1 ${isDark ? "text-gray-500" : "text-muted-foreground"}`}>{rating.toFixed(1)}</span>
           </div>
           <button className={`w-full py-2 rounded-lg text-xs font-semibold transition-all duration-200 border ${c.btn}`}>View Details →</button>
         </div>
@@ -296,9 +296,9 @@ function MarketWidget({ isDark, sidebar = false, mobileInline = false }: { isDar
   const [showBNB, setShowBNB] = useState(false);
   const [showSOL, setShowSOL] = useState(false);
   const [fxCollapsed, setFxCollapsed] = useState(true);
-  const bgCard = isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200 shadow-sm";
-  const textPrimary = isDark ? "text-white" : "text-gray-900";
-  const textSecondary = isDark ? "text-gray-400" : "text-gray-500";
+  const bgCard = isDark ? "bg-[#111111] border-white/10" : "bg-card border-border shadow-sm";
+  const textPrimary = isDark ? "text-white" : "text-foreground";
+  const textSecondary = isDark ? "text-gray-400" : "text-muted-foreground";
   if (isLoading) {
     return (
       <div className={`rounded-xl p-4 border ${bgCard} ${sidebar ? "" : "mb-4"}`}>
@@ -324,7 +324,7 @@ function MarketWidget({ isDark, sidebar = false, mobileInline = false }: { isDar
 
   return (
     <div className={`rounded-xl border ${bgCard} ${sidebar ? "" : "mb-4"} overflow-hidden`}>
-      <div className={`px-4 py-3 flex items-center justify-between border-b ${isDark ? "border-white/5" : "border-gray-100"}`}>
+      <div className={`px-4 py-3 flex items-center justify-between border-b ${isDark ? "border-white/5" : "border-border/60"}`}>
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-amber-400" />
           <span className={`text-sm font-bold ${textPrimary}`}>{t("home.financialMarket")}</span>
@@ -356,7 +356,7 @@ function MarketWidget({ isDark, sidebar = false, mobileInline = false }: { isDar
         <div className={`grid gap-2 ${cryptoItems.length > 2 ? "grid-cols-2" : "grid-cols-2"}`}>
           {cryptoItems.map((item) => (
             <div key={item.symbol} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors ${
-              isDark ? "bg-white/4 border border-white/8" : "bg-gray-50 border border-gray-100"
+              isDark ? "bg-white/4 border border-white/8" : "bg-muted/60 border border-border"
             }`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 ${item.color}`}>
                 {item.icon}
@@ -379,10 +379,10 @@ function MarketWidget({ isDark, sidebar = false, mobileInline = false }: { isDar
 
       {/* 환율 접기/펼치기 */}
       {fx && (
-        <div className={`border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
+        <div className={`border-t ${isDark ? "border-white/5" : "border-border/60"}`}>
           <button
             onClick={() => setFxCollapsed(v => !v)}
-            className={`w-full px-4 py-2 flex items-center justify-between text-[10px] ${textSecondary} hover:${isDark ? "text-white" : "text-gray-700"} transition-colors`}
+            className={`w-full px-4 py-2 flex items-center justify-between text-[10px] ${textSecondary} hover:${isDark ? "text-white" : "text-foreground/80"} transition-colors`}
           >
             <span>{t("home.exchangeRate")}</span>
             <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${fxCollapsed ? "" : "rotate-180"}`} />
@@ -396,7 +396,7 @@ function MarketWidget({ isDark, sidebar = false, mobileInline = false }: { isDar
                   { label: "EUR", value: `€${fx.EUR?.toFixed(3)}` },
                   { label: "CNY", value: `¥${fx.CNY?.toFixed(2)}` },
                 ].map((item) => (
-                  <div key={item.label} className={`text-center p-1.5 rounded-lg ${isDark ? "bg-white/5" : "bg-gray-50"}`}>
+                  <div key={item.label} className={`text-center p-1.5 rounded-lg ${isDark ? "bg-white/5" : "bg-muted/60"}`}>
                     <div className={`text-[9px] ${textSecondary}`}>{item.label}</div>
                     <div className={`text-[10px] font-bold ${textPrimary}`}>{item.value}</div>
                   </div>
@@ -417,8 +417,8 @@ function MobileMarketBar({ isDark }: { isDark: boolean }) {
     staleTime: 30000,
   });
   const crypto = marketData?.crypto;
-  const bgCard = isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200 shadow-sm";
-  const textPrimary = isDark ? "text-white" : "text-gray-900";
+  const bgCard = isDark ? "bg-[#111111] border-white/10" : "bg-card border-border shadow-sm";
+  const textPrimary = isDark ? "text-white" : "text-foreground";
   if (!crypto) return null;
   const coins = [
     { symbol: "BTC", price: crypto.BTC.usd, change: crypto.BTC.change24h, icon: "₿", color: "text-orange-400" },
@@ -442,13 +442,13 @@ function MobileMarketBar({ isDark }: { isDark: boolean }) {
 function TodayRecommendWidget({ isDark, onSelectPlan }: { isDark: boolean; onSelectPlan: (id: number) => void }) {
   const { t } = useTranslation();
   const { data: plans } = trpc.public.plans.useQuery({ limit: 3, highlightOnly: true });
-  const bgCard = isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200 shadow-sm";
-  const textPrimary = isDark ? "text-white" : "text-gray-900";
-  const textSecondary = isDark ? "text-gray-400" : "text-gray-500";
+  const bgCard = isDark ? "bg-[#111111] border-white/10" : "bg-card border-border shadow-sm";
+  const textPrimary = isDark ? "text-white" : "text-foreground";
+  const textSecondary = isDark ? "text-gray-400" : "text-muted-foreground";
   if (!plans || plans.length === 0) return null;
   return (
     <div className={`rounded-xl border overflow-hidden ${bgCard}`}>
-      <div className={`px-4 py-3 border-b ${isDark ? "border-white/5" : "border-gray-100"} flex items-center gap-2`}>
+      <div className={`px-4 py-3 border-b ${isDark ? "border-white/5" : "border-border/60"} flex items-center gap-2`}>
         <span className="text-amber-400">⭐</span>
         <span className={`text-sm font-bold ${textPrimary}`}>{t("home.recommendedPlans")}</span>
       </div>
@@ -457,7 +457,7 @@ function TodayRecommendWidget({ isDark, onSelectPlan }: { isDark: boolean; onSel
           <button
             key={plan.id}
             onClick={() => onSelectPlan(plan.id)}
-            className={`w-full px-4 py-3 text-left hover:${isDark ? "bg-white/5" : "bg-gray-50"} transition-colors`}
+            className={`w-full px-4 py-3 text-left hover:${isDark ? "bg-white/5" : "bg-muted/60"} transition-colors`}
           >
             <div className={`text-xs font-semibold ${textPrimary} truncate`}>{plan.name}</div>
             <div className="flex items-center justify-between mt-1">
@@ -576,7 +576,7 @@ function CollectionSection({
 
       {/* 뷰 타입에 따른 렌더링 */}
       {viewType === "B" ? (
-        <div className={`rounded-xl border overflow-hidden ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-white border-gray-200"}`}>
+        <div className={`rounded-xl border overflow-hidden ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-card border-border"}`}>
           {plans.slice(0, 6).map((plan) => (
             <PlanCardB key={plan.id} plan={plan} collectionColor={color} />
           ))}
@@ -739,13 +739,13 @@ export default function Home() {
       ];
 
   // 테마 색상
-  const bg = isDark ? "bg-[#0a0a0a]" : "bg-gray-50";
-  const navBg = isDark ? "bg-[#0a0a0a]/95 border-white/5" : "bg-white/95 border-gray-200";
-  const textPrimary = isDark ? "text-white" : "text-gray-900";
-  const textSecondary = isDark ? "text-gray-400" : "text-gray-500";
-  const cardBg = isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200 shadow-sm";
-  const searchBg = isDark ? "bg-[#1a1a1a] border-white/10 text-white placeholder-gray-500" : "bg-white border-gray-300 text-gray-900 placeholder-gray-400";
-  const tabActiveBg = isDark ? "bg-[#1a1a1a] text-white" : "bg-white text-gray-900 shadow-sm";
+  const bg = isDark ? "bg-[#0a0a0a]" : "bg-muted/60";
+  const navBg = isDark ? "bg-[#0a0a0a]/95 border-white/5" : "bg-card/95 border-border";
+  const textPrimary = isDark ? "text-white" : "text-foreground";
+  const textSecondary = isDark ? "text-gray-400" : "text-muted-foreground";
+  const cardBg = isDark ? "bg-[#111111] border-white/10" : "bg-card border-border shadow-sm";
+  const searchBg = isDark ? "bg-[#1a1a1a] border-white/10 text-white placeholder-gray-500" : "bg-card border-border text-foreground placeholder-muted-foreground";
+  const tabActiveBg = isDark ? "bg-[#1a1a1a] text-white" : "bg-card text-foreground shadow-sm";
   const tabInactiveBg = isDark ? "text-gray-500 hover:text-gray-300" : "text-gray-500 hover:text-gray-700";
 
   return (
@@ -776,7 +776,7 @@ export default function Home() {
                 <div className={`absolute top-full left-0 w-52 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all z-50`}>
                   <div className="pt-1">
                   <div className={`rounded-xl border shadow-xl ${
-                  isDark ? "bg-[#111] border-white/10" : "bg-white border-gray-200"
+                  isDark ? "bg-[#111] border-white/10" : "bg-card border-border"
                 }`}>
                   {[
                     { href: "/introduction", label: `📖 ${t("home.navIntro")}`, color: "text-amber-400" },
@@ -924,11 +924,11 @@ export default function Home() {
 
           {/* 검색 결과 드롭다운 */}
           {showSearchResults && searchResults.length > 0 && (
-            <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border shadow-xl z-50 overflow-hidden ${isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200"}`}>
+            <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border shadow-xl z-50 overflow-hidden ${isDark ? "bg-[#111111] border-white/10" : "bg-card border-border"}`}>
               {searchResults.map((plan: any) => (
                 <Link key={plan.id} href={`/plan/${plan.id}`}>
                   <div
-                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${isDark ? "hover:bg-white/5" : "hover:bg-gray-50"}`}
+                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${isDark ? "hover:bg-white/5" : "hover:bg-muted/60"}`}
                     onClick={() => { setShowSearchResults(false); setSearchQuery(""); }}
                   >
                     {plan.logoUrl ? (
@@ -950,7 +950,7 @@ export default function Home() {
             </div>
           )}
           {showSearchResults && searchResults.length === 0 && searchQuery.trim().length > 0 && (
-            <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border shadow-xl z-50 px-4 py-3 text-sm ${textSecondary} ${isDark ? "bg-[#111111] border-white/10" : "bg-white border-gray-200"}`}>
+            <div className={`absolute top-full left-0 right-0 mt-1 rounded-xl border shadow-xl z-50 px-4 py-3 text-sm ${textSecondary} ${isDark ? "bg-[#111111] border-white/10" : "bg-card border-border"}`}>
               {`"${searchQuery}" ${t("home.searchNoResult")}`}
             </div>
           )}
@@ -1024,7 +1024,7 @@ export default function Home() {
                     ))}
                   </div>
                 )}
-                <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
+                <div className={`flex flex-wrap items-center gap-3 pt-2 border-t ${isDark ? "border-white/5" : "border-border/60"}`}>
                   <Link href="/golden"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>{t("home.goldenCollection")}</button></Link>
                   <Link href="/notices"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>{t("home.community")}</button></Link>
                   <button onClick={() => {
@@ -1058,7 +1058,7 @@ export default function Home() {
                     );
                   })
                 )}
-                <div className={`pt-2 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
+                <div className={`pt-2 border-t ${isDark ? "border-white/5" : "border-border/60"}`}>
                   <Link href="/faq"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>전체 FAQ 보기 →</button></Link>
                 </div>
               </div>
@@ -1082,7 +1082,7 @@ export default function Home() {
                     );
                   })
                 )}
-                <div className={`pt-2 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
+                <div className={`pt-2 border-t ${isDark ? "border-white/5" : "border-border/60"}`}>
                   <Link href="/faq"><button className={`text-xs hover:text-amber-400 transition-colors ${textSecondary}`}>전체 Q&A 보기 →</button></Link>
                 </div>
               </div>
@@ -1176,7 +1176,7 @@ export default function Home() {
                 </div>
                 {/* 설명 */}
                 <div className={`text-[10px] ${textSecondary} mb-3 px-2 py-1.5 rounded-lg ${
-                  isDark ? "bg-white/5" : "bg-gray-50"
+                  isDark ? "bg-white/5" : "bg-muted/60"
                 }`}>
                   {t("home.onepageDesc")}
                 </div>
@@ -1381,7 +1381,7 @@ export default function Home() {
                         })()}
                         {/* 에끼 지표 + 번역 버튼 */}
                         <div className={`flex items-center gap-3 mt-2.5 pt-2.5 border-t flex-wrap ${
-                          isDark ? "border-white/5" : "border-gray-100"
+                          isDark ? "border-white/5" : "border-border/60"
                         }`}>
                           <span className={`flex items-center gap-1 text-[10px] ${textSecondary}`}>
                             ❤️ {post.likes?.toLocaleString() || 0}
@@ -1432,7 +1432,7 @@ export default function Home() {
                     { title: t("home.newsItem3"), time: t("home.news1dAgo"), category: t("home.newsUpdate") },
                     { title: t("home.newsItem4"), time: t("home.news2dAgo"), category: t("home.newsEvent") },
                   ].map((news, i) => (
-                    <div key={i} className={`flex items-start gap-3 pb-3 border-b last:border-0 ${isDark ? "border-white/5" : "border-gray-100"}`}>
+                    <div key={i} className={`flex items-start gap-3 pb-3 border-b last:border-0 ${isDark ? "border-white/5" : "border-border/60"}`}>
                       <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
                         <Newspaper className="w-4 h-4 text-amber-400" />
                       </div>
@@ -1451,7 +1451,7 @@ export default function Home() {
                 <div className="grid grid-cols-2 gap-3">
                   {(allPlans as any[]).filter((p: any) => p.videoUrl).slice(0, 4).map((plan: any) => (
                     <a key={plan.id} href={plan.videoUrl} target="_blank" rel="noopener noreferrer">
-                      <div className={`rounded-xl overflow-hidden border ${isDark ? "border-white/10" : "border-gray-200"} group cursor-pointer`}>
+                      <div className={`rounded-xl overflow-hidden border ${isDark ? "border-white/10" : "border-border"} group cursor-pointer`}>
                         <div className="relative aspect-video bg-black/20 flex items-center justify-center">
                           {plan.thumbnailImages?.[0] ? (
                             <img src={plan.thumbnailImages[0]} alt={plan.name} className="w-full h-full object-cover opacity-70" />
@@ -1569,7 +1569,7 @@ export default function Home() {
                   <div className="space-y-3">
                     {(airdropList as any[]).map((drop: any) => (
                       <div key={drop.id} className={`rounded-xl border overflow-hidden ${
-                        isDark ? "bg-white/3 border-white/8" : "bg-white border-gray-200"
+                        isDark ? "bg-white/3 border-white/8" : "bg-card border-border"
                       }`}>
                         {drop.imageUrl && (
                           <img src={drop.imageUrl} alt={drop.name} className="w-full h-24 object-cover" />
@@ -1869,7 +1869,7 @@ export default function Home() {
             <div className="flex items-center gap-2.5">
               <img src={ALPHABAG_LOGO} alt="AlphaBag" className="w-7 h-7 rounded object-contain bg-black" />
               <div>
-                <div className={`text-sm font-bold ${isDark ? "text-gray-400" : "text-gray-600"}`}>AlphaBag</div>
+                <div className={`text-sm font-bold ${isDark ? "text-gray-400" : "text-muted-foreground"}`}>AlphaBag</div>
                 <div className="text-[10px] text-gray-500">Decentralized Community Platform</div>
               </div>
             </div>
@@ -1907,17 +1907,17 @@ export default function Home() {
         </div>
 
         {/* 하단: 알파백 철학 + 면책조항 + 약관 링크 */}
-        <div className={`border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
+        <div className={`border-t ${isDark ? "border-white/5" : "border-border/60"}`}>
           <div className="max-w-4xl mx-auto px-4 py-5 space-y-4">
             {/* 알파백 철학 */}
-            <p className={`text-xs text-center leading-relaxed ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+            <p className={`text-xs text-center leading-relaxed ${isDark ? "text-gray-400" : "text-muted-foreground"}`}>
               {t("footer.philosophy")}
             </p>
 
             {/* 면책조항 */}
             <div className={`rounded-xl p-4 ${isDark ? "bg-white/3 border border-white/5" : "bg-gray-50 border border-gray-200"}`}>
-              <p className={`text-[10px] leading-relaxed text-center ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                <span className={`font-semibold text-[11px] block mb-1.5 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+              <p className={`text-[10px] leading-relaxed text-center ${isDark ? "text-gray-500" : "text-muted-foreground/70"}`}>
+                <span className={`font-semibold text-[11px] block mb-1.5 ${isDark ? "text-gray-400" : "text-muted-foreground"}`}>
                   ⚠️ Disclaimer
                 </span>
                 {t("footer.disclaimer")}
@@ -1925,7 +1925,7 @@ export default function Home() {
             </div>
 
             {/* 약관 링크 */}
-            <div className={`flex items-center justify-center gap-4 text-[10px] ${isDark ? "text-gray-600" : "text-gray-400"}`}>
+            <div className={`flex items-center justify-center gap-4 text-[10px] ${isDark ? "text-gray-600" : "text-muted-foreground/70"}`}>
               <Link href="/terms">
                 <span className="hover:text-amber-400 cursor-pointer transition-colors underline">
                   {t("footer.termsLink", "Terms of Service")}
@@ -1938,7 +1938,7 @@ export default function Home() {
                 </span>
               </Link>
               <span>·</span>
-              <span className={isDark ? "text-gray-600" : "text-gray-400"}>{t("footer.rights", "© 2026 AlphaBag. All rights reserved.")}</span>
+              <span className={isDark ? "text-gray-600" : "text-muted-foreground/70"}>{t("footer.rights", "© 2026 AlphaBag. All rights reserved.")}</span>
             </div>
           </div>
         </div>

@@ -74,7 +74,7 @@ export default function AirdropPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {(airdrops as any[]).map((airdrop) => (
-              <div key={airdrop.id} className="bg-white rounded-2xl border border-emerald-100 shadow-sm hover:shadow-lg hover:border-emerald-300 transition-all overflow-hidden group">
+              <div key={airdrop.id} className="bg-card rounded-2xl border border-emerald-200 shadow-sm hover:shadow-lg hover:border-emerald-300 transition-all overflow-hidden group">
                 {airdrop.imageUrl && (
                   <div className="h-40 overflow-hidden bg-gradient-to-br from-emerald-100 to-teal-100">
                     <img src={airdrop.imageUrl} alt={airdrop.projectName || airdrop.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />

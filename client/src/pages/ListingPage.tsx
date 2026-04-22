@@ -110,7 +110,7 @@ export default function ListingPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-amber-100 shadow-sm p-8">
+        <form onSubmit={handleSubmit} className="bg-card rounded-3xl border border-amber-200 shadow-sm p-8">
           {step === 1 && (
             <div className="space-y-5">
               <h2 className="text-xl font-bold text-gray-900 mb-5">📦 프로젝트 정보</h2>

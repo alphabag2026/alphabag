@@ -73,7 +73,7 @@ export default function CbagPage() {
                 className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
                   sort === key
                     ? "bg-cyan-600 text-white font-semibold"
-                    : "bg-white text-gray-600 border border-gray-200 hover:border-cyan-300"
+                    : "bg-card text-muted-foreground border border-border hover:border-cyan-300"
                 }`}
               >
                 {label}
@@ -100,7 +100,7 @@ export default function CbagPage() {
               <div
                 key={plan.id}
                 onClick={() => setSelectedPlanId(plan.id)}
-                className="bg-white rounded-2xl border border-cyan-100 shadow-sm hover:shadow-lg hover:border-cyan-300 transition-all cursor-pointer group overflow-hidden"
+                className="bg-card rounded-2xl border border-cyan-200 shadow-sm hover:shadow-lg hover:border-cyan-300 transition-all cursor-pointer group overflow-hidden"
               >
                 {plan.imageUrl && (
                   <div className="h-40 overflow-hidden">

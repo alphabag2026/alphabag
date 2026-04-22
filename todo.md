@@ -922,3 +922,10 @@
 - [ ] App.tsx에 /terms, /privacy 라우트 등록
 - [ ] 푸터 소셜 링크 아이콘 (텔레그램, 트위터, 유튜브)
 - [ ] 푸터 하단에 이용약관/개인정보처리방침 링크 추가
+
+## Phase 80 - 라이트 모드 디자인 개선 (2026-04-23)
+- [x] index.css 라이트 모드 배경색: 순백 → 세련된 Warm Slate + Ivory 팔레트 (oklch(0.955 0.006 240))
+- [x] 카드 배경: oklch(0.985 0.004 60) 크림 화이트, 테두리: 슬레이트 블루 틴트
+- [x] Home.tsx bg-white 35곳 → bg-card/bg-muted CSS 변수로 교체
+- [x] AirdropPage/CartPage/CbagPage/Introduction/ListingPage/PartnersPage/Privacy 7개 파일 배경색 통일
+- [x] TypeScript 오류 0개

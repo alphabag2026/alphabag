@@ -88,7 +88,7 @@ export default function PartnersPage() {
                   {items.map((partner: any) => (
                     <div
                       key={partner.id}
-                      className="bg-white rounded-2xl border border-violet-100 shadow-sm hover:shadow-md hover:border-violet-300 transition-all p-5 flex flex-col items-center text-center group"
+                      className="bg-card rounded-2xl border border-violet-200 shadow-sm hover:shadow-md hover:border-violet-300 transition-all p-5 flex flex-col items-center text-center group"
                     >
                       {partner.logoUrl ? (
                         <img src={partner.logoUrl} alt={partner.name} className="w-16 h-16 object-contain mb-3 rounded-xl" />

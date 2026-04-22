@@ -80,11 +80,11 @@ export default function CartPage() {
   };
 
   // 테마 클래스
-  const bg = isDark ? "bg-[#0a0a0f]" : "bg-gray-50";
-  const navBg = isDark ? "bg-black/80 border-white/10" : "bg-white/90 border-gray-200";
-  const cardBg = isDark ? "bg-white/5 border-white/10" : "bg-white border-gray-200";
-  const textPrimary = isDark ? "text-white" : "text-gray-900";
-  const textSecondary = isDark ? "text-gray-400" : "text-gray-500";
+  const bg = isDark ? "bg-[#0a0a0f]" : "bg-muted/60";
+  const navBg = isDark ? "bg-black/80 border-white/10" : "bg-card/90 border-border";
+  const cardBg = isDark ? "bg-white/5 border-white/10" : "bg-card border-border";
+  const textPrimary = isDark ? "text-white" : "text-foreground";
+  const textSecondary = isDark ? "text-gray-400" : "text-muted-foreground";
 
   return (
     <div className={`min-h-screen ${bg} ${textPrimary} transition-colors duration-300`}>
@@ -176,10 +176,10 @@ export default function CartPage() {
               Array.from({ length: cartItems.length }).map((_, i) => (
                 <div key={i} className={`rounded-xl border ${cardBg} p-4 animate-pulse`}>
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl ${isDark ? "bg-white/10" : "bg-gray-100"}`} />
+                    <div className={`w-12 h-12 rounded-xl ${isDark ? "bg-white/10" : "bg-muted"}`} />
                     <div className="flex-1 space-y-2">
-                      <div className={`h-4 w-32 rounded ${isDark ? "bg-white/10" : "bg-gray-100"}`} />
-                      <div className={`h-3 w-24 rounded ${isDark ? "bg-white/10" : "bg-gray-100"}`} />
+                      <div className={`h-4 w-32 rounded ${isDark ? "bg-white/10" : "bg-muted"}`} />
+                      <div className={`h-3 w-24 rounded ${isDark ? "bg-white/10" : "bg-muted"}`} />
                     </div>
                   </div>
                 </div>
@@ -329,7 +329,7 @@ export default function CartPage() {
       </div>
 
       {/* 푸터 */}
-      <footer className={`border-t border-border/40 ${isDark ? "bg-black/30" : "bg-white/50"} py-8 mt-12`}>
+      <footer className={`border-t border-border/40 ${isDark ? "bg-black/30" : "bg-card/50"} py-8 mt-12`}>
         <div className="max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer">
