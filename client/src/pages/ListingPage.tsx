@@ -100,9 +100,9 @@ export default function ListingPage() {
           {[1, 2, 3].map((s) => (
             <div key={s} className="flex items-center gap-2">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                step >= s ? "bg-amber-500 text-white" : "bg-gray-200 text-gray-400"
+                step >= s ? "bg-amber-500 text-white" : "bg-secondary text-muted-foreground"
               }`}>{s}</div>
-              {s < 3 && <div className={`h-0.5 w-12 transition-all ${step > s ? "bg-amber-500" : "bg-gray-200"}`} />}
+              {s < 3 && <div className={`h-0.5 w-12 transition-all ${step > s ? "bg-amber-500" : "bg-secondary"}`} />}
             </div>
           ))}
           <div className="ml-2 text-sm text-gray-500">

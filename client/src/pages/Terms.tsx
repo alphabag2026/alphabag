@@ -9,7 +9,7 @@ export default function Terms() {
   const isDark = theme === "dark";
 
   const bg = isDark ? "bg-[#0a0a0a] text-gray-200" : "bg-white text-gray-800";
-  const cardBg = isDark ? "bg-white/5 border-white/10" : "bg-gray-50 border-gray-200";
+  const cardBg = isDark ? "bg-white/5 border-white/10" : "bg-muted/40 border-border";
   const headingColor = isDark ? "text-amber-400" : "text-amber-600";
   const subHeading = isDark ? "text-gray-300" : "text-gray-700";
   const body = isDark ? "text-gray-400" : "text-gray-600";

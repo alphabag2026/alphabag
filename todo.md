@@ -929,3 +929,9 @@
 - [x] Home.tsx bg-white 35곳 → bg-card/bg-muted CSS 변수로 교체
 - [x] AirdropPage/CartPage/CbagPage/Introduction/ListingPage/PartnersPage/Privacy 7개 파일 배경색 통일
 - [x] TypeScript 오류 0개
+
+## Phase 81 - 라이트 모드 검정 배경 제거 (2026-04-23)
+- [x] Home.tsx 라이트 모드 조건부 표현식에서 bg-gray-*/bg-[#0*] 하드코딩 전체 제거
+- [x] AirdropPage/Introduction/ListingPage/Terms 4개 파일 라이트 모드 gray 배경 교체
+- [x] 모든 라이트 모드 배경을 bg-card/bg-muted/bg-secondary CSS 변수로 통일
+- [x] TypeScript 오류 0개

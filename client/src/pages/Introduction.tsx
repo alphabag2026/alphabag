@@ -208,7 +208,7 @@ export default function Introduction() {
           </p>
 
           {/* 에코시스템 맵 */}
-          <div className={`rounded-xl border p-6 font-mono text-xs ${isDark ? "bg-black/30 border-white/5 text-green-400" : "bg-gray-50 border-gray-200 text-green-700"}`}>
+          <div className={`rounded-xl border p-6 font-mono text-xs ${isDark ? "bg-black/30 border-white/5 text-green-400" : "bg-muted/50 border-border text-green-700"}`}>
             <div className={`text-sm font-bold ${accentColor} mb-3`}>AlphaBag Ecosystem Map</div>
             <div className="text-center leading-loose">
               <div>[ Top Exchanges ]</div>

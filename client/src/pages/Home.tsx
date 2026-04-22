@@ -343,9 +343,9 @@ function MarketWidget({ isDark, sidebar = false, mobileInline = false }: { isDar
           <button key={t.label} onClick={t.toggle} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all ${
             t.active
               ? isDark ? "bg-amber-500/20 border-amber-500/40 text-amber-300" : "bg-amber-100 border-amber-300 text-amber-700"
-              : isDark ? "bg-white/5 border-white/10 text-gray-500" : "bg-gray-100 border-gray-200 text-gray-400"
+              : isDark ? "bg-white/5 border-white/10 text-gray-500" : "bg-muted border-border text-muted-foreground"
           }`}>
-            <span className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${t.active ? "bg-amber-400 border-amber-400" : isDark ? "border-gray-600" : "border-gray-300"}`} />
+            <span className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${t.active ? "bg-amber-400 border-amber-400" : isDark ? "border-gray-600" : "border-border"}`} />
             {t.label}
           </button>
         ))}
@@ -550,7 +550,7 @@ function CollectionSection({
             <h2 className={`text-base font-bold ${c.title} flex items-center gap-1.5`}>{icon} {title}</h2>
           </div>
         </div>
-        <div className={`rounded-xl p-6 text-center border ${isDark ? "bg-[#111111] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+        <div className={`rounded-xl p-6 text-center border ${isDark ? "bg-[#111111] border-white/5" : "bg-muted/50 border-border"}`}>
           <div className="text-gray-500 text-sm">Coming Soon</div>
         </div>
       </section>
@@ -1235,7 +1235,7 @@ export default function Home() {
                       className={`flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold border transition-all ${
                         snsCategory === "all"
                           ? isDark ? "bg-sky-500/20 border-sky-500/40 text-sky-300" : "bg-sky-100 border-sky-300 text-sky-700"
-                          : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-gray-100 border-gray-200 text-gray-500"
+                          : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-secondary border-border text-muted-foreground"
                       }`}
                     >
                       {t("home.all")}
@@ -1247,7 +1247,7 @@ export default function Home() {
                         className={`flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold border transition-all ${
                           snsCategory === cat
                             ? isDark ? "bg-sky-500/20 border-sky-500/40 text-sky-300" : "bg-sky-100 border-sky-300 text-sky-700"
-                            : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-gray-100 border-gray-200 text-gray-500"
+                            : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-secondary border-border text-muted-foreground"
                         }`}
                       >
                         {snsCategoryLabels[cat] || cat}
@@ -1262,7 +1262,7 @@ export default function Home() {
                     className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                       selectedInfluencerId === null
                         ? isDark ? "bg-sky-500/20 border-sky-500/40 text-sky-300" : "bg-sky-100 border-sky-300 text-sky-700"
-                        : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-gray-100 border-gray-200 text-gray-500"
+                        : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-secondary border-border text-muted-foreground"
                     }`}
                   >
                       📱 {t("home.all")}
@@ -1276,7 +1276,7 @@ export default function Home() {
                       className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                         selectedInfluencerId === inf.id
                           ? isDark ? "bg-sky-500/20 border-sky-500/40 text-sky-300" : "bg-sky-100 border-sky-300 text-sky-700"
-                          : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-gray-100 border-gray-200 text-gray-500"
+                          : isDark ? "bg-white/5 border-white/10 text-gray-400" : "bg-secondary border-border text-muted-foreground"
                       }`}
                     >
                       {inf.avatarUrl ? (
@@ -1491,7 +1491,7 @@ export default function Home() {
                     {(trendingTokens as any[]).map((token: any) => (
                       <a key={token.id} href={`https://www.coingecko.com/en/coins/${token.id}`} target="_blank" rel="noopener noreferrer"
                         className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all hover:scale-[1.02] ${
-                          isDark ? "bg-white/4 border-white/8 hover:border-emerald-500/40" : "bg-gray-50 border-gray-100 hover:border-emerald-400/40"
+                          isDark ? "bg-white/4 border-white/8 hover:border-emerald-500/40" : "bg-muted/40 border-border hover:border-emerald-400/40"
                         }`}>
                         {token.image ? (
                           <img src={token.image} alt={token.symbol} className="w-8 h-8 rounded-full flex-shrink-0" />
@@ -1526,7 +1526,7 @@ export default function Home() {
                       {(trendingCoins as any[]).map((coin: any) => (
                         <a key={coin.id} href={`https://www.coingecko.com/en/coins/${coin.id}`} target="_blank" rel="noopener noreferrer"
                           className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all hover:scale-[1.02] ${
-                            isDark ? "bg-white/4 border-white/8 hover:border-amber-500/40" : "bg-gray-50 border-gray-100 hover:border-amber-400/40"
+                            isDark ? "bg-white/4 border-white/8 hover:border-amber-500/40" : "bg-muted/40 border-border hover:border-amber-400/40"
                           }`}>
                           {coin.image ? (
                             <img src={coin.image} alt={coin.symbol} className="w-8 h-8 rounded-full flex-shrink-0" />
@@ -1559,7 +1559,7 @@ export default function Home() {
                 </div>
                 {airdropList.length === 0 ? (
                   <div className={`rounded-xl border p-8 text-center ${
-                    isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"
+                    isDark ? "bg-[#0d0d0d] border-white/5" : "bg-muted/50 border-border"
                   }`}>
                     <div className="text-3xl mb-2">🎁</div>
                     <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{t("home.noAirdrop")}</div>
@@ -1612,13 +1612,13 @@ export default function Home() {
                   <span className={`text-[10px] ${textSecondary}`}>{favoritesList.length} {t("home.savedCount")}</span>
                 </div>
                 {!isAuthenticated ? (
-                  <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                  <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-muted/50 border-border"}`}>
                     <div className="text-3xl mb-2">❤️</div>
                     <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{t("home.loginRequired")}</div>
                     <div className={`text-[10px] ${textSecondary}`}>{t("home.loginForFavorites")}</div>
                   </div>
                 ) : favoritesList.length === 0 ? (
-                  <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                  <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-muted/50 border-border"}`}>
                     <div className="text-3xl mb-2">❤️</div>
                     <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{t("home.noFavorites")}</div>
                     <div className={`text-[10px] ${textSecondary}`}>{t("home.favoritesHint")}</div>
@@ -1682,7 +1682,7 @@ export default function Home() {
                   <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                   <span className={`text-xs font-bold ${textPrimary}`}>🔴 Live</span>
                 </div>
-                <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-muted/50 border-border"}`}>
                   <Tv className="w-8 h-8 text-gray-500 mx-auto mb-2" />
                   <div className={`text-xs ${textSecondary}`}>{t("home.liveComingSoon")}</div>
                 </div>
@@ -1698,7 +1698,7 @@ export default function Home() {
                   <span className={`text-[10px] ${textSecondary}`}>{(mlmPlans as any[]).length} {t("home.mlmCount")}</span>
                 </div>
                 {(mlmPlans as any[]).length === 0 ? (
-                  <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                  <div className={`rounded-xl border p-8 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-muted/50 border-border"}`}>
                     <div className="text-3xl mb-2">🔗</div>
                     <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{t("home.noMlm")}</div>
                     <div className={`text-[10px] ${textSecondary}`}>{t("home.mlmHint")}</div>
@@ -1769,7 +1769,7 @@ export default function Home() {
         {/* ─── 뷰 타입 선택 + 통계 ─── */}
         <div className="flex items-center justify-between mb-4">
           <div className={`text-xs font-bold ${textPrimary}`}>{t("home.investmentPlans")}</div>
-          <div className={`flex items-center gap-1 rounded-xl p-1 ${isDark ? "bg-[#111111] border border-white/10" : "bg-gray-100 border border-gray-200"}`}>
+          <div className={`flex items-center gap-1 rounded-xl p-1 ${isDark ? "bg-[#111111] border border-white/10" : "bg-muted border border-border"}`}>
             {([
   { type: "A" as ViewType, label: "A", title: "A" },
   { type: "B" as ViewType, label: "B", title: "B" },
@@ -1836,7 +1836,7 @@ export default function Home() {
               { icon: <Globe className="w-5 h-5" />, title: "Global Access", desc: "21 languages", color: "text-blue-400", bg: "bg-blue-400/10" },
               { icon: <Users className="w-5 h-5" />, title: "Referral Rewards", desc: "Earn from network", color: "text-purple-400", bg: "bg-purple-400/10" },
             ].map((f) => (
-              <div key={f.title} className={`rounded-xl p-4 text-center border transition-colors ${isDark ? "bg-[#111111] border-white/5 hover:border-white/10" : "bg-white border-gray-200 hover:border-gray-300 shadow-sm"}`}>
+              <div key={f.title} className={`rounded-xl p-4 text-center border transition-colors ${isDark ? "bg-[#111111] border-white/5 hover:border-white/10" : "bg-card border-border hover:border-primary/30 shadow-sm"}`}>
                 <div className={`w-10 h-10 rounded-xl ${f.bg} ${f.color} flex items-center justify-center mx-auto mb-3`}>{f.icon}</div>
                 <div className={`text-sm font-semibold mb-1 ${textPrimary}`}>{f.title}</div>
                 <div className={`text-xs ${textSecondary}`}>{f.desc}</div>
@@ -1882,21 +1882,21 @@ export default function Home() {
             {/* 소셜 링크 아이콘 */}
             <div className="flex items-center gap-3">
               <a href="https://t.me/alphabag_official" target="_blank" rel="noopener noreferrer"
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-white/5 hover:bg-blue-500/20 text-gray-400 hover:text-blue-400" : "bg-gray-100 hover:bg-blue-50 text-gray-500 hover:text-blue-500"}`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-white/5 hover:bg-blue-500/20 text-gray-400 hover:text-blue-400" : "bg-secondary hover:bg-blue-50 text-muted-foreground hover:text-blue-500"}`}
                 title="Telegram">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
                 </svg>
               </a>
               <a href="https://twitter.com/alphabag_io" target="_blank" rel="noopener noreferrer"
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-white/5 hover:bg-gray-700 text-gray-400 hover:text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-900"}`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-white/5 hover:bg-gray-700 text-gray-400 hover:text-white" : "bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground"}`}
                 title="X (Twitter)">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
               </a>
               <a href="https://youtube.com/@alphabag" target="_blank" rel="noopener noreferrer"
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400" : "bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500"}`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400" : "bg-secondary hover:bg-red-50 text-muted-foreground hover:text-red-500"}`}
                 title="YouTube">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -1915,7 +1915,7 @@ export default function Home() {
             </p>
 
             {/* 면책조항 */}
-            <div className={`rounded-xl p-4 ${isDark ? "bg-white/3 border border-white/5" : "bg-gray-50 border border-gray-200"}`}>
+            <div className={`rounded-xl p-4 ${isDark ? "bg-white/3 border border-white/5" : "bg-muted/40 border border-border"}`}>
               <p className={`text-[10px] leading-relaxed text-center ${isDark ? "text-gray-500" : "text-muted-foreground/70"}`}>
                 <span className={`font-semibold text-[11px] block mb-1.5 ${isDark ? "text-gray-400" : "text-muted-foreground"}`}>
                   ⚠️ Disclaimer

@@ -10,7 +10,7 @@ export default function AirdropPage() {
   const statusColor: Record<string, string> = {
     active: "bg-green-100 text-green-700",
     upcoming: "bg-blue-100 text-blue-700",
-    ended: "bg-gray-100 text-gray-500",
+    ended: "bg-secondary text-muted-foreground",
   };
 
   return (
