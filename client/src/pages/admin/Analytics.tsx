@@ -1,8 +1,6 @@
 import { useState, useMemo } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
-import { useTranslation } from "react-i18next";
-import { formatNumber, formatCurrency } from "@/lib/formatNumber";
 import { BarChart2, TrendingUp, PieChart as PieIcon, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,7 +18,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="text-muted-foreground mb-1">{label}</p>
         {payload.map((p: any, i: number) => (
           <p key={i} style={{ color: p.color }} className="font-semibold">
-            {p.name}: {typeof p.value === "number" && p.name?.includes("Volume") ? formatCurrency(p.value, "en", 0) : p.value}
+            {p.name}: {typeof p.value === "number" && p.name?.includes("Volume") ? `$${p.value.toLocaleString()}` : p.value}
           </p>
         ))}
       </div>
@@ -31,8 +29,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function Analytics() {
   const [trendDays, setTrendDays] = useState(30);
-  const { i18n } = useTranslation();
-  const lang = i18n.language || "en";
 
   const { data: trend } = trpc.dashboard.investmentTrend.useQuery({ days: trendDays });
   const { data: distribution } = trpc.dashboard.planDistribution.useQuery();
@@ -88,10 +84,10 @@ export default function Analytics() {
         {/* Summary Cards */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {[
-            { label: "Period Volume", value: formatCurrency(totalVolume, lang, 0), icon: TrendingUp, color: "text-primary" },
-            { label: "Transactions", value: formatNumber(totalTx, lang), icon: BarChart2, color: "text-blue-400" },
-            { label: "Avg Daily Volume", value: formatCurrency(avgDailyVolume, lang, 0), icon: PieIcon, color: "text-emerald-400" },
-            { label: "Active Users", value: stats?.totalUsers != null ? formatNumber(stats.totalUsers, lang) : "—", icon: Users, color: "text-purple-400" },
+            { label: "Period Volume", value: `$${totalVolume.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: TrendingUp, color: "text-primary" },
+            { label: "Transactions", value: totalTx.toLocaleString(), icon: BarChart2, color: "text-blue-400" },
+            { label: "Avg Daily Volume", value: `$${avgDailyVolume.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: PieIcon, color: "text-emerald-400" },
+            { label: "Active Users", value: stats?.totalUsers?.toLocaleString() ?? "—", icon: Users, color: "text-purple-400" },
           ].map((s, i) => (
             <Card key={i} className="border-border/40">
               <CardContent className="p-4">
@@ -183,7 +179,7 @@ export default function Analytics() {
                           <Cell key={i} fill={RCOLORS[i % RCOLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(v: any) => [formatCurrency(Number(v), lang, 0), "Volume"]} />
+                      <Tooltip formatter={(v: any) => [`$${Number(v).toLocaleString()}`, "Volume"]} />
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="flex-1 space-y-2 py-2">
@@ -194,7 +190,7 @@ export default function Analytics() {
                           <span className="text-muted-foreground truncate max-w-24">{d.name}</span>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium">{formatCurrency(d.value, lang, 0)}</p>
+                          <p className="font-medium">${d.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
                           <p className="text-muted-foreground">{d.count} txns</p>
                         </div>
                       </div>
@@ -271,7 +267,7 @@ export default function Analytics() {
                       </td>
                       <td className="text-right">
                         <span className="text-sm font-semibold text-primary">
-                          {formatCurrency(Number(inv.totalAmount ?? 0), lang, 0)}
+                          ${Number(inv.totalAmount ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </span>
                       </td>
                       <td className="text-right">

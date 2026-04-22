@@ -289,20 +289,6 @@ const en = {
     detailsHide: "Hide Details",
     applicant: "Applicant",
   },
-  adminNav: {
-    dashboard: "Dashboard", plans: "Plans", content: "Content", users: "Users & Org",
-    nodes: "Nodes", analytics: "Analytics", referrals: "Referrals", tickets: "Support Tickets",
-    notifications: "Notifications", airdrop: "Airdrop", subAdmins: "Sub-Admins",
-    telegramSchedules: "Telegram Schedules", auditLogs: "Audit Logs", mediaAssets: "Media Assets",
-    trendingAlerts: "Trending Alerts", listingRequests: "Listing Requests", partners: "Partners",
-    sns: "SNS Influencers", aiPlanImport: "AI Plan Import", submissions: "Golden Collection Apply",
-    rewards: "Vote Rewards", cbag: "C-BAG Insurance", apiKeys: "API Keys",
-    siteSettings: "Social Links", legal: "Legal Documents", newsLabel: "News", liveLabel: "Live Streams", eventsLabel: "Events", myAccount: "My Account", logout: "Logout",
-    adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
-    catPlan: "Plan Management", catContent: "Content", catUsers: "Users", catSystem: "System",
-    kpiTotalRevenue: "Total Revenue", kpiTotalUsers: "Total Users", kpiTotalReferrals: "Total Referrals", kpiConversionRate: "Conversion Rate", kpiOpenTickets: "Open Tickets",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "registered", kpiSubConnections: "connections", kpiSubInvestors: "investors/users", kpiSubUnresolved: "unresolved",
-  },
 
 };
 
@@ -491,22 +477,9 @@ const zh = {
     detailsHide: "收起详情",
     applicant: "申请人",
   },
-  adminNav: {
-    dashboard: "仪表板", plans: "计划", content: "内容", users: "用户与组织",
-    nodes: "节点", analytics: "分析", referrals: "推荐", tickets: "支持工单",
-    notifications: "通知", airdrop: "空投", subAdmins: "子管理员",
-    telegramSchedules: "Telegram计划", auditLogs: "审计日志", mediaAssets: "媒体资产",
-    trendingAlerts: "趋势提醒", listingRequests: "上市申请", partners: "合作伙伴",
-    sns: "SNS达人", aiPlanImport: "AI计划导入", submissions: "黄金收藏申请",
-    rewards: "投票奖励", cbag: "C-BAG保险", apiKeys: "API密钥",
-    siteSettings: "社交链接", legal: "法律文件", newsLabel: "新闻", liveLabel: "直播", eventsLabel: "活动", myAccount: "我的账户", logout: "退出",
-    adminLabel: "管理员", subAdminLabel: "副管理员",
-    catPlan: "计划管理", catContent: "内容", catUsers: "用户", catSystem: "系统",
-    kpiTotalRevenue: "总收益", kpiTotalUsers: "总用户", kpiTotalReferrals: "总推荐", kpiConversionRate: "转化率", kpiOpenTickets: "待处理工单",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "已注册", kpiSubConnections: "连接数", kpiSubInvestors: "投资者/用户", kpiSubUnresolved: "未解决",
-  },
 };
-// ─── Japanesee ─────────────────────────────────────────────────────────────────
+
+// ─── Japanese ─────────────────────────────────────────────────────────────────
 const ja = {
   nav: { plans: "プラン", nodes: "ノード", about: "概要", dashboard: "ダッシュボード", signIn: "ログイン", getStarted: "始める", notices: "お知らせ" },
   hero: { badge: "Web3 投資プラットフォーム", title1: "スマートに投資し、", title2: "より多く稼ぐ", title3: "AlphaBag と共に", desc: "AlphaBag は透明な日次リターンと強力な紹介エコシステムを持つ厳選された Web3 投資プランとノード機会を提供します。", startInvesting: "投資を始める", exploreNodes: "ノードを探索", totalPlans: "総プラン数", nodeTypes: "ノードタイプ", dailyReturns: "日次リターン", network: "ネットワーク" },
@@ -691,22 +664,9 @@ const ja = {
     detailsHide: "詳細を閉じる",
     applicant: "申請者",
   },
-  adminNav: {
-    dashboard: "ダッシュボード", plans: "プラン", content: "コンテンツ", users: "ユーザー",
-    nodes: "ノード", analytics: "分析", referrals: "紹介", tickets: "サポート",
-    notifications: "通知", airdrop: "エアドロップ", subAdmins: "サブ管理者",
-    telegramSchedules: "Telegram予約", auditLogs: "監査ログ", mediaAssets: "メディア",
-    trendingAlerts: "急騰アラート", listingRequests: "上場申請", partners: "パートナー",
-    sns: "SNSインフルエンサー", aiPlanImport: "AIプラン登録", submissions: "ゴールド申請",
-    rewards: "投票報酬", cbag: "C-BAG保険", apiKeys: "APIキー",
-    siteSettings: "SNSリンク", legal: "法的文書", newsLabel: "ニュース", liveLabel: "ライブ配信", eventsLabel: "イベント", myAccount: "マイアカウント", logout: "ログアウト",
-    adminLabel: "管理者", subAdminLabel: "副管理者",
-    catPlan: "プラン管理", catContent: "コンテンツ", catUsers: "ユーザー", catSystem: "システム",
-    kpiTotalRevenue: "総収益", kpiTotalUsers: "総ユーザー", kpiTotalReferrals: "総紹介数", kpiConversionRate: "コンバージョン率", kpiOpenTickets: "未処理チケット",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "登録済み", kpiSubConnections: "接続数", kpiSubInvestors: "投資家/ユーザー", kpiSubUnresolved: "未解決",
-  },
 };
-// ─── Vietnamesee ───────────────────────────────────────────────────────────────
+
+// ─── Vietnamese ───────────────────────────────────────────────────────────────
 const vi = {
   nav: { plans: "Kế hoạch", nodes: "Nút", about: "Giới thiệu", dashboard: "Bảng điều khiển", signIn: "Đăng nhập", getStarted: "Bắt đầu", notices: "Thông báo" },
   hero: { badge: "Nền tảng đầu tư Web3", title1: "Đầu tư thông minh,", title2: "Kiếm nhiều hơn", title3: "với AlphaBag", desc: "AlphaBag cung cấp các kế hoạch đầu tư Web3 được tuyển chọn với lợi nhuận hàng ngày minh bạch và hệ sinh thái giới thiệu mạnh mẽ.", startInvesting: "Bắt đầu đầu tư", exploreNodes: "Khám phá nút", totalPlans: "Tổng kế hoạch", nodeTypes: "Loại nút", dailyReturns: "Lợi nhuận hàng ngày", network: "Mạng lưới" },
@@ -891,22 +851,9 @@ const vi = {
     detailsHide: "Ẩn chi tiết",
     applicant: "Người nộp đơn",
   },
-  adminNav: {
-    dashboard: "Bảng điều khiển", plans: "Kế hoạch", content: "Nội dung", users: "Người dùng",
-    nodes: "Nút", analytics: "Phân tích", referrals: "Giới thiệu", tickets: "Hỗ trợ",
-    notifications: "Thông báo", airdrop: "Airdrop", subAdmins: "Quản trị phụ",
-    telegramSchedules: "Lịch Telegram", auditLogs: "Nhật ký", mediaAssets: "Tài sản media",
-    trendingAlerts: "Cảnh báo xu hướng", listingRequests: "Yêu cầu niêm yết", partners: "Đối tác",
-    sns: "Influencer SNS", aiPlanImport: "Nhập kế hoạch AI", submissions: "Đăng ký Golden",
-    rewards: "Phần thưởng bỏ phiếu", cbag: "Bảo hiểm C-BAG", apiKeys: "Khóa API",
-    siteSettings: "Liên kết mạng xã hội", legal: "Tài liệu pháp lý", newsLabel: "Tin tức", liveLabel: "Trực tiếp", eventsLabel: "Sự kiện", myAccount: "Tài khoản", logout: "Đăng xuất",
-    adminLabel: "Quản trị viên", subAdminLabel: "Quản trị phụ",
-    catPlan: "Quản lý kế hoạch", catContent: "Nội dung", catUsers: "Người dùng", catSystem: "Hệ thống",
-    kpiTotalRevenue: "Tổng doanh thu", kpiTotalUsers: "Tổng người dùng", kpiTotalReferrals: "Tổng giới thiệu", kpiConversionRate: "Tỷ lệ chuyển đổi", kpiOpenTickets: "Vé chưa xử lý",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "đã đăng ký", kpiSubConnections: "kết nối", kpiSubInvestors: "nhà đầu tư/người dùng", kpiSubUnresolved: "chưa giải quyết",
-  },
 };
-// ─── Koreann ───────────────────────────────────────────────────────────────────
+
+// ─── Korean ───────────────────────────────────────────────────────────────────
 const ko = {
   nav: { plans: "플랜", nodes: "노드", about: "소개", dashboard: "대시보드", signIn: "로그인", getStarted: "시작하기", notices: "공지사항" },
   hero: {
@@ -929,20 +876,6 @@ const ko = {
   profile: { title: "내 프로필", accountInfo: "계정 정보", kycVerification: "KYC 인증", walletAddress: "지갑 주소", referralSystem: "추천 시스템", totalInvested: "총 투자금", totalNodes: "총 노드 수", kyc: { notSubmitted: "미제출", pending: "검토 중", approved: "승인됨", rejected: "거부됨", submitDesc: "KYC 서류를 제출하여 전체 플랫폼 접근 권한을 잠금 해제하세요.", pendingDesc: "서류가 검토 중입니다. 보통 1-3 영업일이 소요됩니다.", approvedDesc: "신원이 확인되었습니다. 전체 플랫폼 접근이 활성화되었습니다.", rejectedDesc: "KYC가 거부되었습니다. 지원팀에 문의하세요." }, enterWallet: "지갑 주소 입력 (0x...)", update: "업데이트", referredBy: "추천인", generateMyCode: "내 코드 생성", enterReferralCode: "추천 코드 입력", apply: "적용" },
   notices: { title: "공지사항", subtitle: "알파백의 최신 소식 및 업데이트", latest: "최신", noNotices: "아직 공지사항이 없습니다" },
   cta: { title1: "투자 여정을", title2: "시작할 준비가 되셨나요?", desc: "이미 알파백으로 수익을 올리고 있는 수천 명의 투자자와 함께하세요.", getStarted: "무료로 시작하기", goDashboard: "대시보드로 이동" },
-  adminNav: {
-    dashboard: "대시보드", plans: "플랜", content: "콘텐츠", users: "사용자",
-    nodes: "노드", analytics: "분석", referrals: "추천", tickets: "지원 티켓",
-    notifications: "알림", airdrop: "에어드랍", subAdmins: "부운영자",
-    telegramSchedules: "텔레그램 예약", auditLogs: "감사 로그", mediaAssets: "미디어 자산",
-    trendingAlerts: "급등 알림", listingRequests: "리스팅 신청", partners: "파트너",
-    sns: "SNS 인플루언서", aiPlanImport: "AI 플랜 등록", submissions: "골든 콜렉션 신청",
-    rewards: "투표 보상 관리", cbag: "C-BAG 보험", apiKeys: "API 키 관리",
-    siteSettings: "소셜 링크 설정", legal: "법적 문서 관리", newsLabel: "뉴스 관리", liveLabel: "라이브 관리", eventsLabel: "이벤트 관리", myAccount: "내 계정", logout: "로그아웃",
-    adminLabel: "관리자", subAdminLabel: "부운영자",
-    catPlan: "플랜 관리", catContent: "콘텐츠", catUsers: "사용자", catSystem: "시스템",
-    kpiTotalRevenue: "총 수익", kpiTotalUsers: "총 사용자", kpiTotalReferrals: "총 추천", kpiConversionRate: "전환율", kpiOpenTickets: "미처리 티켓",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "등록됨", kpiSubConnections: "연결", kpiSubInvestors: "투자자/사용자", kpiSubUnresolved: "미해결",
-  },
   footer: { rights: "© 2025 AlphaBag. 모든 권리 보유.", philosophy: "AlphaBag는 투자를 권유하는 플랫폼이 아닙니다. 투자하지 말자가 첫 번째 원칙이지만, 투자로 수익을 추구하는 분들이 존재하기에, 정확한 분석과 분산투자를 통해 리스크를 줄이는 습관을 함께 기르고자 시작된 탈중심화 커뮤니티 플랫폼입니다.", disclaimer: "이 웹사이트, 하이퍼링크, 관련 애플리케이션, 포럼, 블로그, 미디어 계정 및 기타 플랫폼에서 제공되는 모든 콘텐츠는 서드파티 소스에서 제공됩니다. 웹사이트 또는 그 콘텐츠에 대해 어떠한 보증도 하지 않습니다. 사이트의 모든 블록체인 관련 데이터 및 정보는 사용자의 학습 및 연구 목적으로만 제공되며, 투자, 법률 또는 기타 조언을 구성하지 않습니다. 사용자는 데이터 및 콘텐츠를 신중히 사용해야 하며, 모든 위험을 감수해야 합니다. 독립적인 조사, 검토, 분석, 검증을 강력히 권장합니다.", termsLink: "이용약관", privacyLink: "개인정보처리방침" },
   why: { title: "Web3 투자자를 위해 만들어졌습니다", subtitle: "왜 우리를 선택해야 하나요", globalAccess: { title: "글로벌 접근", desc: "암호화폐 지갑으로 전 세계 어디서나 투자하세요." }, nonCustodial: { title: "비수탁형", desc: "자금은 항상 본인이 관리합니다." }, analytics: { title: "실시간 분석", desc: "라이브 대시보드로 포트폴리오 성과를 추적하세요." }, referralRewards: { title: "추천 보상", desc: "친구를 추천하여 수익을 얻으세요." }, curated: { title: "엄선된 프로젝트", desc: "최고의 Binance Alpha 및 Web3 프로젝트만 제공합니다." }, instant: { title: "즉시 설정", desc: "지갑을 연결하고 몇 분 안에 투자를 시작하세요." } },
   home: {
@@ -1110,10 +1043,11 @@ const ko = {
     remaining: "(잔여 {n}%)",
     voteComment: "투표 의견 (선택사항)",
     detailsShow: "상세 정보 보기",
-     detailsHide: "상세 정보 접기",
+    detailsHide: "상세 정보 접기",
     applicant: "신청자",
   },
 };
+
 // ─── Thai ─────────────────────────────────────────────────────────────────────
 const th = {
   nav: { plans: "แผน", nodes: "โหนด", about: "เกี่ยวกับ", dashboard: "แดชบอร์ด", signIn: "เข้าสู่ระบบ", getStarted: "เริ่มต้น", notices: "ประกาศ" },
@@ -1298,20 +1232,6 @@ const th = {
     detailsShow: "แสดงรายละเอียด",
     detailsHide: "ซ่อนรายละเอียด",
     applicant: "ผู้สมัคร",
-  },
-  adminNav: {
-    dashboard: "แดชบอร์ด", plans: "แผน", content: "เนื้อหา", users: "ผู้ใช้",
-    nodes: "โนด", analytics: "วิเคราะห์", referrals: "การแนะนำ", tickets: "ตั๋วสนับสนุน",
-    notifications: "แจ้งเตือน", airdrop: "Airdrop", subAdmins: "ผู้ดูแลรอง",
-    telegramSchedules: "ตาราง Telegram", auditLogs: "บันทึก", mediaAssets: "สื่อ",
-    trendingAlerts: "แจ้งเตือนเทรนด์", listingRequests: "คำขอลิสต์", partners: "คู่ค้า",
-    sns: "SNS Influencer", aiPlanImport: "นำเข้าแผน AI", submissions: "สมัคร Golden",
-    rewards: "รางวัลการโหวต", cbag: "ประกัน C-BAG", apiKeys: "API Key",
-    siteSettings: "ลิงก์โซเชียล", legal: "เอกสารกฎหมาย", newsLabel: "ข่าว", liveLabel: "ถ่ายทอดสด", eventsLabel: "กิจกรรม", myAccount: "บัญชีของฉัน", logout: "ออกจากระบบ",
-    adminLabel: "ผู้ดูแลระบบ", subAdminLabel: "ผู้ดูแลรอง",
-    catPlan: "การจัดการแผน", catContent: "เนื้อหา", catUsers: "ผู้ใช้", catSystem: "ระบบ",
-    kpiTotalRevenue: "รายได้รวม", kpiTotalUsers: "ผู้ใช้ทั้งหมด", kpiTotalReferrals: "การแนะนำทั้งหมด", kpiConversionRate: "อัตราการแปลง", kpiOpenTickets: "ตั๋วที่ยังไม่ได้แก้ไข",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "ลงทะเบียนแล้ว", kpiSubConnections: "การเชื่อมต่อ", kpiSubInvestors: "นักลงทุน/ผู้ใช้", kpiSubUnresolved: "ยังไม่ได้แก้ไข",
   },
 };
 
@@ -1500,20 +1420,6 @@ const id = {
     detailsHide: "Sembunyikan Detail",
     applicant: "Pemohon",
   },
-  adminNav: {
-    dashboard: "Dasbor", plans: "Rencana", content: "Konten", users: "Pengguna",
-    nodes: "Node", analytics: "Analitik", referrals: "Referral", tickets: "Tiket Dukungan",
-    notifications: "Notifikasi", airdrop: "Airdrop", subAdmins: "Sub-Admin",
-    telegramSchedules: "Jadwal Telegram", auditLogs: "Log Audit", mediaAssets: "Aset Media",
-    trendingAlerts: "Peringatan Tren", listingRequests: "Permintaan Listing", partners: "Mitra",
-    sns: "Influencer SNS", aiPlanImport: "Import Rencana AI", submissions: "Pendaftaran Golden",
-    rewards: "Hadiah Voting", cbag: "Asuransi C-BAG", apiKeys: "Kunci API",
-    siteSettings: "Tautan Sosial", legal: "Dokumen Hukum", newsLabel: "Berita", liveLabel: "Siaran Langsung", eventsLabel: "Acara", myAccount: "Akun Saya", logout: "Keluar",
-    adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
-    catPlan: "Manajemen Rencana", catContent: "Konten", catUsers: "Pengguna", catSystem: "Sistem",
-    kpiTotalRevenue: "Total Pendapatan", kpiTotalUsers: "Total Pengguna", kpiTotalReferrals: "Total Referral", kpiConversionRate: "Tingkat Konversi", kpiOpenTickets: "Tiket Terbuka",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "terdaftar", kpiSubConnections: "koneksi", kpiSubInvestors: "investor/pengguna", kpiSubUnresolved: "belum terselesaikan",
-  },
 };
 
 // ─── Malay ────────────────────────────────────────────────────────────────────
@@ -1700,20 +1606,6 @@ const ms = {
     detailsShow: "Tunjukkan Butiran",
     detailsHide: "Sembunyikan Butiran",
     applicant: "Pemohon",
-  },
-  adminNav: {
-    dashboard: "Papan Pemuka", plans: "Pelan", content: "Kandungan", users: "Pengguna",
-    nodes: "Nod", analytics: "Analitik", referrals: "Rujukan", tickets: "Tiket Sokongan",
-    notifications: "Pemberitahuan", airdrop: "Airdrop", subAdmins: "Sub-Admin",
-    telegramSchedules: "Jadual Telegram", auditLogs: "Log Audit", mediaAssets: "Aset Media",
-    trendingAlerts: "Amaran Trend", listingRequests: "Permintaan Penyenaraian", partners: "Rakan Kongsi",
-    sns: "Influencer SNS", aiPlanImport: "Import Pelan AI", submissions: "Permohonan Golden",
-    rewards: "Ganjaran Undi", cbag: "Insurans C-BAG", apiKeys: "Kunci API",
-    siteSettings: "Pautan Sosial", legal: "Dokumen Undang-undang", newsLabel: "Berita", liveLabel: "Siaran Langsung", eventsLabel: "Acara", myAccount: "Akaun Saya", logout: "Log Keluar",
-    adminLabel: "Pentadbir", subAdminLabel: "Sub-Pentadbir",
-    catPlan: "Pengurusan Pelan", catContent: "Kandungan", catUsers: "Pengguna", catSystem: "Sistem",
-    kpiTotalRevenue: "Jumlah Pendapatan", kpiTotalUsers: "Jumlah Pengguna", kpiTotalReferrals: "Jumlah Rujukan", kpiConversionRate: "Kadar Penukaran", kpiOpenTickets: "Tiket Terbuka",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "berdaftar", kpiSubConnections: "sambungan", kpiSubInvestors: "pelabur/pengguna", kpiSubUnresolved: "belum diselesaikan",
   },
 };
 
@@ -1902,20 +1794,6 @@ const ru = {
     detailsHide: "Скрыть детали",
     applicant: "Заявитель",
   },
-  adminNav: {
-    dashboard: "Панель", plans: "Планы", content: "Контент", users: "Пользователи",
-    nodes: "Ноды", analytics: "Аналитика", referrals: "Рефералы", tickets: "Тикеты",
-    notifications: "Уведомления", airdrop: "Airdrop", subAdmins: "Подадмины",
-    telegramSchedules: "Расписание Telegram", auditLogs: "Журнал", mediaAssets: "Медиа",
-    trendingAlerts: "Тренды", listingRequests: "Заявки на листинг", partners: "Партнёры",
-    sns: "SNS инфлюэнсеры", aiPlanImport: "AI импорт", submissions: "Заявки Golden",
-    rewards: "Награды", cbag: "Страхование C-BAG", apiKeys: "API ключи",
-    siteSettings: "Соцсети", legal: "Правовые документы", newsLabel: "Новости", liveLabel: "Прямой эфир", eventsLabel: "События", myAccount: "Мой аккаунт", logout: "Выход",
-    adminLabel: "Администратор", subAdminLabel: "Подадмин",
-    catPlan: "Управление планами", catContent: "Контент", catUsers: "Пользователи", catSystem: "Система",
-    kpiTotalRevenue: "Общий доход", kpiTotalUsers: "Всего пользователей", kpiTotalReferrals: "Всего рефералов", kpiConversionRate: "Коэффициент конверсии", kpiOpenTickets: "Открытые тикеты",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "зарегистрировано", kpiSubConnections: "связи", kpiSubInvestors: "инвесторы/пользователи", kpiSubUnresolved: "нерешённые",
-  },
 };
 
 // ─── Arabic ───────────────────────────────────────────────────────────────────
@@ -2102,20 +1980,6 @@ const ar = {
     detailsShow: "إظهار التفاصيل",
     detailsHide: "إخفاء التفاصيل",
     applicant: "مقدم الطلب",
-  },
-  adminNav: {
-    dashboard: "لوحة التحكم", plans: "الخطط", content: "المحتوى", users: "المستخدمون",
-    nodes: "العقد", analytics: "التحليلات", referrals: "الإحالات", tickets: "تذاكر الدعم",
-    notifications: "الإشعارات", airdrop: "Airdrop", subAdmins: "مساعدو المشرف",
-    telegramSchedules: "جدول Telegram", auditLogs: "سجلات", mediaAssets: "الوسائط",
-    trendingAlerts: "تنبيهات", listingRequests: "طلبات الإدراج", partners: "الشركاء",
-    sns: "مؤثرو SNS", aiPlanImport: "استيراد AI", submissions: "طلبات Golden",
-    rewards: "مكافآت", cbag: "تأمين C-BAG", apiKeys: "مفاتيح API",
-    siteSettings: "روابط اجتماعية", legal: "وثائق قانونية", newsLabel: "الأخبار", liveLabel: "البث المباشر", eventsLabel: "الأحداث", myAccount: "حسابي", logout: "تسجيل الخروج",
-    adminLabel: "مشرف", subAdminLabel: "مساعد المشرف",
-    catPlan: "إدارة الخطة", catContent: "المحتوى", catUsers: "المستخدمون", catSystem: "النظام",
-    kpiTotalRevenue: "إجمالي الإيرادات", kpiTotalUsers: "إجمالي المستخدمين", kpiTotalReferrals: "إجمالي الإحالات", kpiConversionRate: "معدل التحويل", kpiOpenTickets: "التذاكر المفتوحة",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "مسجل", kpiSubConnections: "اتصالات", kpiSubInvestors: "مستثمرون/مستخدمون", kpiSubUnresolved: "غير محلول",
   },
 };
 
@@ -2304,20 +2168,6 @@ const es = {
     detailsHide: "Ocultar detalles",
     applicant: "Solicitante",
   },
-  adminNav: {
-    dashboard: "Panel", plans: "Planes", content: "Contenido", users: "Usuarios",
-    nodes: "Nodos", analytics: "Análisis", referrals: "Referidos", tickets: "Soporte",
-    notifications: "Notificaciones", airdrop: "Airdrop", subAdmins: "Sub-Admins",
-    telegramSchedules: "Telegram Programado", auditLogs: "Registros", mediaAssets: "Medios",
-    trendingAlerts: "Alertas Tendencia", listingRequests: "Solicitudes Listing", partners: "Socios",
-    sns: "Influencers SNS", aiPlanImport: "Importar Plan AI", submissions: "Solicitudes Golden",
-    rewards: "Recompensas", cbag: "Seguro C-BAG", apiKeys: "Claves API",
-    siteSettings: "Redes Sociales", legal: "Documentos Legales", newsLabel: "Noticias", liveLabel: "Transmisiones en vivo", eventsLabel: "Eventos", myAccount: "Mi Cuenta", logout: "Cerrar Sesión",
-    adminLabel: "Administrador", subAdminLabel: "Sub-Admin",
-    catPlan: "Gestión de planes", catContent: "Contenido", catUsers: "Usuarios", catSystem: "Sistema",
-    kpiTotalRevenue: "Ingresos Totales", kpiTotalUsers: "Usuarios Totales", kpiTotalReferrals: "Referencias Totales", kpiConversionRate: "Tasa de Conversión", kpiOpenTickets: "Tickets Abiertos",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "registrados", kpiSubConnections: "conexiones", kpiSubInvestors: "inversores/usuarios", kpiSubUnresolved: "sin resolver",
-  },
 };
 
 // ─── Portuguese ───────────────────────────────────────────────────────────────
@@ -2504,20 +2354,6 @@ const pt = {
     detailsShow: "Mostrar detalhes",
     detailsHide: "Ocultar detalhes",
     applicant: "Solicitante",
-  },
-  adminNav: {
-    dashboard: "Painel", plans: "Planos", content: "Conteúdo", users: "Usuários",
-    nodes: "Nós", analytics: "Análises", referrals: "Indicações", tickets: "Suporte",
-    notifications: "Notificações", airdrop: "Airdrop", subAdmins: "Sub-Admins",
-    telegramSchedules: "Agendamento Telegram", auditLogs: "Registros", mediaAssets: "Mídia",
-    trendingAlerts: "Alertas Tendência", listingRequests: "Solicitações Listing", partners: "Parceiros",
-    sns: "Influenciadores SNS", aiPlanImport: "Importar Plano AI", submissions: "Solicitações Golden",
-    rewards: "Recompensas", cbag: "Seguro C-BAG", apiKeys: "Chaves API",
-    siteSettings: "Redes Sociais", legal: "Documentos Legais", newsLabel: "Notícias", liveLabel: "Transmissões ao Vivo", eventsLabel: "Eventos", myAccount: "Minha Conta", logout: "Sair",
-    adminLabel: "Administrador", subAdminLabel: "Sub-Admin",
-    catPlan: "Gestão de planos", catContent: "Conteúdo", catUsers: "Usuários", catSystem: "Sistema",
-    kpiTotalRevenue: "Receita Total", kpiTotalUsers: "Total de Usuários", kpiTotalReferrals: "Total de Indicações", kpiConversionRate: "Taxa de Conversão", kpiOpenTickets: "Tickets Abertos",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "registrados", kpiSubConnections: "conexões", kpiSubInvestors: "investidores/usuários", kpiSubUnresolved: "não resolvidos",
   },
 };
 
@@ -2706,20 +2542,6 @@ const fr = {
     detailsHide: "Masquer les détails",
     applicant: "Demandeur",
   },
-  adminNav: {
-    dashboard: "Tableau de bord", plans: "Plans", content: "Contenu", users: "Utilisateurs",
-    nodes: "Nœuds", analytics: "Analyses", referrals: "Parrainages", tickets: "Support",
-    notifications: "Notifications", airdrop: "Airdrop", subAdmins: "Sous-admins",
-    telegramSchedules: "Telegram programmé", auditLogs: "Journaux", mediaAssets: "Médias",
-    trendingAlerts: "Alertes tendances", listingRequests: "Demandes listing", partners: "Partenaires",
-    sns: "Influenceurs SNS", aiPlanImport: "Import plan AI", submissions: "Candidatures Golden",
-    rewards: "Récompenses", cbag: "Assurance C-BAG", apiKeys: "Clés API",
-    siteSettings: "Réseaux sociaux", legal: "Documents légaux", newsLabel: "Actualités", liveLabel: "Diffusions en direct", eventsLabel: "Événements", myAccount: "Mon compte", logout: "Déconnexion",
-    adminLabel: "Administrateur", subAdminLabel: "Sous-admin",
-    catPlan: "Gestion des plans", catContent: "Contenu", catUsers: "Utilisateurs", catSystem: "Système",
-    kpiTotalRevenue: "Revenus Totaux", kpiTotalUsers: "Utilisateurs Totaux", kpiTotalReferrals: "Parrainages Totaux", kpiConversionRate: "Taux de Conversion", kpiOpenTickets: "Tickets Ouverts",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "inscrits", kpiSubConnections: "connexions", kpiSubInvestors: "investisseurs/utilisateurs", kpiSubUnresolved: "non résolus",
-  },
 };
 
 // ─── German ───────────────────────────────────────────────────────────────────
@@ -2906,20 +2728,6 @@ const de = {
     detailsShow: "Details anzeigen",
     detailsHide: "Details ausblenden",
     applicant: "Antragsteller",
-  },
-  adminNav: {
-    dashboard: "Dashboard", plans: "Pläne", content: "Inhalte", users: "Benutzer",
-    nodes: "Knoten", analytics: "Analysen", referrals: "Empfehlungen", tickets: "Support",
-    notifications: "Benachrichtigungen", airdrop: "Airdrop", subAdmins: "Sub-Admins",
-    telegramSchedules: "Telegram-Zeitplan", auditLogs: "Protokolle", mediaAssets: "Medien",
-    trendingAlerts: "Trend-Alarme", listingRequests: "Listing-Anfragen", partners: "Partner",
-    sns: "SNS-Influencer", aiPlanImport: "KI-Plan-Import", submissions: "Golden-Anträge",
-    rewards: "Belohnungen", cbag: "C-BAG-Versicherung", apiKeys: "API-Schlüssel",
-    siteSettings: "Soziale Links", legal: "Rechtsdokumente", newsLabel: "Nachrichten", liveLabel: "Live-Streams", eventsLabel: "Veranstaltungen", myAccount: "Mein Konto", logout: "Abmelden",
-    adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
-    catPlan: "Planverwaltung", catContent: "Inhalt", catUsers: "Benutzer", catSystem: "System",
-    kpiTotalRevenue: "Gesamtumsatz", kpiTotalUsers: "Gesamtbenutzer", kpiTotalReferrals: "Gesamtempfehlungen", kpiConversionRate: "Konversionsrate", kpiOpenTickets: "Offene Tickets",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "registriert", kpiSubConnections: "Verbindungen", kpiSubInvestors: "Investoren/Nutzer", kpiSubUnresolved: "ungelöst",
   },
 };
 
@@ -3108,20 +2916,6 @@ const it = {
     detailsHide: "Nascondi dettagli",
     applicant: "Richiedente",
   },
-  adminNav: {
-    dashboard: "Dashboard", plans: "Piani", content: "Contenuto", users: "Utenti",
-    nodes: "Nodi", analytics: "Analisi", referrals: "Referral", tickets: "Supporto",
-    notifications: "Notifiche", airdrop: "Airdrop", subAdmins: "Sub-Admin",
-    telegramSchedules: "Telegram programmato", auditLogs: "Log", mediaAssets: "Media",
-    trendingAlerts: "Avvisi tendenze", listingRequests: "Richieste listing", partners: "Partner",
-    sns: "Influencer SNS", aiPlanImport: "Import piano AI", submissions: "Candidature Golden",
-    rewards: "Premi", cbag: "Assicurazione C-BAG", apiKeys: "Chiavi API",
-    siteSettings: "Social link", legal: "Documenti legali", newsLabel: "Notizie", liveLabel: "Streaming live", eventsLabel: "Eventi", myAccount: "Il mio account", logout: "Esci",
-    adminLabel: "Amministratore", subAdminLabel: "Sub-Admin",
-    catPlan: "Gestione piani", catContent: "Contenuto", catUsers: "Utenti", catSystem: "Sistema",
-    kpiTotalRevenue: "Entrate Totali", kpiTotalUsers: "Utenti Totali", kpiTotalReferrals: "Referral Totali", kpiConversionRate: "Tasso di Conversione", kpiOpenTickets: "Ticket Aperti",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "registrati", kpiSubConnections: "connessioni", kpiSubInvestors: "investitori/utenti", kpiSubUnresolved: "irrisolti",
-  },
 };
 
 // ─── Turkish ──────────────────────────────────────────────────────────────────
@@ -3308,20 +3102,6 @@ const tr = {
     detailsShow: "Detayları Göster",
     detailsHide: "Detayları Gizle",
     applicant: "Başvuran",
-  },
-  adminNav: {
-    dashboard: "Gösterge Paneli", plans: "Planlar", content: "İçerik", users: "Kullanıcılar",
-    nodes: "Düğümler", analytics: "Analitik", referrals: "Referanslar", tickets: "Destek",
-    notifications: "Bildirimler", airdrop: "Airdrop", subAdmins: "Alt Adminler",
-    telegramSchedules: "Telegram Zamançızelgesi", auditLogs: "Denetim Kaydı", mediaAssets: "Medya",
-    trendingAlerts: "Trend Uyarıları", listingRequests: "Listeleme İstekleri", partners: "Ortaklar",
-    sns: "SNS Influencer", aiPlanImport: "AI Plan İthalatı", submissions: "Golden Başvuruları",
-    rewards: "Oy Ödülleri", cbag: "C-BAG Sigortası", apiKeys: "API Anahtarları",
-    siteSettings: "Sosyal Bağlantılar", legal: "Hukuki Belgeler", newsLabel: "Haberler", liveLabel: "Canlı Yayınlar", eventsLabel: "Etkinlikler", myAccount: "Hesabım", logout: "Çıkış",
-    adminLabel: "Yönetici", subAdminLabel: "Alt Admin",
-    catPlan: "Plan Yönetimi", catContent: "İçerik", catUsers: "Kullanıcılar", catSystem: "Sistem",
-    kpiTotalRevenue: "Toplam Gelir", kpiTotalUsers: "Toplam Kullanıcı", kpiTotalReferrals: "Toplam Referans", kpiConversionRate: "Dönüşüm Oranı", kpiOpenTickets: "Açık Biletler",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "kayıtlı", kpiSubConnections: "bağlantılar", kpiSubInvestors: "yatırımcılar/kullanıcılar", kpiSubUnresolved: "çözülmemiş",
   },
 };
 
@@ -3510,20 +3290,6 @@ const hi = {
     detailsHide: "विवरण छुपाएं",
     applicant: "आवेदक",
   },
-  adminNav: {
-    dashboard: "डैशबोर्ड", plans: "योजनाएं", content: "सामग्री", users: "उपयोगकर्ता",
-    nodes: "नोड", analytics: "विश्लेषण", referrals: "रेफरल", tickets: "समर्थन",
-    notifications: "सूचनाएं", airdrop: "Airdrop", subAdmins: "उप-प्रशासक",
-    telegramSchedules: "Telegram शेड्यूल", auditLogs: "लॉग", mediaAssets: "मीडिया",
-    trendingAlerts: "ट्रेंडिंग अलर्ट", listingRequests: "लिस्टिंग अनुरोध", partners: "साठी",
-    sns: "SNS इन्फ्लुएंसर", aiPlanImport: "AI योजना आयात", submissions: "Golden आवेदन",
-    rewards: "पुरस्कार", cbag: "C-BAG बीमा", apiKeys: "API कुंजी",
-    siteSettings: "सोशल लिंक", legal: "कानूनी दस्तावेज", newsLabel: "समाचार", liveLabel: "लाइव स्ट्रीम", eventsLabel: "कार्यक्रम", myAccount: "मेरा खाता", logout: "लॉगआउट",
-    adminLabel: "प्रशासक", subAdminLabel: "उप-प्रशासक",
-    catPlan: "योजना प्रबंधन", catContent: "सामग्री", catUsers: "उपयोगकर्ता", catSystem: "सिस्टम",
-    kpiTotalRevenue: "कुल राजस्व", kpiTotalUsers: "कुल उपयोगकर्ता", kpiTotalReferrals: "कुल रेफरल", kpiConversionRate: "रूपांतरण दर", kpiOpenTickets: "खुले टिकट",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "पंजीकृत", kpiSubConnections: "कनेक्शन", kpiSubInvestors: "निवेशक/उपयोगकर्ता", kpiSubUnresolved: "अनसुलझे",
-  },
 };
 
 // ─── Polish ───────────────────────────────────────────────────────────────────
@@ -3710,20 +3476,6 @@ const pl = {
     detailsShow: "Pokaż szczegóły",
     detailsHide: "Ukryj szczegóły",
     applicant: "Wnioskodawca",
-  },
-  adminNav: {
-    dashboard: "Panel", plans: "Plany", content: "Treść", users: "Użytkownicy",
-    nodes: "Węzły", analytics: "Analityka", referrals: "Polecenia", tickets: "Wsparcie",
-    notifications: "Powiadomienia", airdrop: "Airdrop", subAdmins: "Sub-Admini",
-    telegramSchedules: "Harmonogram Telegram", auditLogs: "Logi", mediaAssets: "Media",
-    trendingAlerts: "Alerty trendów", listingRequests: "Wnioski o listing", partners: "Partnerzy",
-    sns: "Influencerzy SNS", aiPlanImport: "Import planu AI", submissions: "Zgłoszenia Golden",
-    rewards: "Nagrody", cbag: "Ubezpieczenie C-BAG", apiKeys: "Klucze API",
-    siteSettings: "Linki społecznościowe", legal: "Dokumenty prawne", newsLabel: "Aktualności", liveLabel: "Transmisje na żywo", eventsLabel: "Wydarzenia", myAccount: "Moje konto", logout: "Wyloguj",
-    adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
-    catPlan: "Zarządzanie planami", catContent: "Treść", catUsers: "Użytkownicy", catSystem: "System",
-    kpiTotalRevenue: "Łączne Przychody", kpiTotalUsers: "Łączni Użytkownicy", kpiTotalReferrals: "Łączne Polecenia", kpiConversionRate: "Współczynnik Konwersji", kpiOpenTickets: "Otwarte Zgłoszenia",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "zarejestrowanych", kpiSubConnections: "połączenia", kpiSubInvestors: "inwestorzy/użytkownicy", kpiSubUnresolved: "nierozwiązane",
   },
 };
 
@@ -3912,20 +3664,6 @@ const nl = {
     detailsHide: "Details verbergen",
     applicant: "Aanvrager",
   },
-  adminNav: {
-    dashboard: "Dashboard", plans: "Plannen", content: "Inhoud", users: "Gebruikers",
-    nodes: "Knooppunten", analytics: "Analyses", referrals: "Verwijzingen", tickets: "Ondersteuning",
-    notifications: "Meldingen", airdrop: "Airdrop", subAdmins: "Sub-Admins",
-    telegramSchedules: "Telegram Schema", auditLogs: "Logboeken", mediaAssets: "Media",
-    trendingAlerts: "Trendwaarschuwingen", listingRequests: "Listing Verzoeken", partners: "Partners",
-    sns: "SNS Influencers", aiPlanImport: "AI Plan Import", submissions: "Golden Aanvragen",
-    rewards: "Beloningen", cbag: "C-BAG Verzekering", apiKeys: "API Sleutels",
-    siteSettings: "Sociale Links", legal: "Juridische Documenten", newsLabel: "Nieuws", liveLabel: "Live Streams", eventsLabel: "Evenementen", myAccount: "Mijn Account", logout: "Uitloggen",
-    adminLabel: "Beheerder", subAdminLabel: "Sub-Admin",
-    catPlan: "Planbeheer", catContent: "Inhoud", catUsers: "Gebruikers", catSystem: "Systeem",
-    kpiTotalRevenue: "Totale Omzet", kpiTotalUsers: "Totale Gebruikers", kpiTotalReferrals: "Totale Verwijzingen", kpiConversionRate: "Conversiepercentage", kpiOpenTickets: "Open Tickets",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "geregistreerd", kpiSubConnections: "verbindingen", kpiSubInvestors: "investeerders/gebruikers", kpiSubUnresolved: "onopgelost",
-  },
 };
 
 // ─── Ukrainian ────────────────────────────────────────────────────────────────
@@ -4112,20 +3850,6 @@ const uk = {
     detailsShow: "Показати деталі",
     detailsHide: "Приховати деталі",
     applicant: "Заявник",
-  },
-  adminNav: {
-    dashboard: "Панель", plans: "Плани", content: "Контент", users: "Користувачі",
-    nodes: "Вузли", analytics: "Аналітика", referrals: "Реферали", tickets: "Підтримка",
-    notifications: "Сповіщення", airdrop: "Airdrop", subAdmins: "Підадміни",
-    telegramSchedules: "Розклад Telegram", auditLogs: "Журнал", mediaAssets: "Медіа",
-    trendingAlerts: "Тренди", listingRequests: "Заявки на лістинг", partners: "Партнери",
-    sns: "SNS інфлюенсери", aiPlanImport: "AI імпорт", submissions: "Заявки Golden",
-    rewards: "Нагороди", cbag: "Страхування C-BAG", apiKeys: "API ключі",
-    siteSettings: "Соцмережі", legal: "Правові документи", newsLabel: "Новини", liveLabel: "Прямі трансляції", eventsLabel: "Події", myAccount: "Мій акаунт", logout: "Вихід",
-    adminLabel: "Адміністратор", subAdminLabel: "Підадмін",
-    catPlan: "Управління планами", catContent: "Контент", catUsers: "Користувачі", catSystem: "Система",
-    kpiTotalRevenue: "Загальний дохід", kpiTotalUsers: "Всього користувачів", kpiTotalReferrals: "Всього рефералів", kpiConversionRate: "Коефіцієнт конверсії", kpiOpenTickets: "Відкриті тікети",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "зареєстровано", kpiSubConnections: "зв'язки", kpiSubInvestors: "інвестори/користувачі", kpiSubUnresolved: "невирішені",
   },
 };
 
@@ -4314,22 +4038,9 @@ const tl = {
     detailsHide: "Itago ang Detalye",
     applicant: "Aplikante",
   },
-  adminNav: {
-    dashboard: "Dashboard", plans: "Mga Plano", content: "Nilalaman", users: "Mga Gumagamit",
-    nodes: "Mga Node", analytics: "Analytics", referrals: "Mga Referral", tickets: "Suporta",
-    notifications: "Mga Abiso", airdrop: "Airdrop", subAdmins: "Mga Sub-Admin",
-    telegramSchedules: "Telegram Schedule", auditLogs: "Mga Log", mediaAssets: "Mga Media",
-    trendingAlerts: "Mga Alerto sa Trend", listingRequests: "Mga Kahilingan sa Listing", partners: "Mga Partner",
-    sns: "Mga SNS Influencer", aiPlanImport: "AI Plan Import", submissions: "Golden Application",
-    rewards: "Mga Gantimpala", cbag: "C-BAG Insurance", apiKeys: "Mga API Key",
-    siteSettings: "Mga Social Link", legal: "Mga Legal na Dokumento", newsLabel: "Balita", liveLabel: "Mga Live Stream", eventsLabel: "Mga Kaganapan", myAccount: "Aking Account", logout: "Mag-logout",
-    adminLabel: "Administrator", subAdminLabel: "Sub-Admin",
-    catPlan: "Pamamahala ng Plano", catContent: "Nilalaman", catUsers: "Mga Gumagamit", catSystem: "Sistema",
-    kpiTotalRevenue: "Kabuuang Kita", kpiTotalUsers: "Kabuuang Gumagamit", kpiTotalReferrals: "Kabuuang Referral", kpiConversionRate: "Rate ng Conversion", kpiOpenTickets: "Bukas na Tiket",
-    kpiSubUsdt: "USDT", kpiSubRegistered: "nairehistro", kpiSubConnections: "mga koneksyon", kpiSubInvestors: "mga mamumuhunan/gumagamit", kpiSubUnresolved: "hindi nalutas",
-  },
 };
-// ─── i18n initt ────────────────────────────────────────────────────────────────
+
+// ─── i18n init ────────────────────────────────────────────────────────────────
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)

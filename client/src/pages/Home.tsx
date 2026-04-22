@@ -21,12 +21,6 @@ import { MeetingNoticeModal } from "@/components/MeetingNoticeModal";
 import { NoticeDetailModal } from "@/components/NoticeDetailModal";
 import { useTheme } from "@/contexts/ThemeContext";
 
-// ─── 소셜 링크 기본값 ─────────────────────────────────────────────────────────
-const DEFAULT_SOCIAL = {
-  telegramUrl: "https://t.me/alphabag_official",
-  twitterUrl: "https://twitter.com/alphabag_io",
-  youtubeUrl: "https://youtube.com/@alphabag",
-};
 // CDN URLs
 const ALPHABAG_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/alphabag-logo_df90878d.png";
 const AD_DOLLARS = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/ad-dollars_88f0319b.jpg";
@@ -649,15 +643,6 @@ export default function Home() {
   const { data: trendingTokens = [], isLoading: trendingLoading } = trpc.market.trending.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
   const { data: trendingCoins = [], isLoading: trendingCoinsLoading } = trpc.market.trendingCoins.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
   const { data: airdropList = [] } = trpc.airdropSection.list.useQuery();
-  // 소셜 링크 (DB 동적)
-  const { data: socialLinks } = trpc.settings.getSocialLinks.useQuery();
-  // 뉴스/라이브/이벤트 (DB 동적)
-  const { data: newsItems = [], isLoading: newsLoading } = trpc.news.list.useQuery();
-  const { data: liveStreamItems = [], isLoading: liveLoading } = trpc.liveStreams.list.useQuery();
-  const meetupInput = useMemo(() => ({ type: "meetup" }), []);
-  const expoInput = useMemo(() => ({ type: "expo" }), []);
-  const { data: meetupItems = [], isLoading: meetupLoading } = trpc.events.list.useQuery(meetupInput);
-  const { data: expoItems = [], isLoading: expoLoading } = trpc.events.list.useQuery(expoInput);
   const { data: favoritesList = [], refetch: refetchFavorites } = trpc.favorites.list.useQuery(undefined, { enabled: isAuthenticated });
   const toggleFavoriteMutation = trpc.favorites.toggle.useMutation({ onSuccess: () => refetchFavorites() });
   // SNS 인플루언서
@@ -1440,46 +1425,24 @@ export default function Home() {
             {activeTab === "news" && (
               <div>
                 <div className={`text-xs font-bold mb-3 ${textPrimary}`}>{t("home.tabTitles.news")}</div>
-                {newsLoading ? (
-                  <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
-                    <div className={`text-xs ${textSecondary}`}>{t("home.loading") || "Loading..."}</div>
-                  </div>
-                ) : (newsItems as any[]).length === 0 ? (
-                  <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
-                    <Newspaper className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-                    <div className={`text-xs ${textSecondary}`}>{t("home.noNews") || "No news yet."}</div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {(newsItems as any[]).map((item: any) => {
-                      const title = lang === "ko" && item.titleKo ? item.titleKo
-                        : lang === "zh" && item.titleZh ? item.titleZh
-                        : item.titleEn || item.title;
-                      const timeAgo = item.publishedAt
-                        ? new Date(item.publishedAt).toLocaleDateString()
-                        : "";
-                      return (
-                        <div
-                          key={item.id}
-                          className={`flex items-start gap-3 pb-3 border-b last:border-0 ${isDark ? "border-white/5" : "border-gray-100"} ${item.url ? "cursor-pointer hover:opacity-80" : ""}`}
-                          onClick={() => item.url && window.open(item.url, "_blank")}
-                        >
-                          {item.imageUrl ? (
-                            <img src={item.imageUrl} alt={title} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
-                          ) : (
-                            <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                              <Newspaper className="w-4 h-4 text-amber-400" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className={`text-xs font-medium ${textPrimary} leading-relaxed`}>{title}</div>
-                            <div className={`text-[10px] ${textSecondary} mt-0.5`}>{item.category || "News"} · {timeAgo}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                <div className="space-y-3">
+                  {[
+                    { title: t("home.newsItem1"), time: t("home.news2hAgo"), category: t("home.newsNotice") },
+                    { title: t("home.newsItem2"), time: t("home.news4hAgo"), category: t("home.newsMarket") },
+                    { title: t("home.newsItem3"), time: t("home.news1dAgo"), category: t("home.newsUpdate") },
+                    { title: t("home.newsItem4"), time: t("home.news2dAgo"), category: t("home.newsEvent") },
+                  ].map((news, i) => (
+                    <div key={i} className={`flex items-start gap-3 pb-3 border-b last:border-0 ${isDark ? "border-white/5" : "border-gray-100"}`}>
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                        <Newspaper className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-xs font-medium ${textPrimary} leading-relaxed`}>{news.title}</div>
+                        <div className={`text-[10px] ${textSecondary} mt-0.5`}>{news.category} · {news.time}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
             {activeTab === "contents" && (
@@ -1719,48 +1682,10 @@ export default function Home() {
                   <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                   <span className={`text-xs font-bold ${textPrimary}`}>🔴 Live</span>
                 </div>
-                {liveLoading ? (
-                  <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
-                    <div className={`text-xs ${textSecondary}`}>{t("home.loading") || "Loading..."}</div>
-                  </div>
-                ) : (liveStreamItems as any[]).length === 0 ? (
-                  <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
-                    <Tv className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-                    <div className={`text-xs ${textSecondary}`}>{t("home.liveComingSoon")}</div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {(liveStreamItems as any[]).map((item: any) => (
-                      <div
-                        key={item.id}
-                        className={`rounded-xl border overflow-hidden ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"} ${item.streamUrl ? "cursor-pointer hover:opacity-90" : ""}`}
-                        onClick={() => item.streamUrl && window.open(item.streamUrl, "_blank")}
-                      >
-                        {item.thumbnailUrl && (
-                          <div className="relative h-28 overflow-hidden">
-                            <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />
-                            {item.isLive && (
-                              <div className="absolute top-2 left-2">
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500 text-white font-bold flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse inline-block" /> LIVE
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        <div className="p-3">
-                          <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{item.title}</div>
-                          {item.description && <div className={`text-[10px] ${textSecondary} mb-1`}>{item.description}</div>}
-                          {item.scheduledAt && !item.isLive && (
-                            <div className={`text-[10px] ${textSecondary}`}>
-                              📅 {new Date(item.scheduledAt).toLocaleString()}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                  <Tv className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                  <div className={`text-xs ${textSecondary}`}>{t("home.liveComingSoon")}</div>
+                </div>
               </div>
             )}
             {activeTab === "mlm" && (
@@ -1794,47 +1719,10 @@ export default function Home() {
                 <div className={`text-xs font-bold mb-3 ${textPrimary} flex items-center gap-1.5`}>
                   🤝 Meetup
                 </div>
-                {meetupLoading ? (
-                  <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
-                    <div className={`text-xs ${textSecondary}`}>{t("home.loading") || "Loading..."}</div>
-                  </div>
-                ) : (meetupItems as any[]).length === 0 ? (
-                  <div className={`rounded-xl border p-4 mb-3 ${cardBg}`}>
-                    <div className={`text-xs font-semibold ${textPrimary} mb-2`}>{t("home.upcomingMeetup")}</div>
-                    <div className={`text-[11px] ${textSecondary}`}>{t("home.noMeetupScheduled")}</div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {(meetupItems as any[]).map((item: any) => {
-                      const title = lang === "ko" && item.titleKo ? item.titleKo : item.title;
-                      return (
-                        <div
-                          key={item.id}
-                          className={`rounded-xl border overflow-hidden ${isDark ? "border-white/5" : "border-gray-200"} ${item.registrationUrl ? "cursor-pointer hover:opacity-90" : ""}`}
-                          onClick={() => item.registrationUrl && window.open(item.registrationUrl, "_blank")}
-                        >
-                          {item.imageUrl && (
-                            <div className="h-24 overflow-hidden">
-                              <img src={item.imageUrl} alt={title} className="w-full h-full object-cover" />
-                            </div>
-                          )}
-                          <div className={`p-3 ${isDark ? "bg-[#0d0d0d]" : "bg-gray-50"}`}>
-                            {item.isFeatured && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500 text-black font-bold mr-1">★ Featured</span>
-                            )}
-                            <div className={`text-xs font-semibold ${textPrimary} mb-1`}>{title}</div>
-                            {item.description && <div className={`text-[10px] ${textSecondary} mb-1`}>{item.description}</div>}
-                            <div className={`text-[10px] ${textSecondary} flex items-center gap-2`}>
-                              {item.startAt && <span>📅 {new Date(item.startAt).toLocaleDateString()}</span>}
-                              {item.location && <span>📍 {item.location}</span>}
-                              {!item.location && item.onlineUrl && <span>💻 Online</span>}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                <div className={`rounded-xl border p-4 mb-3 ${cardBg}`}>
+                  <div className={`text-xs font-semibold ${textPrimary} mb-2`}>{t("home.upcomingMeetup")}</div>
+                  <div className={`text-[11px] ${textSecondary}`}>{t("home.noMeetupScheduled")}</div>
+                </div>
               </div>
             )}
 
@@ -1844,49 +1732,10 @@ export default function Home() {
                 <div className={`text-xs font-bold mb-3 ${textPrimary} flex items-center gap-1.5`}>
                   🏛️ Expo &amp; Conference
                 </div>
-                {/* DB 동적 엑스포 이벤트 */}
-                {expoLoading ? (
-                  <div className={`rounded-xl border p-6 text-center ${isDark ? "bg-[#0d0d0d] border-white/5" : "bg-gray-50 border-gray-200"}`}>
-                    <div className={`text-xs ${textSecondary}`}>{t("home.loading") || "Loading..."}</div>
-                  </div>
-                ) : (expoItems as any[]).length > 0 && (
-                  <div className="space-y-3 mb-3">
-                    {(expoItems as any[]).map((item: any) => {
-                      const title = lang === "ko" && item.titleKo ? item.titleKo : item.title;
-                      return (
-                        <div
-                          key={item.id}
-                          className={`rounded-xl border overflow-hidden ${isDark ? "border-white/5" : "border-gray-200"} ${item.registrationUrl ? "cursor-pointer hover:opacity-90" : ""}`}
-                          onClick={() => item.registrationUrl && window.open(item.registrationUrl, "_blank")}
-                        >
-                          {(item.bannerUrl || item.imageUrl) && (
-                            <div className="relative h-32 overflow-hidden">
-                              <img src={item.bannerUrl || item.imageUrl} alt={title} className="w-full h-full object-cover" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                              {item.isFeatured && (
-                                <div className="absolute bottom-2 left-3">
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-black font-bold">★ Featured</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                          <div className={`p-3 ${isDark ? "bg-[#0d0d0d]" : "bg-gray-50"}`}>
-                            <div className={`font-bold text-xs ${textPrimary} mb-1`}>{title}</div>
-                            {item.description && <div className={`text-[10px] ${textSecondary} mb-1`}>{item.description}</div>}
-                            <div className={`text-[10px] ${textSecondary} flex items-center gap-2`}>
-                              {item.startAt && <span>📅 {new Date(item.startAt).toLocaleDateString()}</span>}
-                              {item.location && <span>📍 {item.location}</span>}
-                              {!item.location && item.onlineUrl && <span>💻 Online</span>}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {/* NEXUS 2140 베트남 행사 카드 (고정 스폰서 카드) */}
+                {/* NEXUS 2140 베트남 행사 카드 */}
                 <a href="https://nexus2140.org/" target="_blank" rel="noopener noreferrer" className="block">
                   <div className={`rounded-xl border overflow-hidden mb-3 cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg ${isDark ? "border-purple-500/30 bg-purple-900/10" : "border-purple-200 bg-purple-50"}`}>
+                    {/* 배너 이미지 */}
                     <div className="relative h-32 overflow-hidden">
                       <img
                         src="https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/nexus2140-banner-en-ekn9NJTBoRGqyBfj6jKYUJ.webp"
@@ -2032,21 +1881,21 @@ export default function Home() {
             </div>
             {/* 소셜 링크 아이콘 */}
             <div className="flex items-center gap-3">
-              <a href={(socialLinks?.telegramUrl ?? DEFAULT_SOCIAL.telegramUrl)} target="_blank" rel="noopener noreferrer"
+              <a href="https://t.me/alphabag_official" target="_blank" rel="noopener noreferrer"
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-white/5 hover:bg-blue-500/20 text-gray-400 hover:text-blue-400" : "bg-gray-100 hover:bg-blue-50 text-gray-500 hover:text-blue-500"}`}
                 title="Telegram">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
                 </svg>
               </a>
-              <a href={(socialLinks?.twitterUrl ?? DEFAULT_SOCIAL.twitterUrl)} target="_blank" rel="noopener noreferrer"
+              <a href="https://twitter.com/alphabag_io" target="_blank" rel="noopener noreferrer"
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-white/5 hover:bg-gray-700 text-gray-400 hover:text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-900"}`}
                 title="X (Twitter)">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
               </a>
-              <a href={(socialLinks?.youtubeUrl ?? DEFAULT_SOCIAL.youtubeUrl)} target="_blank" rel="noopener noreferrer"
+              <a href="https://youtube.com/@alphabag" target="_blank" rel="noopener noreferrer"
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400" : "bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500"}`}
                 title="YouTube">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">

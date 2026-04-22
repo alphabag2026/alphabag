@@ -16,7 +16,6 @@ import { startVoteDeadlineScheduler } from "../voteDeadlineScheduler";
 import { startTwitterStreamScheduler } from "../twitterStreamScheduler";
 import apiV1Router from "../apiV1";
 import apiDocsRouter from "../apiDocs";
-import { setupAdminBadgesWs } from "../adminBadgesWs";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -72,9 +71,6 @@ async function startServer() {
   if (port !== preferredPort) {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
   }
-
-  // WebSocket: admin badges real-time updates
-  setupAdminBadgesWs(server);
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);

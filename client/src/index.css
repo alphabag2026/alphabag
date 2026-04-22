@@ -70,22 +70,18 @@
 
 @layer components {
   /* ── Sidebar ── */
-  .ab-sidebar { background: oklch(0.09 0.006 240); border-right: 1px solid oklch(0.22 0.012 240); width: 180px; height: 100vh; position: fixed; left: 0; top: 0; z-index: 40; display: flex; flex-direction: column; overflow: hidden; }
-  .ab-sidebar-logo { padding: 0.875rem 1rem; border-bottom: 1px solid oklch(0.22 0.012 240); display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
-  .ab-sidebar-logo-text { font-size: 0.8rem; font-weight: 700; color: oklch(0.72 0.18 55); letter-spacing: 0.05em; }
-  .ab-sidebar-role { font-size: 0.65rem; color: oklch(0.55 0.01 240); padding: 0.2rem 1rem; flex-shrink: 0; }
-  .ab-sidebar-nav { flex: 1; padding: 0.5rem 0; overflow-y: auto; overflow-x: hidden; min-height: 0; scrollbar-width: thin; scrollbar-color: oklch(0.25 0.01 240) transparent; }
-  .ab-sidebar-nav::-webkit-scrollbar { width: 3px; }
-  .ab-sidebar-nav::-webkit-scrollbar-track { background: transparent; }
-  .ab-sidebar-nav::-webkit-scrollbar-thumb { background: oklch(0.25 0.01 240); border-radius: 2px; }
-  .ab-sidebar-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1rem; font-size: 0.76rem; color: oklch(0.55 0.01 240); text-decoration: none; transition: all 0.15s; border-left: 2px solid transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ab-sidebar { background: oklch(0.09 0.006 240); border-right: 1px solid oklch(0.22 0.012 240); width: 160px; min-height: 100vh; position: fixed; left: 0; top: 0; z-index: 40; display: flex; flex-direction: column; }
+  .ab-sidebar-logo { padding: 1rem; border-bottom: 1px solid oklch(0.22 0.012 240); display: flex; align-items: center; gap: 0.5rem; }
+  .ab-sidebar-logo-text { font-size: 0.82rem; font-weight: 700; color: oklch(0.72 0.18 55); letter-spacing: 0.05em; }
+  .ab-sidebar-role { font-size: 0.65rem; color: oklch(0.55 0.01 240); padding: 0.25rem 1rem; }
+  .ab-sidebar-nav { flex: 1; padding: 0.5rem 0; overflow-y: auto; }
+  .ab-sidebar-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; font-size: 0.78rem; color: oklch(0.55 0.01 240); text-decoration: none; transition: all 0.15s; border-left: 2px solid transparent; }
   .ab-sidebar-link:hover { color: oklch(0.92 0.01 60); background: oklch(0.14 0.01 240); }
   .ab-sidebar-link.active { color: oklch(0.72 0.18 55); background: oklch(0.72 0.18 55 / 0.08); border-left-color: oklch(0.72 0.18 55); }
   .ab-sidebar-link svg { width: 14px; height: 14px; flex-shrink: 0; }
-  .ab-sidebar-footer { padding: 0.875rem 1rem; border-top: 1px solid oklch(0.22 0.012 240); flex-shrink: 0; }
-  .ab-sidebar-lang { padding: 0.5rem 1rem; border-bottom: 1px solid oklch(0.22 0.012 240); flex-shrink: 0; }
+  .ab-sidebar-footer { padding: 1rem; border-top: 1px solid oklch(0.22 0.012 240); }
   /* ── Main Layout ── */
-  .ab-main { margin-left: 180px; min-height: 100vh; background: oklch(0.08 0.005 240); }
+  .ab-main { margin-left: 160px; min-height: 100vh; background: oklch(0.08 0.005 240); }
   .ab-topbar { background: oklch(0.11 0.008 240); border-bottom: 1px solid oklch(0.20 0.01 240); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 30; }
   .ab-topbar-title { font-size: 0.8rem; color: oklch(0.55 0.01 240); }
   .ab-topbar-role { font-size: 0.72rem; color: oklch(0.72 0.18 55); background: oklch(0.72 0.18 55 / 0.12); padding: 0.2rem 0.6rem; border-radius: 9999px; border: 1px solid oklch(0.72 0.18 55 / 0.3); }
@@ -169,22 +165,7 @@
   .ab-fade-in { animation: fadeIn 0.2s ease-out; }
   /* ── Responsive ── */
   @media (max-width: 1024px) { .ab-kpi-grid { grid-template-columns: repeat(3, 1fr); } }
-  /* 데스크탑: 고정 사이드바 */
-  .ab-sidebar-desktop { display: flex; }
-  .ab-sidebar-mobile { display: none; }
-  .ab-hamburger { display: none !important; }
-
-  @media (max-width: 768px) {
-    /* 모바일: 사이드바 숨기고 오버레이 방식 */
-    .ab-sidebar-desktop { display: none !important; }
-    .ab-sidebar-mobile { display: flex !important; }
-    .ab-hamburger { display: flex !important; align-items: center; justify-content: center; }
-    .ab-main { margin-left: 0 !important; }
-    .ab-kpi-grid { grid-template-columns: repeat(2, 1fr); }
-    .ab-topbar { padding: 0.6rem 1rem; gap: 0.75rem; }
-    .ab-topbar-title { font-size: 0.75rem; }
-    .ab-content { padding: 1rem; }
-  }
+  @media (max-width: 768px) { .ab-sidebar { transform: translateX(-100%); } .ab-main { margin-left: 0; } .ab-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
   /* ── Shadcn compat ── */
   .badge-active { @apply bg-emerald-500/15 text-emerald-400 border border-emerald-500/30; }
   .badge-inactive { @apply bg-slate-500/15 text-slate-400 border border-slate-500/30; }

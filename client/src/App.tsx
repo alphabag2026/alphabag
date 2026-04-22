@@ -44,11 +44,6 @@ import AdminSubmissions from "./pages/admin/Submissions";
 import AdminRewards from "./pages/admin/Rewards";
 import AdminCbag from "./pages/admin/Cbag";
 import AdminApiKeys from "./pages/admin/ApiKeys";
-import AdminSiteSettings from "./pages/admin/AdminSiteSettings";
-import AdminLegal from "./pages/admin/AdminLegal";
-import AdminNews from "./pages/admin/AdminNews";
-import AdminLiveStreams from "./pages/admin/AdminLiveStreams";
-import AdminEvents from "./pages/admin/AdminEvents";
 import { WalletConnectModal } from "./components/WalletConnectModal";
 import GoldenPage from "./pages/GoldenPage";
 import SelfPage from "./pages/SelfPage";
@@ -114,11 +109,6 @@ function Router() {
       <Route path="/admin/rewards" component={AdminRewards} />
       <Route path="/admin/cbag" component={AdminCbag} />
       <Route path="/admin/api-keys" component={AdminApiKeys} />
-      <Route path="/admin/site-settings" component={AdminSiteSettings} />
-      <Route path="/admin/legal" component={AdminLegal} />
-      <Route path="/admin/news" component={AdminNews} />
-      <Route path="/admin/live-streams" component={AdminLiveStreams} />
-      <Route path="/admin/events" component={AdminEvents} />
       <Route path="/submit-plan" component={SubmitPlan} />
       <Route path="/vote" component={VotePage} />
       <Route path="/my-submissions" component={MySubmissions} />
