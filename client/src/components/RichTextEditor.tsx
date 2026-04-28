@@ -206,6 +206,23 @@ export default function RichTextEditor({
     [attachments, onAttachmentsChange, uploadMedia]
   );
 
+  // 유튜브 URL에서 비디오 ID 추출
+  const getYoutubeVideoId = (url: string): string | null => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?#]+)/,
+      /youtube\.com\/shorts\/([^&?#]+)/,
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+  const youtubeThumbnail = youtubeUrl.trim() ? (() => {
+    const id = getYoutubeVideoId(youtubeUrl);
+    return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+  })() : null;
+
   const handleYoutubeInsert = useCallback(() => {
     if (!editor || !youtubeUrl.trim()) return;
     editor.chain().focus().setYoutubeVideo({ src: youtubeUrl }).run();
@@ -457,6 +474,17 @@ export default function RichTextEditor({
                 onKeyDown={(e) => e.key === "Enter" && handleYoutubeInsert()}
               />
             </div>
+            {youtubeThumbnail && (
+              <div className="rounded-md overflow-hidden border border-border/40">
+                <img
+                  src={youtubeThumbnail}
+                  alt="YouTube 썸네일 미리보기"
+                  className="w-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                <p className="text-xs text-muted-foreground text-center py-1 bg-muted/30">썸네일 미리보기</p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setYoutubeDialogOpen(false)}>

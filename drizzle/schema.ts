@@ -190,6 +190,7 @@ export const notices = mysqlTable("notices", {
   isPinned: boolean("isPinned").default(false).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
   attachments: text("attachments"), // JSON array: [{name, url, size, mimeType}]
+  category: varchar("category", { length: 50 }).default("general"), // general, event, update, airdrop, partnership
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

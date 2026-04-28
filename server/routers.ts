@@ -525,6 +525,7 @@ export const appRouter = router({
         isPinned: z.boolean().default(false),
         sortOrder: z.number().default(0),
         attachments: z.string().optional(),
+        category: z.string().default('general'),
       })).mutation(async ({ input, ctx }) => {
         await db.createNotice(input);
         await createAuditLog({ adminId: ctx.user!.id, action: "CREATE_NOTICE", targetType: "notice", details: { title: input.title } });
@@ -538,6 +539,7 @@ export const appRouter = router({
         isPinned: z.boolean().optional(),
         sortOrder: z.number().optional(),
         attachments: z.string().optional(),
+        category: z.string().optional(),
       })).mutation(async ({ input, ctx }) => {
         const { id, ...data } = input;
         await db.updateNotice(id, data);

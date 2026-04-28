@@ -52,6 +52,26 @@ export default function NoticesPage() {
           </div>
         </div>
 
+        {/* 카테고리 필터 */}
+        {!isLoading && categories.length > 1 && (
+          <div className="flex flex-wrap gap-1.5 mb-5">
+            <button
+              onClick={() => { setCategoryFilter("all"); setPage(1); }}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${categoryFilter === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+            >
+              전체 ({activeNotices.length})
+            </button>
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => { setCategoryFilter(cat); setPage(1); }}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${categoryFilter === cat ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+              >
+                {categoryLabels[cat] ?? cat} ({activeNotices.filter((n: any) => (n.category || "general") === cat).length})
+              </button>
+            ))}
+          </div>
+        )}
         {isLoading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -90,6 +110,9 @@ export default function NoticesPage() {
                           </div>
                         </div>
                         {notice.isPinned && <Badge className="text-xs bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0">고정</Badge>}
+                        {notice.category && notice.category !== "general" && (
+                          <Badge variant="outline" className="text-xs shrink-0">{categoryLabels[notice.category] ?? notice.category}</Badge>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

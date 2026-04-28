@@ -176,7 +176,7 @@ export default function Content() {
   const handleSubmit = () => {
     const type = editing?.contentType ?? form.type;
     if (type === "notices") {
-      const payload = { title: form.title, content: form.content, isActive: form.isActive ?? true, isPinned: form.isPinned ?? false, sortOrder: Number(form.sortOrder ?? 0), attachments: noticeAttachments.length > 0 ? JSON.stringify(noticeAttachments) : undefined };
+      const payload = { title: form.title, content: form.content, isActive: form.isActive ?? true, isPinned: form.isPinned ?? false, sortOrder: Number(form.sortOrder ?? 0), attachments: noticeAttachments.length > 0 ? JSON.stringify(noticeAttachments) : undefined, category: form.category ?? "general" };
       editing ? updateNotice.mutate({ id: editing.id, ...payload }) : createNotice.mutate(payload);
     } else if (type === "announcements") {
       const payload = { title: form.title, content: form.content, type: form.announcementType ?? "info", isActive: form.isActive ?? true, targetRole: form.targetRole ?? "all" };
@@ -686,6 +686,21 @@ export default function Content() {
                   </div>
                 )}
 
+                {form.type === "notices" && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">카테고리</Label>
+                    <Select value={form.category ?? "general"} onValueChange={v => setForm((f: any) => ({ ...f, category: v }))}>
+                      <SelectTrigger className="mt-1 bg-input"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-card border-border">
+                        <SelectItem value="general">일반</SelectItem>
+                        <SelectItem value="event">이벤트</SelectItem>
+                        <SelectItem value="update">업데이트</SelectItem>
+                        <SelectItem value="airdrop">에어드랍</SelectItem>
+                        <SelectItem value="partnership">파트너십</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 {form.type === "notices" && (
                   <div className="flex items-center gap-3">
                     <Switch checked={form.isPinned ?? false} onCheckedChange={v => setForm((f: any) => ({ ...f, isPinned: v }))} />

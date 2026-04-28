@@ -22,6 +22,7 @@ interface Props {
   rootNode: TreeNode;
   width?: number;
   height?: number;
+  onNodeClick?: (nodeId: number) => void;
 }
 
 const NODE_COLORS = [
@@ -126,6 +127,11 @@ export default function ReferralD3Tree({ rootNode, width = 900, height = 550 }: 
           .transition().duration(150)
           .attr("r", d.depth === 0 ? 20 : 14);
         setTooltip(null);
+      })
+      .on("click", function (_, d) {
+        if (onNodeClick && d.data.id) {
+          onNodeClick(d.data.id);
+        }
       });
 
     // 노드 원

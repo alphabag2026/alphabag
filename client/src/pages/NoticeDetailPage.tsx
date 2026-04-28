@@ -142,6 +142,11 @@ export default function NoticeDetailPage() {
                     고정
                   </Badge>
                 )}
+                {notice.category && notice.category !== "general" && (
+                  <Badge variant="outline" className="text-xs">
+                    {({ general: "일반", event: "이벤트", update: "업데이트", airdrop: "에어드랍", partnership: "파트너십" } as Record<string, string>)[notice.category] ?? notice.category}
+                  </Badge>
+                )}
                 {!notice.isActive && (
                   <Badge variant="secondary" className="text-xs">비활성</Badge>
                 )}
