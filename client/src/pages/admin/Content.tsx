@@ -3,7 +3,7 @@ import AdminLayout from "@/components/AdminLayout";
 import RichTextEditor from "@/components/RichTextEditor";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, FileText, Bell, Image, Megaphone, HelpCircle, MessageSquare, Languages, CheckCircle, Clock, Lock, Globe, GripVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, FileText, Bell, Image, Megaphone, HelpCircle, MessageSquare, Languages, CheckCircle, Clock, Lock, Globe, GripVertical, Search, X } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -106,6 +106,20 @@ export default function Content() {
   const [isBulkTranslating, setIsBulkTranslating] = useState(false);
   const [noticeAttachments, setNoticeAttachments] = useState<any[]>([]);
   const [previewNotice, setPreviewNotice] = useState<any>(null);
+  const [noticeSearch, setNoticeSearch] = useState("");
+
+  // HTML 태그 제거 유틸
+  const stripHtml = (html: string) => html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+
+  // 공지 검색 + 고정 우선 정렬
+  const filteredNotices = useMemo(() => {
+    if (!notices) return [];
+    const q = noticeSearch.trim().toLowerCase();
+    const filtered = q
+      ? notices.filter((n: any) => n.title?.toLowerCase().includes(q) || stripHtml(n.content ?? "").toLowerCase().includes(q))
+      : notices;
+    return [...filtered].sort((a: any, b: any) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+  }, [notices, noticeSearch]);
   const translateAllNotices = trpc.content.notices.translateAll.useMutation({
     onSuccess: (data) => { toast.success(`${data.count}개 공지 번역 완료!`); utils.content.notices.list.invalidate(); setIsBulkTranslating(false); },
     onError: () => { toast.error("일괄 번역 실패"); setIsBulkTranslating(false); },
@@ -434,24 +448,52 @@ export default function Content() {
           {/* 공지사항 / Announcements / Banners / Ads 탭 */}
           {["notices", "announcements", "banners", "ads"].map(tabValue => {
             const tab = tabConfig.find(t => t.value === tabValue)!;
+            const displayData = tabValue === "notices" ? filteredNotices : tab.data;
             return (
               <TabsContent key={tabValue} value={tabValue} className="mt-4">
                 <Card className="border-border/40">
                   <CardContent className="p-4">
-                    {tab.data && tab.data.length > 0 ? (
+                    {/* 공지사항 전용 검색 */}
+                    {tabValue === "notices" && (
+                      <div className="relative mb-3">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                        <input
+                          type="text"
+                          placeholder="제목 또는 내용으로 검색..."
+                          value={noticeSearch}
+                          onChange={e => setNoticeSearch(e.target.value)}
+                          className="w-full pl-8 pr-8 py-1.5 text-sm rounded-lg border border-border/40 bg-muted/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
+                        />
+                        {noticeSearch && (
+                          <button onClick={() => setNoticeSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {noticeSearch && tabValue === "notices" && (
+                      <p className="text-xs text-muted-foreground mb-2">
+                        &ldquo;<span className="text-foreground font-medium">{noticeSearch}</span>&rdquo; 검색 결과 {filteredNotices.length}개
+                      </p>
+                    )}
+                    {displayData && displayData.length > 0 ? (
                       <div className="space-y-2">
-                        {tab.data.map((item: any) => (
+                        {displayData.map((item: any) => (
                           <ContentRow key={item.id} item={item} type={tabValue} icon={tab.icon} />
                         ))}
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center py-12 text-center">
                         <tab.icon className="w-10 h-10 text-muted-foreground/30 mb-3" />
-                        <p className="text-muted-foreground text-sm">항목이 없습니다</p>
-                        <Button variant="outline" size="sm" onClick={() => openCreate(tabValue)} className="mt-3 gap-2">
-                          <Plus className="w-3 h-3" />
-                          첫 항목 추가
-                        </Button>
+                        <p className="text-muted-foreground text-sm">
+                          {tabValue === "notices" && noticeSearch ? `"${noticeSearch}"에 해당하는 공지가 없습니다` : "항목이 없습니다"}
+                        </p>
+                        {!(tabValue === "notices" && noticeSearch) && (
+                          <Button variant="outline" size="sm" onClick={() => openCreate(tabValue)} className="mt-3 gap-2">
+                            <Plus className="w-3 h-3" />
+                            첫 항목 추가
+                          </Button>
+                        )}
                       </div>
                     )}
                   </CardContent>

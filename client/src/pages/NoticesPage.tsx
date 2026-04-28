@@ -8,6 +8,11 @@ import { Link, useLocation } from "wouter";
 import { ArrowLeft, Loader2, Bell, Calendar, ChevronLeft, ChevronRight, Pin, Paperclip, FileText, FileImage, FileVideo, File, Search, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+// HTML 태그 제거 유틸
+function stripHtml(html: string) {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 const PAGE_SIZE = 15;
 
 function getFileIcon(mimeType: string) {
@@ -41,13 +46,15 @@ export default function NoticesPage() {
   const activeNotices = (notices ?? []).filter((n: any) => n.isActive);
   const categories = Array.from(new Set(activeNotices.map((n: any) => n.category || "general"))) as string[];
 
-  // 검색 + 카테고리 필터 조합
-  const filteredNotices = activeNotices.filter((n: any) => {
-    const matchCat = categoryFilter === "all" || (n.category || "general") === categoryFilter;
-    const q = searchQuery.trim().toLowerCase();
-    const matchSearch = !q || n.title?.toLowerCase().includes(q) || n.content?.toLowerCase().includes(q);
-    return matchCat && matchSearch;
-  });
+  // 검색 + 카테고리 필터 + 고정 우선 정렬
+  const filteredNotices = activeNotices
+    .filter((n: any) => {
+      const matchCat = categoryFilter === "all" || (n.category || "general") === categoryFilter;
+      const q = searchQuery.trim().toLowerCase();
+      const matchSearch = !q || n.title?.toLowerCase().includes(q) || stripHtml(n.content ?? "").toLowerCase().includes(q);
+      return matchCat && matchSearch;
+    })
+    .sort((a: any, b: any) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
 
   const totalPages = Math.ceil(filteredNotices.length / PAGE_SIZE);
   const paginated = filteredNotices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -158,13 +165,18 @@ export default function NoticesPage() {
                     onClick={() => navigate(`/notices/${notice.id}`)}
                   >
                     <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-3">
                         <span className="text-sm font-bold text-primary min-w-[28px]">{globalIdx})</span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             {notice.isPinned && <Pin className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
                             <h3 className="font-semibold text-foreground leading-tight truncate">{notice.title}</h3>
                           </div>
+                          {notice.content && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                              {stripHtml(notice.content).slice(0, 120)}
+                            </p>
+                          )}
                           <div className="flex items-center gap-3 mt-1.5">
                             <span className="flex items-center gap-1 text-xs text-muted-foreground">
                               <Calendar className="w-3 h-3" />
