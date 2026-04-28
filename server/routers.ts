@@ -167,7 +167,7 @@ export const appRouter = router({
       tags: z.array(z.string()).optional(),
     })).mutation(async ({ input, ctx }) => {
       await db.createInvestmentPlan({ ...input, tags: input.tags ?? null });
-      await createAuditLog({ adminId: ctx.user.id, action: "CREATE_PLAN", targetType: "plan", details: { name: input.name } });
+      await createAuditLog({ adminId: ctx.user!.id, action: "CREATE_PLAN", targetType: "plan", details: { name: input.name } });
       return { success: true };
     }),
     update: superAdminProcedure.input(z.object({
@@ -190,12 +190,12 @@ export const appRouter = router({
     })).mutation(async ({ input, ctx }) => {
       const { id, ...data } = input;
       await db.updateInvestmentPlan(id, { ...data, tags: data.tags ?? undefined });
-      await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_PLAN", targetType: "plan", targetId: id, details: data });
+      await createAuditLog({ adminId: ctx.user!.id, action: "UPDATE_PLAN", targetType: "plan", targetId: id, details: data });
       return { success: true };
     }),
     delete: superAdminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
       await db.deleteInvestmentPlan(input.id);
-      await createAuditLog({ adminId: ctx.user.id, action: "DELETE_PLAN", targetType: "plan", targetId: input.id });
+      await createAuditLog({ adminId: ctx.user!.id, action: "DELETE_PLAN", targetType: "plan", targetId: input.id });
       return { success: true };
     }),
     uploadLogo: superAdminProcedure.input(z.object({
@@ -208,7 +208,7 @@ export const appRouter = router({
       const key = `plan-logos/${input.planId}-${Date.now()}-${input.fileName}`;
       const { url } = await storagePut(key, buffer, input.mimeType);
       await db.updateInvestmentPlan(input.planId, { logoUrl: url });
-      await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_PLAN", targetType: "plan", targetId: input.planId, details: { logoUrl: url } });
+      await createAuditLog({ adminId: ctx.user!.id, action: "UPDATE_PLAN", targetType: "plan", targetId: input.planId, details: { logoUrl: url } });
       return { success: true, url };
     }),
   }),
@@ -230,7 +230,7 @@ export const appRouter = router({
       isActive: z.boolean().default(true),
     })).mutation(async ({ input, ctx }) => {
       await db.createNode({ ...input, tags: input.tags ?? null });
-      await createAuditLog({ adminId: ctx.user.id, action: "CREATE_NODE", targetType: "node", details: { name: input.name } });
+      await createAuditLog({ adminId: ctx.user!.id, action: "CREATE_NODE", targetType: "node", details: { name: input.name } });
       return { success: true };
     }),
     update: superAdminProcedure.input(z.object({
@@ -247,12 +247,12 @@ export const appRouter = router({
     })).mutation(async ({ input, ctx }) => {
       const { id, ...data } = input;
       await db.updateNode(id, { ...data, tags: data.tags ?? undefined });
-      await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_NODE", targetType: "node", targetId: id });
+      await createAuditLog({ adminId: ctx.user!.id, action: "UPDATE_NODE", targetType: "node", targetId: id });
       return { success: true };
     }),
     delete: superAdminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
       await db.deleteNode(input.id);
-      await createAuditLog({ adminId: ctx.user.id, action: "DELETE_NODE", targetType: "node", targetId: input.id });
+      await createAuditLog({ adminId: ctx.user!.id, action: "DELETE_NODE", targetType: "node", targetId: input.id });
       return { success: true };
     }),
     purchasers: adminProcedure.input(z.object({ nodeId: z.number() })).query(async ({ input }) => {
@@ -272,7 +272,7 @@ export const appRouter = router({
         .where(inArray(nodeOrders.id, input.orderIds));
       // Audit Log 기록
       await createAuditLog({
-        adminId: ctx.user.id,
+        adminId: ctx.user!.id,
         action: `BULK_UPDATE_NODE_ORDERS_${input.status.toUpperCase()}`,
         targetType: "nodeOrder",
         targetId: input.orderIds[0] ?? 0,
@@ -324,7 +324,7 @@ export const appRouter = router({
       }
       if (confirmedCount > 0) {
         await createAuditLog({
-          adminId: ctx.user.id,
+          adminId: ctx.user!.id,
           action: "AUTO_VERIFY_TXHASH",
           targetType: "nodeOrder",
           targetId: 0,
@@ -355,7 +355,7 @@ export const appRouter = router({
       kycData: z.unknown().optional(),
     })).mutation(async ({ input, ctx }) => {
       await db.updateUserKyc(input.userId, input.kycStatus, input.kycData);
-      await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_KYC", targetType: "user", targetId: input.userId, details: { kycStatus: input.kycStatus } });
+      await createAuditLog({ adminId: ctx.user!.id, action: "UPDATE_KYC", targetType: "user", targetId: input.userId, details: { kycStatus: input.kycStatus } });
       return { success: true };
     }),
     updateRole: superAdminProcedure.input(z.object({
@@ -363,7 +363,7 @@ export const appRouter = router({
       role: z.enum(["user", "admin", "sub_admin"]),
     })).mutation(async ({ input, ctx }) => {
       await db.updateUserRole(input.userId, input.role);
-      await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_ROLE", targetType: "user", targetId: input.userId, details: { role: input.role } });
+      await createAuditLog({ adminId: ctx.user!.id, action: "UPDATE_ROLE", targetType: "user", targetId: input.userId, details: { role: input.role } });
       return { success: true };
     }),
     referralTree: adminProcedure.input(z.object({ userId: z.number() })).query(async ({ input }) => {
@@ -376,7 +376,7 @@ export const appRouter = router({
       const database = await getDb();
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { users } = await import("../drizzle/schema");
-      await database.update(users).set({ telegramChatId: input.chatId }).where(eq(users.id, ctx.user.id));
+      await database.update(users).set({ telegramChatId: input.chatId }).where(eq(users.id, ctx.user!.id));
       return { success: true };
     }),
 
@@ -388,7 +388,7 @@ export const appRouter = router({
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { users } = await import("../drizzle/schema");
       await database.update(users).set({ telegramChatId: input.telegramChatId }).where(eq(users.id, input.userId));
-      await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_TELEGRAM_CHAT_ID", targetType: "user", targetId: input.userId, details: { telegramChatId: input.telegramChatId } });
+      await createAuditLog({ adminId: ctx.user!.id, action: "UPDATE_TELEGRAM_CHAT_ID", targetType: "user", targetId: input.userId, details: { telegramChatId: input.telegramChatId } });
       return { success: true };
     }),
     // Q&A 알림 설정 업데이트
@@ -402,7 +402,7 @@ export const appRouter = router({
       const updateData: Record<string, boolean> = {};
       if (input.qnaNotifyTelegram !== undefined) updateData.qnaNotifyTelegram = input.qnaNotifyTelegram;
       if (input.qnaNotifyEmail !== undefined) updateData.qnaNotifyEmail = input.qnaNotifyEmail;
-      await database.update(users).set(updateData as any).where(eq(users.id, ctx.user.id));
+      await database.update(users).set(updateData as any).where(eq(users.id, ctx.user!.id));
       return { success: true };
     }),
     broadcastTelegram: adminProcedure.input(z.object({
@@ -475,7 +475,7 @@ export const appRouter = router({
       }
 
       await createAuditLog({
-        adminId: ctx.user.id,
+        adminId: ctx.user!.id,
         action: "BROADCAST_TELEGRAM",
         targetType: "user",
         details: { message: input.message.slice(0, 100), filter: input.filter, successCount, failCount },
@@ -527,7 +527,7 @@ export const appRouter = router({
         attachments: z.string().optional(),
       })).mutation(async ({ input, ctx }) => {
         await db.createNotice(input);
-        await createAuditLog({ adminId: ctx.user.id, action: "CREATE_NOTICE", targetType: "notice", details: { title: input.title } });
+        await createAuditLog({ adminId: ctx.user!.id, action: "CREATE_NOTICE", targetType: "notice", details: { title: input.title } });
         return { success: true };
       }),
       update: superAdminProcedure.input(z.object({
@@ -541,12 +541,12 @@ export const appRouter = router({
       })).mutation(async ({ input, ctx }) => {
         const { id, ...data } = input;
         await db.updateNotice(id, data);
-        await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_NOTICE", targetType: "notice", targetId: id });
+        await createAuditLog({ adminId: ctx.user!.id, action: "UPDATE_NOTICE", targetType: "notice", targetId: id });
         return { success: true };
       }),
       delete: superAdminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
         await db.deleteNotice(input.id);
-        await createAuditLog({ adminId: ctx.user.id, action: "DELETE_NOTICE", targetType: "notice", targetId: input.id });
+        await createAuditLog({ adminId: ctx.user!.id, action: "DELETE_NOTICE", targetType: "notice", targetId: input.id });
         return { success: true };
       }),
       // AI 자동 번역 프로시저
@@ -632,7 +632,7 @@ Return this exact JSON structure:
           }
         }
         await db.updateNotice(input.id, updateData as Parameters<typeof db.updateNotice>[1]);
-        await createAuditLog({ adminId: ctx.user.id, action: "TRANSLATE_NOTICE", targetType: "notice", targetId: input.id });
+        await createAuditLog({ adminId: ctx.user!.id, action: "TRANSLATE_NOTICE", targetType: "notice", targetId: input.id });
         return { success: true, translations };
       }),
       translateAll: superAdminProcedure.mutation(async ({ ctx }) => {
@@ -665,7 +665,7 @@ Return this exact JSON structure:
             count++;
           } catch { /* skip failed */ }
         }
-        await createAuditLog({ adminId: ctx.user.id, action: "TRANSLATE_ALL_NOTICES", targetType: "notice" });
+        await createAuditLog({ adminId: ctx.user!.id, action: "TRANSLATE_ALL_NOTICES", targetType: "notice" });
         return { success: true, count };
       }),
     }),
@@ -679,7 +679,7 @@ Return this exact JSON structure:
         targetRole: z.enum(["all", "user", "admin"]).default("all"),
       })).mutation(async ({ input, ctx }) => {
         await db.createAnnouncement(input);
-        await createAuditLog({ adminId: ctx.user.id, action: "CREATE_ANNOUNCEMENT", targetType: "announcement" });
+        await createAuditLog({ adminId: ctx.user!.id, action: "CREATE_ANNOUNCEMENT", targetType: "announcement" });
         return { success: true };
       }),
       update: superAdminProcedure.input(z.object({
@@ -892,7 +892,7 @@ Return this exact JSON structure:
           count++;
         } catch { /* skip failed */ }
       }
-      await createAuditLog({ adminId: ctx.user.id, action: "TRANSLATE_ALL_FAQS", targetType: "faq" });
+      await createAuditLog({ adminId: ctx.user!.id, action: "TRANSLATE_ALL_FAQS", targetType: "faq" });
       return { success: true, count };
     }),
   }),
@@ -913,7 +913,7 @@ Return this exact JSON structure:
       const { qnaQuestions } = await import("../drizzle/schema");
       const { eq } = await import("drizzle-orm");
       return drizzleDb.select().from(qnaQuestions)
-        .where(eq(qnaQuestions.userId, ctx.user.id))
+        .where(eq(qnaQuestions.userId, ctx.user!.id))
         .orderBy(qnaQuestions.createdAt);
     }),
     deleteMine: protectedProcedure.input(z.object({
@@ -924,7 +924,7 @@ Return this exact JSON structure:
       const { qnaQuestions } = await import("../drizzle/schema");
       const { eq, and } = await import("drizzle-orm");
       const rows = await drizzleDb.select().from(qnaQuestions)
-        .where(and(eq(qnaQuestions.id, input.id), eq(qnaQuestions.userId, ctx.user.id)));
+        .where(and(eq(qnaQuestions.id, input.id), eq(qnaQuestions.userId, ctx.user!.id)));
       if (!rows.length) throw new TRPCError({ code: 'NOT_FOUND' });
       if (rows[0].answer) throw new TRPCError({ code: 'FORBIDDEN', message: '이미 답변된 질문은 삭제할 수 없습니다.' });
       await drizzleDb.delete(qnaQuestions).where(eq(qnaQuestions.id, input.id));
@@ -941,7 +941,7 @@ Return this exact JSON structure:
       const { qnaQuestions } = await import("../drizzle/schema");
       const { eq, and } = await import("drizzle-orm");
       const rows = await drizzleDb.select().from(qnaQuestions)
-        .where(and(eq(qnaQuestions.id, input.id), eq(qnaQuestions.userId, ctx.user.id)));
+        .where(and(eq(qnaQuestions.id, input.id), eq(qnaQuestions.userId, ctx.user!.id)));
       if (!rows.length) throw new TRPCError({ code: 'NOT_FOUND' });
       if (rows[0].answer) throw new TRPCError({ code: 'FORBIDDEN', message: '이미 답변된 질문은 수정할 수 없습니다.' });
       let translationData: Record<string, string> = {};
@@ -1014,7 +1014,7 @@ Return this exact JSON structure:
       const [qna] = await drizzleDb.select().from(qnaQuestions).where(eq(qnaQuestions.id, input.id));
       await drizzleDb.update(qnaQuestions).set({
         answer: input.answer,
-        answeredBy: ctx.user.id,
+        answeredBy: ctx.user!.id,
         answeredAt: new Date(),
         ...translationData,
       } as any).where(eq(qnaQuestions.id, input.id));
@@ -1082,8 +1082,8 @@ Return this exact JSON structure:
       id: z.number(),
       adminReply: z.string().min(1),
     })).mutation(async ({ input, ctx }) => {
-      await db.replyToTicket(input.id, input.adminReply, ctx.user.id);
-      await createAuditLog({ adminId: ctx.user.id, action: "REPLY_TICKET", targetType: "ticket", targetId: input.id });
+      await db.replyToTicket(input.id, input.adminReply, ctx.user!.id);
+      await createAuditLog({ adminId: ctx.user!.id, action: "REPLY_TICKET", targetType: "ticket", targetId: input.id });
       return { success: true };
     }),
     updateStatus: superAdminProcedure.input(z.object({
@@ -1113,7 +1113,7 @@ Return this exact JSON structure:
       minInvestmentAmount: z.string().optional(),
     })).mutation(async ({ input, ctx }) => {
       await db.createAirdrop(input);
-      await createAuditLog({ adminId: ctx.user.id, action: "CREATE_AIRDROP", targetType: "airdrop", details: { name: input.name } });
+      await createAuditLog({ adminId: ctx.user!.id, action: "CREATE_AIRDROP", targetType: "airdrop", details: { name: input.name } });
       return { success: true };
     }),
     update: superAdminProcedure.input(z.object({
@@ -1133,7 +1133,7 @@ Return this exact JSON structure:
     })).mutation(async ({ input, ctx }) => {
       const { id, ...data } = input;
       await db.updateAirdrop(id, data);
-      await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_AIRDROP", targetType: "airdrop", targetId: id });
+      await createAuditLog({ adminId: ctx.user!.id, action: "UPDATE_AIRDROP", targetType: "airdrop", targetId: id });
       return { success: true };
     }),
     participants: adminProcedure.input(z.object({ airdropId: z.number() })).query(async ({ input }) => {
@@ -1141,7 +1141,7 @@ Return this exact JSON structure:
     }),
     delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
       await db.deleteAirdrop(input.id);
-      await createAuditLog({ adminId: ctx.user.id, action: "DELETE_AIRDROP", targetType: "airdrop", targetId: input.id });
+      await createAuditLog({ adminId: ctx.user!.id, action: "DELETE_AIRDROP", targetType: "airdrop", targetId: input.id });
       return { success: true };
     }),
   }),
@@ -1175,12 +1175,12 @@ Return this exact JSON structure:
       const user = await db.findUserByEmailOrId(input.emailOrId);
       if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
       await db.updateUserRole(user.id, input.role);
-      await createAuditLog({ adminId: ctx.user.id, action: "PROMOTE_ADMIN", targetType: "user", targetId: user.id, details: { role: input.role } });
+      await createAuditLog({ adminId: ctx.user!.id, action: "PROMOTE_ADMIN", targetType: "user", targetId: user.id, details: { role: input.role } });
       return { success: true };
     }),
     demote: superAdminProcedure.input(z.object({ userId: z.number() })).mutation(async ({ input, ctx }) => {
       await db.updateUserRole(input.userId, "user");
-      await createAuditLog({ adminId: ctx.user.id, action: "DEMOTE_ADMIN", targetType: "user", targetId: input.userId });
+      await createAuditLog({ adminId: ctx.user!.id, action: "DEMOTE_ADMIN", targetType: "user", targetId: input.userId });
       return { success: true };
     }),
   }),
@@ -1272,10 +1272,10 @@ Return this exact JSON structure:
         ...input,
         filter: input.filter ?? null,
         channelChatId: input.channelChatId ?? null,
-        createdBy: ctx.user.id,
+        createdBy: ctx.user!.id,
         nextRunAt,
       });
-      await createAuditLog({ adminId: ctx.user.id, action: "CREATE_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", details: { title: input.title, cronExpression: input.cronExpression } });
+      await createAuditLog({ adminId: ctx.user!.id, action: "CREATE_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", details: { title: input.title, cronExpression: input.cronExpression } });
       return { success: true };
     }),
     update: adminProcedure.input(z.object({
@@ -1301,7 +1301,7 @@ Return this exact JSON structure:
         updateData.nextRunAt = getNextRunAt(data.cronExpression);
       }
       await database.update(telegramSchedules).set(updateData).where(eq(telegramSchedules.id, id));
-      await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", targetId: id });
+      await createAuditLog({ adminId: ctx.user!.id, action: "UPDATE_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", targetId: id });
       return { success: true };
     }),
     delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
@@ -1309,7 +1309,7 @@ Return this exact JSON structure:
       if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const { telegramSchedules } = await import("../drizzle/schema");
       await database.delete(telegramSchedules).where(eq(telegramSchedules.id, input.id));
-      await createAuditLog({ adminId: ctx.user.id, action: "DELETE_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", targetId: input.id });
+      await createAuditLog({ adminId: ctx.user!.id, action: "DELETE_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", targetId: input.id });
       return { success: true };
     }),
     // 즉시 발송 (테스트용)
@@ -1357,9 +1357,9 @@ Return this exact JSON structure:
       // lastRunAt, lastResult 업데이트
       await database.update(telegramSchedules).set({
         lastRunAt: new Date(),
-        lastResult: JSON.stringify({ successCount, failCount, total: successCount + failCount, runBy: `admin#${ctx.user.id}` }),
+        lastResult: JSON.stringify({ successCount, failCount, total: successCount + failCount, runBy: `admin#${ctx.user!.id}` }),
       }).where(eq(telegramSchedules.id, input.id));
-      await createAuditLog({ adminId: ctx.user.id, action: "RUN_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", targetId: input.id, details: { successCount, failCount, title: schedule.title } });
+      await createAuditLog({ adminId: ctx.user!.id, action: "RUN_TELEGRAM_SCHEDULE", targetType: "telegramSchedule", targetId: input.id, details: { successCount, failCount, title: schedule.title } });
       return { success: true, successCount, failCount };
     }),
   }),
@@ -1504,7 +1504,7 @@ Return this exact JSON structure:
         })
         .from(userFavorites)
         .leftJoin(investmentPlans, eq(userFavorites.planId, investmentPlans.id))
-        .where(eq(userFavorites.userId, ctx.user.id));
+        .where(eq(userFavorites.userId, ctx.user!.id));
       return rows.filter(r => r.plan !== null);
     }),
     toggle: protectedProcedure.input(z.object({ planId: z.number() })).mutation(async ({ ctx, input }) => {
@@ -1513,13 +1513,13 @@ Return this exact JSON structure:
       const { userFavorites } = await import("../drizzle/schema");
       const { eq, and } = await import("drizzle-orm");
       const existing = await database.select().from(userFavorites)
-        .where(and(eq(userFavorites.userId, ctx.user.id), eq(userFavorites.planId, input.planId)))
+        .where(and(eq(userFavorites.userId, ctx.user!.id), eq(userFavorites.planId, input.planId)))
         .limit(1);
       if (existing.length > 0) {
-        await database.delete(userFavorites).where(and(eq(userFavorites.userId, ctx.user.id), eq(userFavorites.planId, input.planId)));
+        await database.delete(userFavorites).where(and(eq(userFavorites.userId, ctx.user!.id), eq(userFavorites.planId, input.planId)));
         return { favorited: false };
       } else {
-        await database.insert(userFavorites).values({ userId: ctx.user.id, planId: input.planId });
+        await database.insert(userFavorites).values({ userId: ctx.user!.id, planId: input.planId });
         return { favorited: true };
       }
     }),
@@ -1553,7 +1553,7 @@ Return this exact JSON structure:
         fileKey,
         mimeType: input.mimeType,
         size: buf.length,
-        uploadedBy: ctx.user.id,
+        uploadedBy: ctx.user!.id,
       });
       return { url, fileKey };
     }),
@@ -1645,6 +1645,12 @@ Return this exact JSON structure:
     notices: publicProcedure.query(async () => {
       const notices = await db.getNotices();
       return notices.filter((n: { isActive: boolean }) => n.isActive);
+    }),
+    noticeById: publicProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+      const notices = await db.getNotices();
+      const notice = notices.find((n: any) => n.id === input.id && n.isActive);
+      if (!notice) throw new TRPCError({ code: 'NOT_FOUND', message: '공지사항을 찾을 수 없습니다.' });
+      return notice;
     }),
 
     // 공개 이벤트 배너
@@ -1871,20 +1877,20 @@ Return this exact JSON structure:
   user: router({
     // 내 프로필 조회
     profile: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getUserById(ctx.user.id);
+      return await db.getUserById(ctx.user!.id);
     }),
 
     // 지갑 주소 업데이트
     updateWallet: protectedProcedure.input(z.object({
       walletAddress: z.string().min(1),
     })).mutation(async ({ input, ctx }) => {
-      await db.updateUserWallet(ctx.user.id, input.walletAddress);
+      await db.updateUserWallet(ctx.user!.id, input.walletAddress);
       return { success: true };
     }),
 
     // 추천 코드 생성
     generateReferralCode: protectedProcedure.mutation(async ({ ctx }) => {
-      const code = await db.generateUserReferralCode(ctx.user.id);
+      const code = await db.generateUserReferralCode(ctx.user!.id);
       return { code };
     }),
 
@@ -1894,24 +1900,24 @@ Return this exact JSON structure:
     })).mutation(async ({ input, ctx }) => {
       const referrer = await db.getUserByReferralCode(input.referralCode);
       if (!referrer) throw new TRPCError({ code: "NOT_FOUND", message: "Invalid referral code" });
-      if (referrer.id === ctx.user.id) throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot refer yourself" });
-      await db.setUserReferral(ctx.user.id, input.referralCode);
+      if (referrer.id === ctx.user!.id) throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot refer yourself" });
+      await db.setUserReferral(ctx.user!.id, input.referralCode);
       return { success: true, referrer: { name: referrer.name } };
     }),
 
     // 내 투자 내역
     investments: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getUserInvestments(ctx.user.id);
+      return await db.getUserInvestments(ctx.user!.id);
     }),
 
     // 내 노드 구매 내역
     nodeOrders: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getUserNodeOrders(ctx.user.id);
+      return await db.getUserNodeOrders(ctx.user!.id);
     }),
 
     // 내 추천 현황
     referralStats: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getUserReferralStats(ctx.user.id);
+      return await db.getUserReferralStats(ctx.user!.id);
     }),
 
     // 노드 구매 신청
@@ -1923,7 +1929,7 @@ Return this exact JSON structure:
       const node = await db.getNodeById(input.nodeId);
       if (!node) throw new TRPCError({ code: "NOT_FOUND", message: "Node not found" });
       await db.createNodeOrder({
-        userId: ctx.user.id,
+        userId: ctx.user!.id,
         nodeId: input.nodeId,
         quantity: input.quantity,
         totalAmount: String(Number(node.price) * input.quantity),
@@ -1953,7 +1959,7 @@ Return this exact JSON structure:
         }
       }
       await db.createInvestment({
-        userId: ctx.user.id,
+        userId: ctx.user!.id,
         planId: input.planId,
         amount: input.amount,
         status: "active",
@@ -1971,7 +1977,7 @@ Return this exact JSON structure:
       category: z.string().default("general"),
     })).mutation(async ({ input, ctx }) => {
       await db.createSupportTicket({
-        userId: ctx.user.id,
+        userId: ctx.user!.id,
         subject: input.subject,
         message: input.message,
         category: input.category,
@@ -1983,7 +1989,7 @@ Return this exact JSON structure:
 
     // 내 지원 티켓 목록
     tickets: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getUserTickets(ctx.user.id);
+      return await db.getUserTickets(ctx.user!.id);
     }),
   }),
 
@@ -2058,8 +2064,19 @@ Return this exact JSON structure:
     // 비밀번호 변경
     changePassword: adminProcedure.input(z.object({
       id: z.number(),
+      currentPassword: z.string().min(1),
       newPassword: z.string().min(6),
     })).mutation(async ({ input }) => {
+      // 현재 비밀번호 검증 (슈퍼어드민 override 제외)
+      if (input.currentPassword !== '__admin_override__') {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'DB 연결 실패' });
+        const { adminAccounts } = await import("../drizzle/schema");
+        const rows = await database.select().from(adminAccounts).where(eq(adminAccounts.id, input.id)).limit(1);
+        if (!rows[0]) throw new TRPCError({ code: 'NOT_FOUND', message: '계정을 찾을 수 없습니다.' });
+        const valid = await bcrypt.compare(input.currentPassword, rows[0].passwordHash);
+        if (!valid) throw new TRPCError({ code: 'UNAUTHORIZED', message: '현재 비밀번호가 올바르지 않습니다.' });
+      }
       const hash = await bcrypt.hash(input.newPassword, 10);
       await db.updateAdminPassword(input.id, hash);
       return { success: true };
@@ -2915,7 +2932,7 @@ Return ONLY valid JSON.`;
         sortOrder: input.sortOrder,
         isActive: input.isActive,
       });
-      await createAuditLog({ adminId: ctx.user.id, action: "CREATE_PLAN", targetType: "plan", details: { name: input.name, source: "ai_import" } });
+      await createAuditLog({ adminId: ctx.user!.id, action: "CREATE_PLAN", targetType: "plan", details: { name: input.name, source: "ai_import" } });
       return { success: true };
     }),
   }),
@@ -3148,18 +3165,18 @@ Return ONLY valid JSON.`;
         const { eq, and } = await import("drizzle-orm");
         // 노드 보유 확인
         const nodeOrderRows = await database.select().from(nodeOrders)
-          .where(and(eq(nodeOrders.userId, ctx.user.id), eq(nodeOrders.status, "confirmed")));
+          .where(and(eq(nodeOrders.userId, ctx.user!.id), eq(nodeOrders.status, "confirmed")));
         if (!nodeOrderRows.length) throw new TRPCError({ code: "FORBIDDEN", message: "노드 보유자만 투표할 수 있습니다." });
         // 중복 투표 확인
         const existing = await database.select().from(submissionVotes)
-          .where(and(eq(submissionVotes.submissionId, input.submissionId), eq(submissionVotes.voterId, ctx.user.id)))
+          .where(and(eq(submissionVotes.submissionId, input.submissionId), eq(submissionVotes.voterId, ctx.user!.id)))
           .limit(1);
         if (existing.length) throw new TRPCError({ code: "CONFLICT", message: "이미 투표하셨습니다." });
         // 투표 등록
         const nodeCount = nodeOrderRows.reduce((sum, o) => sum + (o.quantity ?? 1), 0);
         await database.insert(submissionVotes).values({
           submissionId: input.submissionId,
-          voterId: ctx.user.id,
+          voterId: ctx.user!.id,
           voterWallet: ctx.user.walletAddress ?? undefined,
           vote: input.vote,
           comment: input.comment,
@@ -3224,7 +3241,7 @@ Return ONLY valid JSON.`;
           updateData.votingEndAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
         }
         await database.update(planSubmissions).set(updateData).where(eq(planSubmissions.id, input.submissionId));
-        await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_SUBMISSION_STATUS", targetType: "submission", details: { submissionId: input.submissionId, status: input.status } });
+        await createAuditLog({ adminId: ctx.user!.id, action: "UPDATE_SUBMISSION_STATUS", targetType: "submission", details: { submissionId: input.submissionId, status: input.status } });
         // 승인/거절 시 신청자에게 이메일 + 텔레그램 알림 발송 (비동기)
         if (input.status === "approved" || input.status === "rejected") {
           const [sub] = await database.select().from(planSubmissions).where(eq(planSubmissions.id, input.submissionId));
@@ -3316,7 +3333,7 @@ Return ONLY valid JSON.`;
             });
           }
         }
-        await createAuditLog({ adminId: ctx.user.id, action: "DISTRIBUTE_LISTING_FEE", targetType: "submission", details: { submissionId: input.submissionId, totalFee, platformAmount } });
+        await createAuditLog({ adminId: ctx.user!.id, action: "DISTRIBUTE_LISTING_FEE", targetType: "submission", details: { submissionId: input.submissionId, totalFee, platformAmount } });
         return { success: true, platformAmount, voterCount: approveVoters.length };
       }),
 
@@ -3341,7 +3358,7 @@ Return ONLY valid JSON.`;
         } else {
           await database.insert(submissionSettings).values({ ...input, isActive: true });
         }
-        await createAuditLog({ adminId: ctx.user.id, action: "UPDATE_SUBMISSION_SETTINGS", targetType: "settings", details: input });
+        await createAuditLog({ adminId: ctx.user!.id, action: "UPDATE_SUBMISSION_SETTINGS", targetType: "settings", details: input });
         return { success: true };
       }),
 
@@ -3381,7 +3398,7 @@ Return ONLY valid JSON.`;
         })
         .from(voteRewards)
         .leftJoin(planSubmissions, eq(voteRewards.submissionId, planSubmissions.id))
-        .where(eq(voteRewards.userId, ctx.user.id))
+        .where(eq(voteRewards.userId, ctx.user!.id))
         .orderBy(desc(voteRewards.createdAt));
       const totalEarned = rewards.reduce((acc, r) => acc + parseFloat(r.rewardUsdt as string || "0"), 0);
       const pendingBalance = rewards.filter(r => r.status === "pending").reduce((acc, r) => acc + parseFloat(r.rewardUsdt as string || "0"), 0);
@@ -3401,13 +3418,13 @@ Return ONLY valid JSON.`;
         if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
         const { voteRewards, rewardWithdrawals } = await import("../drizzle/schema");
         const { eq } = await import("drizzle-orm");
-        const pendingRewards = await database.select().from(voteRewards).where(eq(voteRewards.userId, ctx.user.id));
+        const pendingRewards = await database.select().from(voteRewards).where(eq(voteRewards.userId, ctx.user!.id));
         const pendingBalance = pendingRewards.filter(r => r.status === "pending").reduce((acc, r) => acc + parseFloat(r.rewardUsdt as string || "0"), 0);
         if (input.amountUsdt > pendingBalance) {
           throw new TRPCError({ code: "BAD_REQUEST", message: `출금 신청 금액(${input.amountUsdt} USDT)이 미지급 잔액(${pendingBalance.toFixed(2)} USDT)을 초과합니다.` });
         }
         const [result] = await database.insert(rewardWithdrawals).values({
-          userId: ctx.user.id,
+          userId: ctx.user!.id,
           amountUsdt: input.amountUsdt.toString(),
           walletAddress: input.walletAddress,
           network: input.network,
@@ -3422,7 +3439,7 @@ Return ONLY valid JSON.`;
       if (!database) return [];
       const { rewardWithdrawals } = await import("../drizzle/schema");
       const { eq, desc } = await import("drizzle-orm");
-      return database.select().from(rewardWithdrawals).where(eq(rewardWithdrawals.userId, ctx.user.id)).orderBy(desc(rewardWithdrawals.createdAt));
+      return database.select().from(rewardWithdrawals).where(eq(rewardWithdrawals.userId, ctx.user!.id)).orderBy(desc(rewardWithdrawals.createdAt));
     }),
 
     // 어드민: 전체 보상 내역
@@ -3466,7 +3483,7 @@ Return ONLY valid JSON.`;
             remaining -= parseFloat(reward.rewardUsdt as string);
           }
         }
-        await createAuditLog({ adminId: ctx.user.id, action: `REWARD_WITHDRAWAL_${input.action.toUpperCase()}`, targetType: "rewardWithdrawal", targetId: input.withdrawalId, details: input });
+        await createAuditLog({ adminId: ctx.user!.id, action: `REWARD_WITHDRAWAL_${input.action.toUpperCase()}`, targetType: "rewardWithdrawal", targetId: input.withdrawalId, details: input });
         return { success: true };
       }),
 
@@ -3536,7 +3553,7 @@ Return ONLY valid JSON.`;
             }
           }
         }
-        await createAuditLog({ adminId: ctx.user.id, action: "DISTRIBUTE_VOTE_REWARDS", targetType: "submission", targetId: input.submissionId, details: { voterCount: votes.length, rewardPerVoter } });
+        await createAuditLog({ adminId: ctx.user!.id, action: "DISTRIBUTE_VOTE_REWARDS", targetType: "submission", targetId: input.submissionId, details: { voterCount: votes.length, rewardPerVoter } });
         return { success: true, voterCount: votes.length, rewardPerVoter, totalDistributed: voterPool };
       }),
   }),

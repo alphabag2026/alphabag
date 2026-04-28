@@ -107,7 +107,7 @@ export default function RichTextEditor({
         },
       }),
       YoutubeExtension.configure({
-        width: "100%",
+        width: 640,
         height: 360,
         HTMLAttributes: {
           class: "w-full rounded-lg my-2",

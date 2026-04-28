@@ -42,7 +42,7 @@ export default function AdminMyAccount() {
       return;
     }
     setLoading(true);
-    changePasswordMutation.mutate({ id: me.id, newPassword: newPw });
+    changePasswordMutation.mutate({ id: me.id, currentPassword: currentPw, newPassword: newPw });
   };
 
   return (
@@ -85,6 +85,17 @@ export default function AdminMyAccount() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <div className="ab-form-group">
+              <label className="ab-label">현재 비밀번호</label>
+              <input
+                type="password"
+                className="ab-input"
+                placeholder="현재 비밀번호 입력"
+                value={currentPw}
+                onChange={(e) => setCurrentPw(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+            <div className="ab-form-group">
               <label className="ab-label">새 비밀번호</label>
               <input
                 type="password"
@@ -114,7 +125,7 @@ export default function AdminMyAccount() {
             <button
               className="ab-btn ab-btn-primary"
               onClick={handleChangePassword}
-              disabled={loading || !newPw || !confirmPw || newPw !== confirmPw}
+              disabled={loading || !currentPw || !newPw || !confirmPw || newPw !== confirmPw}
               style={{ marginTop: "0.25rem" }}
             >
               {loading ? "변경 중..." : "비밀번호 변경"}

@@ -338,7 +338,7 @@ export default function SubAdmins() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setPwDialogId(null)}>취소</Button>
             <Button
-              onClick={() => pwDialogId && changePasswordMutation.mutate({ id: pwDialogId, newPassword: changePw })}
+              onClick={() => pwDialogId && changePasswordMutation.mutate({ id: pwDialogId, currentPassword: '__admin_override__', newPassword: changePw })}
               disabled={changePasswordMutation.isPending || changePw.length < 6}
               className="bg-amber-500 hover:bg-amber-600 text-white"
             >

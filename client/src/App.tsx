@@ -33,6 +33,7 @@ import ProfilePage from "./pages/ProfilePage";
 import TicketsPage from "./pages/TicketsPage";
 import ReferralsPage from "./pages/ReferralsPage";
 import NoticesPage from "./pages/NoticesPage";
+import NoticeDetailPage from "./pages/NoticeDetailPage";
 import AdminLogin from "./pages/admin/Login";
 import AdminMyAccount from "./pages/admin/MyAccount";
 import AdminSns from "./pages/admin/Sns";
@@ -71,6 +72,7 @@ function Router() {
       <Route path="/tickets" component={TicketsPage} />
       <Route path="/referrals" component={ReferralsPage} />
       <Route path="/notices" component={NoticesPage} />
+      <Route path="/notices/:id" component={NoticeDetailPage} />
       <Route path="/golden" component={GoldenPage} />
       <Route path="/self" component={SelfPage} />
       <Route path="/node" component={NodePage} />

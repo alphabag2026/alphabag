@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ArrowLeft, Loader2, Bell, Calendar, ChevronLeft, ChevronRight, Pin, Paperclip, FileText, FileImage, FileVideo, File } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -17,6 +17,7 @@ function getFileIcon(mimeType: string) {
 }
 
 export default function NoticesPage() {
+  const [, navigate] = useLocation();
   const { data: notices, isLoading } = trpc.public.notices.useQuery();
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<any>(null);
@@ -65,7 +66,7 @@ export default function NoticesPage() {
                   <Card
                     key={notice.id}
                     className={`border-border/40 cursor-pointer hover:border-primary/30 transition-all ${notice.isPinned ? "border-primary/30 bg-primary/5" : ""}`}
-                    onClick={() => setSelected(notice)}
+                    onClick={() => navigate(`/notices/${notice.id}`)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">

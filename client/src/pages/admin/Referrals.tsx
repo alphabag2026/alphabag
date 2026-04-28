@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import ReferralD3Tree, { TreeNode as D3TreeNode } from "@/components/ReferralD3Tree";
 // ── 지갑 주소 단축 표시 ──────────────────────────────────────────────────────
 function WalletShort({ address }: { address?: string | null }) {
   const [copied, setCopied] = useState(false);
@@ -107,6 +108,10 @@ function ReferralTreeView() {
   const { data: topReferrers } = trpc.referrals.topReferrers.useQuery({ limit: 50 });
   const { data: treeData, isLoading: treeLoading } = trpc.referrals.tree.useQuery(
     { userId: selectedUserId! },
+    { enabled: selectedUserId !== null }
+  );
+  const { data: recursiveTreeData, isLoading: recursiveLoading } = trpc.referrals.treeRecursive.useQuery(
+    { userId: selectedUserId!, maxDepth: 5 },
     { enabled: selectedUserId !== null }
   );
 
@@ -230,30 +235,24 @@ function ReferralTreeView() {
                 <p className="text-xs mt-1">레퍼럴 네트워크 트리를 시각화합니다</p>
               </div>
             )}
-            {selectedUserId && treeLoading && (
+            {selectedUserId && (treeLoading || recursiveLoading) && (
               <div className="flex items-center justify-center py-16">
                 <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
             )}
-            {selectedUserId && !treeLoading && (
-              <div className="space-y-0.5 max-h-[450px] overflow-y-auto">
-                <TreeNode
-                  node={{
-                    id: selectedUserId,
-                    name: selectedUser?.userName,
-                    walletAddress: selectedUser?.userWallet,
-                    referralCode: selectedUser?.referralCode,
-                    totalInvested: Number(selectedUser?.totalEarnings ?? 0),
-                    children: treeNodes,
-                  }}
-                  depth={0}
-                />
-                {treeNodes.length === 0 && (
-                  <p className="text-xs text-muted-foreground text-center py-6">
-                    직접 추천한 사용자가 없습니다
-                  </p>
-                )}
-              </div>
+            {selectedUserId && !recursiveLoading && recursiveTreeData && (
+              <ReferralD3Tree
+                rootNode={{
+                  id: selectedUserId,
+                  name: selectedUser?.userName,
+                  walletAddress: selectedUser?.userWallet,
+                  referralCode: selectedUser?.referralCode,
+                  totalInvested: Number(selectedUser?.totalEarnings ?? 0),
+                  children: recursiveTreeData as D3TreeNode[],
+                }}
+                width={580}
+                height={500}
+              />
             )}
           </CardContent>
         </Card>
