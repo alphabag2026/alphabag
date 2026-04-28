@@ -44,7 +44,7 @@ function shortLabel(node: TreeNode) {
   return node.name ?? `#${node.id}`;
 }
 
-export default function ReferralD3Tree({ rootNode, width = 900, height = 550 }: Props) {
+export default function ReferralD3Tree({ rootNode, width = 900, height = 550, onNodeClick }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const gRef = useRef<SVGGElement | null>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);

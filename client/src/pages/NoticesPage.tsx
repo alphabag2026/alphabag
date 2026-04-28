@@ -21,10 +21,14 @@ export default function NoticesPage() {
   const { data: notices, isLoading } = trpc.public.notices.useQuery();
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<any>(null);
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const activeNotices = (notices ?? []).filter((n: any) => n.isActive);
-  const totalPages = Math.ceil(activeNotices.length / PAGE_SIZE);
-  const paginated = activeNotices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const categoryLabels: Record<string, string> = { general: "일반", event: "이벤트", update: "업데이트", airdrop: "에어드랍", partnership: "파트너십" };
+  const categories = Array.from(new Set(activeNotices.map((n: any) => n.category || "general"))) as string[];
+  const filteredNotices = categoryFilter === "all" ? activeNotices : activeNotices.filter((n: any) => (n.category || "general") === categoryFilter);
+  const totalPages = Math.ceil(filteredNotices.length / PAGE_SIZE);
+  const paginated = filteredNotices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
