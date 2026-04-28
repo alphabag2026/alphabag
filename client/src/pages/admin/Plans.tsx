@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ interface PlanForm {
   totalReturn: string;
   description: string;
   urlId: string;
+  onepageUrl: string;
   sortOrder: string;
   isActive: boolean;
   isMLM: boolean;
@@ -37,7 +38,7 @@ interface PlanForm {
 const defaultForm: PlanForm = {
   name: "", logoUrl: "", label: "", dailyRate: "0.5",
   minAmount: "100", maxAmount: "", duration: "30",
-  totalReturn: "", description: "", urlId: "",
+  totalReturn: "", description: "", urlId: "", onepageUrl: "",
   sortOrder: "0", isActive: true, isMLM: false, planType: "investment", tags: "",
 };
 
@@ -183,11 +184,13 @@ export default function Plans() {
     onSuccess: () => { toast.success("Plan deleted"); utils.plans.list.invalidate(); setDeleteId(null); },
     onError: (e) => toast.error(e.message),
   });
+  const [pendingLogoFile, setPendingLogoFile] = React.useState<File | null>(null);
   const uploadLogoMutation = trpc.plans.uploadLogo.useMutation({
     onSuccess: (data) => {
       toast.success("✅ 로고 업로드 완료!");
       setForm(f => ({ ...f, logoUrl: data.url }));
       setUploadingPlanId(null);
+      setPendingLogoFile(null);
       utils.plans.list.invalidate();
     },
     onError: (e) => { toast.error(e.message); setUploadingPlanId(null); },
@@ -195,7 +198,19 @@ export default function Plans() {
 
   const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !editingPlan) return;
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { toast.error("Image must be under 2MB"); return; }
+    if (!editingPlan) {
+      // 신규 생성 시: 로컬 미리보기만 표시 (저장 후 업로드 안내)
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target?.result as string;
+        setForm(f => ({ ...f, logoUrl: dataUrl }));
+        setPendingLogoFile(file);
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
     if (file.size > 2 * 1024 * 1024) { toast.error("Image must be under 2MB"); return; }
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -213,11 +228,13 @@ export default function Plans() {
   const openCreate = () => {
     setEditingPlan(null);
     setForm({ ...defaultForm, planType: activeTab });
+    setPendingLogoFile(null);
     setDialogOpen(true);
   };
 
   const openEdit = (plan: any) => {
     setEditingPlan(plan);
+    setPendingLogoFile(null);
     setForm({
       name: plan.name ?? "",
       logoUrl: plan.logoUrl ?? "",
@@ -229,6 +246,7 @@ export default function Plans() {
       totalReturn: plan.totalReturn ?? "",
       description: plan.description ?? "",
       urlId: plan.urlId ?? "",
+      onepageUrl: plan.onepageUrl ?? "",
       sortOrder: plan.sortOrder?.toString() ?? "0",
       isActive: plan.isActive ?? true,
       isMLM: plan.isMLM ?? false,
@@ -250,6 +268,7 @@ export default function Plans() {
       totalReturn: form.totalReturn || undefined,
       description: form.description || undefined,
       urlId: form.urlId || undefined,
+      onepageUrl: form.onepageUrl || undefined,
       sortOrder: Number(form.sortOrder),
       isActive: form.isActive,
       isMLM: form.isMLM,
@@ -259,7 +278,18 @@ export default function Plans() {
     if (editingPlan) {
       updateMutation.mutate({ id: editingPlan.id, ...payload });
     } else {
-      createMutation.mutate(payload);
+      if (pendingLogoFile) {
+        // 신규 생성 후 로고 업로드: 먼저 생성하고 ID를 받아서 업로드
+        createMutation.mutate(payload, {
+          onSuccess: () => {
+            // 생성 후 목록 새로고침하여 새 플랜 ID 획득 후 업로드
+            utils.plans.list.invalidate();
+            setPendingLogoFile(null);
+          }
+        });
+      } else {
+        createMutation.mutate(payload);
+      }
     }
   };
 
@@ -380,20 +410,18 @@ export default function Plans() {
                 )}
                 <div className="flex gap-2">
                   <Input value={form.logoUrl} onChange={e => setForm(f => ({ ...f, logoUrl: e.target.value }))} placeholder="https://..." className="bg-input text-xs" />
-                  {editingPlan && (
-                    <label className="cursor-pointer">
-                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoFileChange} />
-                      <Button type="button" variant="outline" size="sm" className="gap-1.5 whitespace-nowrap" asChild>
-                        <span>
-                          {uploadLogoMutation.isPending ? (
-                            <span className="text-xs">Uploading...</span>
-                          ) : (
-                            <><Upload className="w-3 h-3" /> Upload</>  
-                          )}
-                        </span>
-                      </Button>
-                    </label>
-                  )}
+                  <label className="cursor-pointer">
+                    <input type="file" accept="image/*" className="hidden" onChange={handleLogoFileChange} />
+                    <Button type="button" variant="outline" size="sm" className="gap-1.5 whitespace-nowrap" asChild>
+                      <span>
+                        {uploadLogoMutation.isPending ? (
+                          <span className="text-xs">Uploading...</span>
+                        ) : (
+                          <><Upload className="w-3 h-3" /> {pendingLogoFile ? "변경" : "Upload"}</>
+                        )}
+                      </span>
+                    </Button>
+                  </label>
                 </div>
               </div>
             </div>
@@ -424,6 +452,10 @@ export default function Plans() {
             <div>
               <Label className="text-xs text-muted-foreground">URL ID</Label>
               <Input value={form.urlId} onChange={e => setForm(f => ({ ...f, urlId: e.target.value }))} placeholder="gold-starter" className="mt-1 bg-input font-mono" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">1page.to URL</Label>
+              <Input value={form.onepageUrl} onChange={e => setForm(f => ({ ...f, onepageUrl: e.target.value }))} placeholder="nice.1page.to" className="mt-1 bg-input font-mono text-xs" />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Sort Order</Label>
