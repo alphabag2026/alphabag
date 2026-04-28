@@ -189,6 +189,7 @@ export const notices = mysqlTable("notices", {
   isActive: boolean("isActive").default(true).notNull(),
   isPinned: boolean("isPinned").default(false).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
+  attachments: text("attachments"), // JSON array: [{name, url, size, mimeType}]
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

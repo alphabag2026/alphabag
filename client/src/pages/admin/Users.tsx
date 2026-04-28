@@ -66,6 +66,9 @@ export default function Users() {
   const [treeUser, setTreeUser] = useState<any>(null);
   const [filter, setFilter] = useState<{ hasInvestment?: boolean; hasNode?: boolean; kycApproved?: boolean }>({});
 
+  // 사용자 상세 모달
+  const [detailUser, setDetailUser] = useState<any>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   // 텔레그램 발송 다이얼로그 상태
   const [telegramDialogOpen, setTelegramDialogOpen] = useState(false);
   const [telegramMessage, setTelegramMessage] = useState("");
@@ -95,6 +98,10 @@ export default function Users() {
   // 통계 쿼리
   const { data: statsData } = trpc.dashboard.stats.useQuery(undefined, { retry: false });
 
+  const { data: detailData, isLoading: detailLoading } = trpc.users.detail.useQuery(
+    { userId: detailUser?.id ?? 0 },
+    { enabled: !!detailUser && detailDialogOpen }
+  );
   const updateKycMutation = trpc.users.updateKyc.useMutation({
     onSuccess: () => { toast.success("KYC status updated"); utils.users.list.invalidate(); setKycDialogOpen(false); },
     onError: (e) => toast.error(e.message),
@@ -176,7 +183,7 @@ export default function Users() {
                 <Users2 className="w-4 h-4 text-primary" />
                 <span className="text-xs text-muted-foreground">Total Users</span>
               </div>
-              <p className="text-2xl font-bold">{(statsData as any)?.totalUsers?.toLocaleString() ?? total.toLocaleString()}</p>
+              <p className="text-2xl font-bold">{((statsData as any)?.totalUsers > 0 ? (statsData as any).totalUsers : (debouncedSearch || Object.keys(filter).length > 0 ? total : (data?.total ?? 0)))?.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground mt-0.5">alphabag.net 마이그레이션 포함</p>
             </CardContent>
           </Card>
@@ -186,8 +193,8 @@ export default function Users() {
                 <Wallet className="w-4 h-4 text-blue-400" />
                 <span className="text-xs text-muted-foreground">Wallet Users</span>
               </div>
-              <p className="text-2xl font-bold text-blue-400">663</p>
-              <p className="text-xs text-muted-foreground mt-0.5">지갑 주소 기반 사용자</p>
+              <p className="text-2xl font-bold text-blue-400">{data?.data?.filter((u: any) => u.walletAddress)?.length ?? 0}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">현재 페이지 지갑 사용자</p>
             </CardContent>
           </Card>
           <Card className="border-border/40">
@@ -346,7 +353,10 @@ export default function Users() {
                     <td>
                       <WalletCell address={user.walletAddress} />
                     </td>
-                    <td>
+                    <td
+                      className="cursor-pointer"
+                      onClick={() => { setDetailUser(user); setDetailDialogOpen(true); }}
+                    >
                       <div>
                         <p className="text-xs font-mono text-primary">{user.referralCode ?? "—"}</p>
                         {user.referredBy && (
@@ -721,6 +731,106 @@ export default function Users() {
           )}
         </SheetContent>
       </Sheet>
+      {/* ─── 사용자 상세 모달 ─── */}
+      <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
+        <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users2 className="w-4 h-4 text-primary" />
+              사용자 상세 정보
+            </DialogTitle>
+          </DialogHeader>
+          {detailLoading ? (
+            <div className="py-8 text-center text-muted-foreground text-sm">로딩 중...</div>
+          ) : detailData ? (
+            <div className="space-y-4">
+              {/* 기본 정보 */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-accent/30 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">지갑 주소</p>
+                  <p className="text-xs font-mono break-all">{detailData.user?.walletAddress ?? "—"}</p>
+                </div>
+                <div className="bg-accent/30 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">추천 코드</p>
+                  <p className="text-sm font-mono text-primary">{detailData.user?.referralCode ?? "—"}</p>
+                </div>
+                <div className="bg-accent/30 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">역할</p>
+                  <Badge className={`${roleBadge(detailData.user?.role)} text-xs`}>{detailData.user?.role}</Badge>
+                </div>
+                <div className="bg-accent/30 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">KYC 상태</p>
+                  <Badge className={`${kycBadge(detailData.user?.kycStatus ?? "none")} text-xs`}>{detailData.user?.kycStatus ?? "none"}</Badge>
+                </div>
+                <div className="bg-accent/30 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">총 투자액</p>
+                  <p className="text-sm font-bold text-primary">${Number(detailData.user?.totalInvested ?? 0).toLocaleString()}</p>
+                </div>
+                <div className="bg-accent/30 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">노드 구매액</p>
+                  <p className="text-sm font-bold text-amber-400">${Number(detailData.user?.totalNodes ?? 0).toLocaleString()}</p>
+                </div>
+              </div>
+              {/* 투자 내역 */}
+              {detailData.investments.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-2 flex items-center gap-1.5">
+                    <TrendingUp className="w-3.5 h-3.5 text-green-400" />
+                    투자 내역 ({detailData.investments.length}건)
+                  </p>
+                  <div className="space-y-1.5">
+                    {detailData.investments.map((inv: any) => (
+                      <div key={inv.id} className="flex items-center justify-between bg-accent/20 rounded-lg px-3 py-2">
+                        <div>
+                          <p className="text-xs font-medium">{inv.planName ?? `Plan #${inv.planId}`}</p>
+                          <p className="text-xs text-muted-foreground">{new Date(inv.createdAt).toLocaleDateString("ko-KR")}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-primary">${Number(inv.amount).toLocaleString()}</p>
+                          <Badge className="text-[10px] px-1.5 py-0">{inv.status}</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* 노드 주문 */}
+              {detailData.nodeOrders.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-2 flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-amber-400" />
+                    노드 주문 ({detailData.nodeOrders.length}건)
+                  </p>
+                  <div className="space-y-1.5">
+                    {detailData.nodeOrders.map((order: any) => (
+                      <div key={order.id} className="flex items-center justify-between bg-accent/20 rounded-lg px-3 py-2">
+                        <div>
+                          <p className="text-xs font-medium">노드 #{order.id}</p>
+                          <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleDateString("ko-KR")}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-amber-400">${Number(order.totalAmount).toLocaleString()}</p>
+                          <Badge className="text-[10px] px-1.5 py-0">{order.status}</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* 레퍼럴 */}
+              <div>
+                <p className="text-sm font-medium mb-1 flex items-center gap-1.5">
+                  <GitBranch className="w-3.5 h-3.5 text-blue-400" />
+                  직접 추천 ({detailData.referrals.length}명)
+                </p>
+              </div>
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailDialogOpen(false)}>닫기</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }

@@ -74,11 +74,11 @@
 
 @layer components {
   /* ── Sidebar ── */
-  .ab-sidebar { background: oklch(0.09 0.006 240); border-right: 1px solid oklch(0.22 0.012 240); width: 160px; min-height: 100vh; position: fixed; left: 0; top: 0; z-index: 40; display: flex; flex-direction: column; }
+  .ab-sidebar { background: oklch(0.09 0.006 240); border-right: 1px solid oklch(0.22 0.012 240); width: 160px; height: 100vh; position: fixed; left: 0; top: 0; z-index: 40; display: flex; flex-direction: column; overflow: hidden; }
   .ab-sidebar-logo { padding: 1rem; border-bottom: 1px solid oklch(0.22 0.012 240); display: flex; align-items: center; gap: 0.5rem; }
   .ab-sidebar-logo-text { font-size: 0.82rem; font-weight: 700; color: oklch(0.72 0.18 55); letter-spacing: 0.05em; }
   .ab-sidebar-role { font-size: 0.65rem; color: oklch(0.55 0.01 240); padding: 0.25rem 1rem; }
-  .ab-sidebar-nav { flex: 1; padding: 0.5rem 0; overflow-y: auto; }
+  .ab-sidebar-nav { flex: 1; padding: 0.5rem 0; overflow-y: auto; min-height: 0; }
   .ab-sidebar-link { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; font-size: 0.78rem; color: oklch(0.55 0.01 240); text-decoration: none; transition: all 0.15s; border-left: 2px solid transparent; }
   .ab-sidebar-link:hover { color: oklch(0.92 0.01 60); background: oklch(0.14 0.01 240); }
   .ab-sidebar-link.active { color: oklch(0.72 0.18 55); background: oklch(0.72 0.18 55 / 0.08); border-left-color: oklch(0.72 0.18 55); }
@@ -178,3 +178,37 @@
   .badge-resolved { @apply bg-emerald-500/15 text-emerald-400 border border-emerald-500/30; }
   .badge-closed { @apply bg-slate-500/15 text-slate-400 border border-slate-500/30; }
 }
+
+/* ─── Rich Text Editor (Tiptap) ─────────────────────────────────────────── */
+.rich-editor-content .tiptap {
+  outline: none;
+  color: oklch(0.92 0.01 60);
+}
+.rich-editor-content .tiptap p { margin: 0.4rem 0; }
+.rich-editor-content .tiptap h2 { font-size: 1.2rem; font-weight: 700; margin: 0.8rem 0 0.4rem; }
+.rich-editor-content .tiptap h3 { font-size: 1.05rem; font-weight: 600; margin: 0.7rem 0 0.3rem; }
+.rich-editor-content .tiptap h4 { font-size: 0.95rem; font-weight: 600; margin: 0.6rem 0 0.3rem; }
+.rich-editor-content .tiptap ul { list-style: disc; padding-left: 1.4rem; margin: 0.4rem 0; }
+.rich-editor-content .tiptap ol { list-style: decimal; padding-left: 1.4rem; margin: 0.4rem 0; }
+.rich-editor-content .tiptap li { margin: 0.15rem 0; }
+.rich-editor-content .tiptap blockquote { border-left: 3px solid oklch(0.72 0.18 55); padding-left: 0.8rem; color: oklch(0.65 0.01 240); margin: 0.6rem 0; font-style: italic; }
+.rich-editor-content .tiptap code { background: oklch(0.14 0.008 240); border-radius: 3px; padding: 0.1rem 0.35rem; font-size: 0.85em; font-family: monospace; }
+.rich-editor-content .tiptap pre { background: oklch(0.12 0.008 240); border-radius: 6px; padding: 0.8rem; overflow-x: auto; margin: 0.6rem 0; }
+.rich-editor-content .tiptap pre code { background: none; padding: 0; }
+.rich-editor-content .tiptap a { color: oklch(0.72 0.18 55); text-decoration: underline; }
+.rich-editor-content .tiptap hr { border: none; border-top: 1px solid oklch(0.20 0.01 240); margin: 0.8rem 0; }
+.rich-editor-content .tiptap img { max-width: 100%; border-radius: 6px; margin: 0.4rem 0; }
+.rich-editor-content .tiptap iframe { width: 100%; border-radius: 6px; margin: 0.4rem 0; }
+.rich-editor-content .tiptap .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: oklch(0.45 0.01 240);
+  pointer-events: none;
+  height: 0;
+}
+/* 라이트 모드 */
+:root:not(.dark) .rich-editor-content .tiptap { color: oklch(0.15 0.01 240); }
+:root:not(.dark) .rich-editor-content .tiptap blockquote { color: oklch(0.45 0.01 240); }
+:root:not(.dark) .rich-editor-content .tiptap code { background: oklch(0.93 0.005 240); }
+:root:not(.dark) .rich-editor-content .tiptap pre { background: oklch(0.92 0.005 240); }
+:root:not(.dark) .rich-editor-content .tiptap hr { border-top-color: oklch(0.80 0.01 240); }

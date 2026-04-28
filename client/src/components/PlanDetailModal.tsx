@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { trpc } from "@/lib/trpc";
+import { normalize1pageUrl } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -190,7 +191,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
   if ((plan as any).docsUrl2) docsLinks.push((plan as any).docsUrl2);
   const blogUrl = (plan as any).blogUrl;
   const infoweb4Url = (plan as any).infoweb4Url;
-  const onepageUrl = (plan as any).onepageUrl;
+  const onepageUrl = normalize1pageUrl((plan as any).onepageUrl);
 
   return (
     <>

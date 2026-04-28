@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { normalize1pageUrl } from "@/lib/utils";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useWallet } from "@/contexts/WalletContext";
 import { getLoginUrl } from "@/const";
@@ -1185,7 +1186,7 @@ export default function Home() {
                   {(allPlans as any[]).filter((p: any) => p.onepageUrl).map((plan: any) => (
                     <a
                       key={plan.id}
-                      href={plan.onepageUrl}
+                      href={normalize1pageUrl(plan.onepageUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border transition-all hover:scale-105 ${
@@ -1209,7 +1210,7 @@ export default function Home() {
                       <div className="text-center w-full">
                         <div className={`text-[11px] font-bold ${textPrimary} leading-tight truncate`}>{plan.name}</div>
                         <div className={`text-[9px] ${textSecondary} mt-0.5 truncate`}>
-                          {plan.onepageUrl?.replace('https://', '').replace('http://', '').replace(/\/$/, '')}
+                          {normalize1pageUrl(plan.onepageUrl)?.replace('https://', '').replace('http://', '').replace(/\/$/, '')}
                         </div>
                       </div>
                       <div className={`text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${

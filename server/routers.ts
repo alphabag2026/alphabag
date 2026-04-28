@@ -19,18 +19,53 @@ import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "admin" && ctx.user.role !== "sub_admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+// Helper: verify admin_token cookie and return payload
+function parseCookies(cookieHeader: string): Record<string, string> {
+  const cookies: Record<string, string> = {};
+  if (!cookieHeader) return cookies;
+  cookieHeader.split(";").forEach(part => {
+    const [key, ...vals] = part.trim().split("=");
+    if (key) cookies[key.trim()] = decodeURIComponent(vals.join("=").trim());
+  });
+  return cookies;
+}
+function verifyAdminToken(req: any): { id: number; username: string; role: string } | null {
+  try {
+    // Try req.cookies first (if cookie-parser is installed), then parse raw header
+    const cookieObj = req.cookies ?? parseCookies(req.headers?.cookie ?? "");
+    const token = cookieObj?.admin_token;
+    if (!token) return null;
+    const secret = process.env.JWT_SECRET ?? "alphabag-admin-secret";
+    return jwt.verify(token, secret) as { id: number; username: string; role: string };
+  } catch {
+    return null;
   }
-  return next({ ctx });
+}
+const adminProcedure = publicProcedure.use(({ ctx, next }) => {
+  // Accept either Manus OAuth user with admin role OR admin_token cookie
+  const adminToken = verifyAdminToken(ctx.req);
+  if (adminToken && (adminToken.role === "admin" || adminToken.role === "sub_admin")) {
+    // admin_token 인증 시 ctx.user에 adminToken 정보 주입
+    const adminUser = ctx.user ?? { id: adminToken.id, role: adminToken.role as any, openId: "", name: adminToken.username, email: "" };
+    return next({ ctx: { ...ctx, user: adminUser } });
+  }
+  if (ctx.user && (ctx.user.role === "admin" || ctx.user.role === "sub_admin")) {
+    return next({ ctx });
+  }
+  throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
 });
 
-const superAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Super admin access required" });
+const superAdminProcedure = publicProcedure.use(({ ctx, next }) => {
+  const adminToken = verifyAdminToken(ctx.req);
+  if (adminToken && adminToken.role === "admin") {
+    // admin_token 인증 시 ctx.user에 adminToken 정보 주입
+    const adminUser = ctx.user ?? { id: adminToken.id, role: adminToken.role as any, openId: "", name: adminToken.username, email: "" };
+    return next({ ctx: { ...ctx, user: adminUser } });
   }
-  return next({ ctx });
+  if (ctx.user && ctx.user.role === "admin") {
+    return next({ ctx });
+  }
+  throw new TRPCError({ code: "FORBIDDEN", message: "Super admin access required" });
 });
 
 // ─── App Router ───────────────────────────────────────────────────────────────
@@ -448,6 +483,35 @@ export const appRouter = router({
 
       return { success: true, successCount, failCount, total: results.length, results };
     }),
+    detail: adminProcedure.input(z.object({ userId: z.number() })).query(async ({ input }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { users: usersTable, investments: investmentsTable, nodeOrders: nodeOrdersTable, referrals: referralsTable, investmentPlans: plansTable } = await import("../drizzle/schema");
+      const { eq: eqOp, desc: descOp } = await import("drizzle-orm");
+      const [userResult, userInvestments, userNodes, userReferrals] = await Promise.all([
+        database.select().from(usersTable).where(eqOp(usersTable.id, input.userId)).limit(1),
+        database.select({
+          id: investmentsTable.id,
+          planId: investmentsTable.planId,
+          amount: investmentsTable.amount,
+          status: investmentsTable.status,
+          createdAt: investmentsTable.createdAt,
+          planName: plansTable.name,
+        }).from(investmentsTable)
+          .leftJoin(plansTable, eqOp(investmentsTable.planId, plansTable.id))
+          .where(eqOp(investmentsTable.userId, input.userId))
+          .orderBy(descOp(investmentsTable.createdAt))
+          .limit(20),
+        database.select().from(nodeOrdersTable).where(eqOp(nodeOrdersTable.userId, input.userId)).orderBy(descOp(nodeOrdersTable.createdAt)).limit(10),
+        database.select().from(referralsTable).where(eqOp(referralsTable.referrerId, input.userId)).limit(50),
+      ]);
+      return {
+        user: userResult[0] ?? null,
+        investments: userInvestments,
+        nodeOrders: userNodes,
+        referrals: userReferrals,
+      };
+    }),
   }),
 
   // ─── Content ───────────────────────────────────────────────────────────────
@@ -460,6 +524,7 @@ export const appRouter = router({
         isActive: z.boolean().default(true),
         isPinned: z.boolean().default(false),
         sortOrder: z.number().default(0),
+        attachments: z.string().optional(),
       })).mutation(async ({ input, ctx }) => {
         await db.createNotice(input);
         await createAuditLog({ adminId: ctx.user.id, action: "CREATE_NOTICE", targetType: "notice", details: { title: input.title } });
@@ -472,6 +537,7 @@ export const appRouter = router({
         isActive: z.boolean().optional(),
         isPinned: z.boolean().optional(),
         sortOrder: z.number().optional(),
+        attachments: z.string().optional(),
       })).mutation(async ({ input, ctx }) => {
         const { id, ...data } = input;
         await db.updateNotice(id, data);

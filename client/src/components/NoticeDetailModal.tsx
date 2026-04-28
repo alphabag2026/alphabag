@@ -1,4 +1,4 @@
-import { X, Bell, Calendar, ExternalLink } from "lucide-react";
+import { X, Bell, Calendar, ExternalLink, Paperclip, FileText, FileImage, FileVideo, File } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface Notice {
@@ -91,10 +91,51 @@ export function NoticeDetailModal({ notice, onClose, isDark = true }: NoticeDeta
 
           {/* 공지 내용 */}
           <div className={`rounded-xl p-4 ${contentBg}`}>
-            <div className={`text-sm whitespace-pre-wrap leading-relaxed ${textSecondary}`}>
-              {localContent}
-            </div>
+            {localContent && localContent.startsWith('<') ? (
+              <div
+                className={`text-sm leading-relaxed ${textSecondary} rich-editor-content`}
+                dangerouslySetInnerHTML={{ __html: localContent }}
+              />
+            ) : (
+              <div className={`text-sm whitespace-pre-wrap leading-relaxed ${textSecondary}`}>
+                {localContent}
+              </div>
+            )}
           </div>
+          {/* 첨부 파일 */}
+          {notice.attachments && (() => {
+            try {
+              const atts = JSON.parse(notice.attachments);
+              if (!atts.length) return null;
+              return (
+                <div className={`rounded-xl p-3 ${contentBg}`}>
+                  <p className={`text-xs font-medium mb-2 flex items-center gap-1 ${textMuted}`}>
+                    <Paperclip className="w-3 h-3" />
+                    첨부 파일 ({atts.length})
+                  </p>
+                  <div className="space-y-1.5">
+                    {atts.map((att: any, i: number) => (
+                      <a
+                        key={i}
+                        href={att.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-2 text-xs rounded-lg px-2.5 py-1.5 transition-colors hover:text-amber-400 ${textSecondary}`}
+                      >
+                        {att.mimeType?.startsWith("image/") ? <FileImage className="w-3.5 h-3.5 text-blue-400 shrink-0" /> :
+                         att.mimeType === "application/pdf" ? <FileText className="w-3.5 h-3.5 text-red-400 shrink-0" /> :
+                         <File className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
+                        <span className="flex-1 truncate">{att.name}</span>
+                        <span className={`shrink-0 ${textMuted}`}>
+                          {att.size < 1024 ? `${att.size}B` : att.size < 1024*1024 ? `${(att.size/1024).toFixed(1)}KB` : `${(att.size/1024/1024).toFixed(1)}MB`}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              );
+            } catch { return null; }
+          })()}
 
           {/* 링크 버튼 */}
           {notice.linkUrl && (

@@ -239,6 +239,13 @@
       "when": 1776831139698,
       "tag": "0033_soft_mattie_franklin",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "5",
+      "when": 1777375191390,
+      "tag": "0034_right_zzzax",
+      "breakpoints": true
     }
   ]
 }

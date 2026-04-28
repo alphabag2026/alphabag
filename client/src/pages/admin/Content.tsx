@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import AdminLayout from "@/components/AdminLayout";
+import RichTextEditor from "@/components/RichTextEditor";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, FileText, Bell, Image, Megaphone, HelpCircle, MessageSquare, Languages, CheckCircle, Clock, Lock, Globe, GripVertical } from "lucide-react";
@@ -103,6 +104,8 @@ export default function Content() {
   const updateFaq = trpc.faq.update.useMutation({ onSuccess: () => { toast.success("수정 완료"); refetchFaqs(); setDialogOpen(false); } });
   const deleteFaq = trpc.faq.delete.useMutation({ onSuccess: () => { toast.success("삭제 완료"); refetchFaqs(); setDeleteTarget(null); } });
   const [isBulkTranslating, setIsBulkTranslating] = useState(false);
+  const [noticeAttachments, setNoticeAttachments] = useState<any[]>([]);
+  const [previewNotice, setPreviewNotice] = useState<any>(null);
   const translateAllNotices = trpc.content.notices.translateAll.useMutation({
     onSuccess: (data) => { toast.success(`${data.count}개 공지 번역 완료!`); utils.content.notices.list.invalidate(); setIsBulkTranslating(false); },
     onError: () => { toast.error("일괄 번역 실패"); setIsBulkTranslating(false); },
@@ -159,19 +162,21 @@ export default function Content() {
   const openCreate = (type: string) => {
     setEditing(null);
     setForm({ type, isActive: true, isPinned: false, sortOrder: 0, targetRole: "all", announcementType: "info", position: "sidebar", category: "general", autoTranslate: true });
+    setNoticeAttachments([]);
     setDialogOpen(true);
   };
 
   const openEdit = (item: any, type: string) => {
     setEditing({ ...item, contentType: type });
     setForm({ ...item, type, announcementType: item.type ?? "info" });
+    setNoticeAttachments(item.attachments ? JSON.parse(item.attachments) : []);
     setDialogOpen(true);
   };
 
   const handleSubmit = () => {
     const type = editing?.contentType ?? form.type;
     if (type === "notices") {
-      const payload = { title: form.title, content: form.content, isActive: form.isActive ?? true, isPinned: form.isPinned ?? false, sortOrder: Number(form.sortOrder ?? 0) };
+      const payload = { title: form.title, content: form.content, isActive: form.isActive ?? true, isPinned: form.isPinned ?? false, sortOrder: Number(form.sortOrder ?? 0), attachments: noticeAttachments.length > 0 ? JSON.stringify(noticeAttachments) : undefined };
       editing ? updateNotice.mutate({ id: editing.id, ...payload }) : createNotice.mutate(payload);
     } else if (type === "announcements") {
       const payload = { title: form.title, content: form.content, type: form.announcementType ?? "info", isActive: form.isActive ?? true, targetRole: form.targetRole ?? "all" };
@@ -549,7 +554,7 @@ export default function Content() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg bg-card border-border">
+        <DialogContent className="max-w-2xl bg-card border-border">
           <DialogHeader>
             <DialogTitle className="font-display">
               {editing ? "수정" : "추가"} — {form.type === "faqs" ? "FAQ" : form.type === "notices" ? "공지사항" : form.type}
@@ -603,7 +608,22 @@ export default function Content() {
                   <Input value={form.title ?? ""} onChange={e => setForm((f: any) => ({ ...f, title: e.target.value }))} className="mt-1 bg-input" />
                 </div>
 
-                {(form.type === "notices" || form.type === "announcements") && (
+                {form.type === "notices" && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">내용 *</Label>
+                    <div className="mt-1">
+                      <RichTextEditor
+                        value={form.content ?? ""}
+                        onChange={v => setForm((f: any) => ({ ...f, content: v }))}
+                        attachments={noticeAttachments}
+                        onAttachmentsChange={setNoticeAttachments}
+                        placeholder="공지사항 내용을 입력하세요..."
+                        minHeight="180px"
+                      />
+                    </div>
+                  </div>
+                )}
+                {form.type === "announcements" && (
                   <div>
                     <Label className="text-xs text-muted-foreground">내용 *</Label>
                     <Textarea value={form.content ?? ""} onChange={e => setForm((f: any) => ({ ...f, content: e.target.value }))} className="mt-1 bg-input resize-none" rows={4} />

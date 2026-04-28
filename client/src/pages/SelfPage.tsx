@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { normalize1pageUrl } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Star, Filter, Heart, ShoppingCart, Globe } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -155,7 +156,7 @@ function PlanCard({ plan }: { plan: any }) {
           </div>
           {plan.onepageUrl && (
             <a
-              href={plan.onepageUrl}
+              href={normalize1pageUrl(plan.onepageUrl)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
