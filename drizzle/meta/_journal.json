@@ -246,6 +246,13 @@
       "when": 1777375191390,
       "tag": "0034_right_zzzax",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "5",
+      "when": 1777385945271,
+      "tag": "0035_ordinary_the_hunter",
+      "breakpoints": true
     }
   ]
 }

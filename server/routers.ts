@@ -518,6 +518,23 @@ export const appRouter = router({
   content: router({
     notices: router({
       list: adminProcedure.query(async () => await db.getNotices()),
+      // 공개 목록 (사용자용 - viewCount 포함)
+      listPublic: publicProcedure.query(async () => {
+        const db2 = await getDb();
+        if (!db2) return [];
+        const { notices } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        return db2.select().from(notices).where(eq(notices.isActive, true));
+      }),
+      // 조회수 증가
+      incrementView: publicProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+        const db2 = await getDb();
+        if (!db2) return { success: false };
+        const { notices } = await import("../drizzle/schema");
+        const { eq, sql } = await import("drizzle-orm");
+        await db2.update(notices).set({ viewCount: sql`viewCount + 1` }).where(eq(notices.id, input.id));
+        return { success: true };
+      }),
       create: superAdminProcedure.input(z.object({
         title: z.string().min(1),
         content: z.string().min(1),

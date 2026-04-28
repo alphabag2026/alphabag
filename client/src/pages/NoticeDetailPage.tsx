@@ -2,8 +2,8 @@ import { useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, Loader2, Pin, Paperclip, FileText, FileImage, FileVideo, File, Bell, AlertCircle, Share2, Copy, Check } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Calendar, Loader2, Pin, Paperclip, FileText, FileImage, FileVideo, File, Bell, AlertCircle, Share2, Copy, Check, Eye, Bookmark, BookmarkCheck, Globe } from "lucide-react";
+import { useState, useEffect } from "react";
 
 function ShareButtons({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
@@ -73,10 +73,41 @@ function getFileIcon(mimeType: string) {
 export default function NoticeDetailPage() {
   const params = useParams<{ id: string }>();
   const id = parseInt(params.id ?? "0", 10);
+  const [langTab, setLangTab] = useState("ko");
+  const [bookmarked, setBookmarked] = useState(() => {
+    try {
+      const saved = localStorage.getItem("notice_bookmarks");
+      const list: number[] = saved ? JSON.parse(saved) : [];
+      return list.includes(id);
+    } catch { return false; }
+  });
+  const toggleBookmark = () => {
+    try {
+      const saved = localStorage.getItem("notice_bookmarks");
+      const list: number[] = saved ? JSON.parse(saved) : [];
+      const next = bookmarked ? list.filter((x) => x !== id) : [...list, id];
+      localStorage.setItem("notice_bookmarks", JSON.stringify(next));
+      setBookmarked(!bookmarked);
+    } catch {}
+  };
   const { data: notice, isLoading, error } = trpc.public.noticeById.useQuery(
     { id },
     { enabled: !!id && !isNaN(id) }
   );
+  const incrementView = trpc.content.notices.incrementView.useMutation();
+  const { data: allNotices } = trpc.content.notices.listPublic.useQuery();
+  useEffect(() => {
+    if (notice?.id) {
+      incrementView.mutate({ id: notice.id });
+    }
+  }, [notice?.id]);
+  // 이전/다음 공지 계산 (날짜 순 정렬)
+  const sortedNotices = allNotices
+    ? [...allNotices].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    : [];
+  const currentIndex = sortedNotices.findIndex((n) => n.id === id);
+  const prevNotice = currentIndex > 0 ? sortedNotices[currentIndex - 1] : null;
+  const nextNotice = currentIndex < sortedNotices.length - 1 ? sortedNotices[currentIndex + 1] : null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -176,20 +207,90 @@ export default function NoticeDetailPage() {
                     수정: {new Date(notice.updatedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}
                   </span>
                 )}
+                <span className="flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5" />
+                  {((notice.viewCount ?? 0) + 1).toLocaleString()}
+                </span>
               </div>
             </header>
 
-            {/* 본문 */}
-            <div className="prose prose-sm max-w-none">
-              {notice.content ? (
-                <div
-                  className="rich-editor-content text-foreground leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: notice.content }}
-                />
-              ) : (
-                <p className="text-muted-foreground italic">내용이 없습니다.</p>
-              )}
-            </div>
+            {/* 다국어 탭 + 즐겨찾기 */}
+            {(() => {
+              const langs: { code: string; label: string; flag: string }[] = [
+                { code: "ko", label: "한국어", flag: "🇰🇷" },
+                { code: "en", label: "English", flag: "🇺🇸" },
+                { code: "zh", label: "中文", flag: "🇨🇳" },
+                { code: "ja", label: "日本語", flag: "🇯🇵" },
+                { code: "vi", label: "Tiếng Việt", flag: "🇻🇳" },
+                { code: "th", label: "ภาษาไทย", flag: "🇹🇭" },
+                { code: "id", label: "Indonesia", flag: "🇮🇩" },
+                { code: "ru", label: "Русский", flag: "🇷🇺" },
+                { code: "es", label: "Español", flag: "🇪🇸" },
+                { code: "ar", label: "العربية", flag: "🇸🇦" },
+              ];
+              const getContent = (lang: string) => {
+                if (lang === "ko") return notice.content;
+                const key = `content${lang.charAt(0).toUpperCase() + lang.slice(1)}` as keyof typeof notice;
+                return (notice[key] as string) || null;
+              };
+              const getTitle = (lang: string) => {
+                if (lang === "ko") return notice.title;
+                const key = `title${lang.charAt(0).toUpperCase() + lang.slice(1)}` as keyof typeof notice;
+                return (notice[key] as string) || notice.title;
+              };
+              const availableLangs = langs.filter((l) => l.code === "ko" || !!getContent(l.code));
+              const activeContent = getContent(langTab) || notice.content;
+              const activeTitle = getTitle(langTab);
+              return (
+                <>
+                  {/* 언어 탭 + 즐겨찾기 버튼 */}
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+                      {availableLangs.map((l) => (
+                        <button
+                          key={l.code}
+                          onClick={() => setLangTab(l.code)}
+                          className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
+                            langTab === l.code
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "border-border/40 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                          }`}
+                        >
+                          {l.flag} {l.label}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={toggleBookmark}
+                      className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all ${
+                        bookmarked
+                          ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                          : "border-border/40 text-muted-foreground hover:border-amber-500/30 hover:text-amber-400"
+                      }`}
+                    >
+                      {bookmarked ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
+                      {bookmarked ? "저장됨" : "즐겨찾기"}
+                    </button>
+                  </div>
+                  {/* 번역된 제목 (한국어와 다를 때만) */}
+                  {langTab !== "ko" && activeTitle !== notice.title && (
+                    <p className="text-lg font-semibold text-foreground/80 italic">{activeTitle}</p>
+                  )}
+                  {/* 본문 */}
+                  <div className="prose prose-sm max-w-none">
+                    {activeContent ? (
+                      <div
+                        className="rich-editor-content text-foreground leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: activeContent }}
+                      />
+                    ) : (
+                      <p className="text-muted-foreground italic">내용이 없습니다.</p>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
 
             {/* 첨부 파일 */}
             {notice.attachments && (() => {
@@ -238,14 +339,46 @@ export default function NoticeDetailPage() {
             {/* SNS 공유 버튼 */}
             <ShareButtons title={notice.title} />
             {/* 하단 네비게이션 */}
-            <div className="pt-6 border-t border-border/40 flex items-center justify-between">
-              <Link href="/notices">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <ArrowLeft className="w-4 h-4" />
-                  목록으로
-                </Button>
-              </Link>
-              <p className="text-xs text-muted-foreground">AlphaBag 공지사항</p>
+            <div className="pt-6 border-t border-border/40">
+              <div className="grid grid-cols-3 gap-3 items-center">
+                {/* 이전 글 */}
+                <div>
+                  {prevNotice ? (
+                    <Link href={`/notices/${prevNotice.id}`}>
+                      <button className="w-full text-left group flex items-start gap-2 p-3 rounded-xl border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all">
+                        <ChevronLeft className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0 group-hover:text-primary" />
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground mb-0.5">이전 글</p>
+                          <p className="text-sm font-medium truncate group-hover:text-primary">{prevNotice.title}</p>
+                        </div>
+                      </button>
+                    </Link>
+                  ) : <div />}
+                </div>
+                {/* 목록으로 */}
+                <div className="flex justify-center">
+                  <Link href="/notices">
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <ArrowLeft className="w-4 h-4" />
+                      목록
+                    </Button>
+                  </Link>
+                </div>
+                {/* 다음 글 */}
+                <div>
+                  {nextNotice ? (
+                    <Link href={`/notices/${nextNotice.id}`}>
+                      <button className="w-full text-right group flex items-start gap-2 p-3 rounded-xl border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all justify-end">
+                        <div className="min-w-0">
+                          <p className="text-xs text-muted-foreground mb-0.5">다음 글</p>
+                          <p className="text-sm font-medium truncate group-hover:text-primary">{nextNotice.title}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0 group-hover:text-primary" />
+                      </button>
+                    </Link>
+                  ) : <div />}
+                </div>
+              </div>
             </div>
           </article>
         )}

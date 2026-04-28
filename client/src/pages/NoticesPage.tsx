@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "wouter";
-import { ArrowLeft, Loader2, Bell, Calendar, ChevronLeft, ChevronRight, Pin, Paperclip, FileText, FileImage, FileVideo, File, Search, X } from "lucide-react";
+import { ArrowLeft, Loader2, Bell, Calendar, ChevronLeft, ChevronRight, Pin, Paperclip, FileText, FileImage, FileVideo, File, Search, X, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // HTML 태그 제거 유틸
@@ -181,6 +181,10 @@ export default function NoticesPage() {
                             <span className="flex items-center gap-1 text-xs text-muted-foreground">
                               <Calendar className="w-3 h-3" />
                               {new Date(notice.createdAt).toLocaleDateString("ko-KR")}
+                            </span>
+                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Eye className="w-3 h-3" />
+                              {(notice.viewCount ?? 0).toLocaleString()}
                             </span>
                             {attachments.length > 0 && (
                               <span className="flex items-center gap-1 text-xs text-muted-foreground">
