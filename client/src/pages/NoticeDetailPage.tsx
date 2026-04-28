@@ -2,7 +2,7 @@ import { useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, Loader2, Pin, Paperclip, FileText, FileImage, FileVideo, File, Bell, AlertCircle, Share2, Copy, Check, Eye, Bookmark, BookmarkCheck, Globe } from "lucide-react";
+import { ArrowLeft, Calendar, Loader2, Pin, Paperclip, FileText, FileImage, FileVideo, File, Bell, AlertCircle, Share2, Copy, Check, Eye, Bookmark, BookmarkCheck, Globe, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 
 function ShareButtons({ title }: { title: string }) {
