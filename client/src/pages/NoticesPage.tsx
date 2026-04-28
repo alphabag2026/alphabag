@@ -3,8 +3,9 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "wouter";
-import { ArrowLeft, Loader2, Bell, Calendar, ChevronLeft, ChevronRight, Pin, Paperclip, FileText, FileImage, FileVideo, File } from "lucide-react";
+import { ArrowLeft, Loader2, Bell, Calendar, ChevronLeft, ChevronRight, Pin, Paperclip, FileText, FileImage, FileVideo, File, Search, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const PAGE_SIZE = 15;
@@ -16,19 +17,50 @@ function getFileIcon(mimeType: string) {
   return <File className="w-4 h-4 text-muted-foreground" />;
 }
 
+// 카테고리별 색상 설정
+const CATEGORY_STYLES: Record<string, { label: string; badge: string; filter: string; filterActive: string }> = {
+  general:     { label: "일반",      badge: "bg-slate-500/15 text-slate-400 border-slate-500/30",       filter: "bg-muted text-muted-foreground hover:bg-muted/80",                         filterActive: "bg-slate-600 text-white" },
+  event:       { label: "이벤트",    badge: "bg-blue-500/15 text-blue-400 border-blue-500/30",           filter: "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30", filterActive: "bg-blue-500 text-white" },
+  update:      { label: "업데이트",  badge: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30", filter: "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30", filterActive: "bg-emerald-500 text-white" },
+  airdrop:     { label: "에어드랍",  badge: "bg-amber-500/15 text-amber-400 border-amber-500/30",       filter: "bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30",     filterActive: "bg-amber-500 text-white" },
+  partnership: { label: "파트너십",  badge: "bg-purple-500/15 text-purple-400 border-purple-500/30",   filter: "bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/30", filterActive: "bg-purple-500 text-white" },
+};
+
+function getCategoryStyle(cat: string) {
+  return CATEGORY_STYLES[cat] ?? CATEGORY_STYLES.general;
+}
+
 export default function NoticesPage() {
   const [, navigate] = useLocation();
   const { data: notices, isLoading } = trpc.public.notices.useQuery();
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<any>(null);
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const activeNotices = (notices ?? []).filter((n: any) => n.isActive);
-  const categoryLabels: Record<string, string> = { general: "일반", event: "이벤트", update: "업데이트", airdrop: "에어드랍", partnership: "파트너십" };
   const categories = Array.from(new Set(activeNotices.map((n: any) => n.category || "general"))) as string[];
-  const filteredNotices = categoryFilter === "all" ? activeNotices : activeNotices.filter((n: any) => (n.category || "general") === categoryFilter);
+
+  // 검색 + 카테고리 필터 조합
+  const filteredNotices = activeNotices.filter((n: any) => {
+    const matchCat = categoryFilter === "all" || (n.category || "general") === categoryFilter;
+    const q = searchQuery.trim().toLowerCase();
+    const matchSearch = !q || n.title?.toLowerCase().includes(q) || n.content?.toLowerCase().includes(q);
+    return matchCat && matchSearch;
+  });
+
   const totalPages = Math.ceil(filteredNotices.length / PAGE_SIZE);
   const paginated = filteredNotices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const handleSearch = (val: string) => {
+    setSearchQuery(val);
+    setPage(1);
+  };
+
+  const handleCategoryFilter = (cat: string) => {
+    setCategoryFilter(cat);
+    setPage(1);
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -56,26 +88,57 @@ export default function NoticesPage() {
           </div>
         </div>
 
+        {/* 검색 입력 */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="제목 또는 내용으로 검색..."
+            value={searchQuery}
+            onChange={e => handleSearch(e.target.value)}
+            className="pl-9 pr-9 bg-muted/30 border-border/40 focus:border-primary/50"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => handleSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
         {/* 카테고리 필터 */}
         {!isLoading && categories.length > 1 && (
           <div className="flex flex-wrap gap-1.5 mb-5">
             <button
-              onClick={() => { setCategoryFilter("all"); setPage(1); }}
+              onClick={() => handleCategoryFilter("all")}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${categoryFilter === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
             >
               전체 ({activeNotices.length})
             </button>
-            {categories.map(cat => (
-              <button
-                key={cat}
-                onClick={() => { setCategoryFilter(cat); setPage(1); }}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${categoryFilter === cat ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
-              >
-                {categoryLabels[cat] ?? cat} ({activeNotices.filter((n: any) => (n.category || "general") === cat).length})
-              </button>
-            ))}
+            {categories.map(cat => {
+              const style = getCategoryStyle(cat);
+              const isActive = categoryFilter === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => handleCategoryFilter(cat)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${isActive ? style.filterActive : style.filter}`}
+                >
+                  {style.label} ({activeNotices.filter((n: any) => (n.category || "general") === cat).length})
+                </button>
+              );
+            })}
           </div>
         )}
+
+        {/* 검색 결과 안내 */}
+        {searchQuery && !isLoading && (
+          <p className="text-xs text-muted-foreground mb-3">
+            &ldquo;<span className="text-foreground font-medium">{searchQuery}</span>&rdquo; 검색 결과 {filteredNotices.length}개
+          </p>
+        )}
+
         {isLoading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -86,6 +149,8 @@ export default function NoticesPage() {
               {paginated.map((notice: any, i: number) => {
                 const globalIdx = (page - 1) * PAGE_SIZE + i + 1;
                 const attachments = notice.attachments ? (() => { try { return JSON.parse(notice.attachments); } catch { return []; } })() : [];
+                const cat = notice.category || "general";
+                const catStyle = getCategoryStyle(cat);
                 return (
                   <Card
                     key={notice.id}
@@ -113,9 +178,13 @@ export default function NoticesPage() {
                             )}
                           </div>
                         </div>
-                        {notice.isPinned && <Badge className="text-xs bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0">고정</Badge>}
-                        {notice.category && notice.category !== "general" && (
-                          <Badge variant="outline" className="text-xs shrink-0">{categoryLabels[notice.category] ?? notice.category}</Badge>
+                        {notice.isPinned && (
+                          <Badge className="text-xs bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0">고정</Badge>
+                        )}
+                        {cat !== "general" && (
+                          <Badge className={`text-xs shrink-0 border ${catStyle.badge}`}>
+                            {catStyle.label}
+                          </Badge>
                         )}
                       </div>
                     </CardContent>
@@ -168,7 +237,17 @@ export default function NoticesPage() {
         ) : (
           <div className="text-center py-20">
             <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground">공지사항이 없습니다</p>
+            <p className="text-muted-foreground">
+              {searchQuery ? `"${searchQuery}"에 해당하는 공지사항이 없습니다` : "공지사항이 없습니다"}
+            </p>
+            {searchQuery && (
+              <button
+                onClick={() => handleSearch("")}
+                className="mt-2 text-xs text-primary hover:underline"
+              >
+                검색 초기화
+              </button>
+            )}
           </div>
         )}
       </div>

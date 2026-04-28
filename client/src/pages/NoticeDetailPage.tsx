@@ -142,11 +142,18 @@ export default function NoticeDetailPage() {
                     고정
                   </Badge>
                 )}
-                {notice.category && notice.category !== "general" && (
-                  <Badge variant="outline" className="text-xs">
-                    {({ general: "일반", event: "이벤트", update: "업데이트", airdrop: "에어드랍", partnership: "파트너십" } as Record<string, string>)[notice.category] ?? notice.category}
-                  </Badge>
-                )}
+                {notice.category && notice.category !== "general" && (() => {
+                  const catStyles: Record<string, { label: string; cls: string }> = {
+                    event:       { label: "이벤트",   cls: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
+                    update:      { label: "업데이트", cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+                    airdrop:     { label: "에어드랍", cls: "bg-amber-500/15 text-amber-400 border-amber-500/30" },
+                    partnership: { label: "파트너십", cls: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
+                  };
+                  const s = catStyles[notice.category] ?? { label: notice.category, cls: "bg-slate-500/15 text-slate-400 border-slate-500/30" };
+                  return (
+                    <Badge className={`text-xs border ${s.cls}`}>{s.label}</Badge>
+                  );
+                })()}
                 {!notice.isActive && (
                   <Badge variant="secondary" className="text-xs">비활성</Badge>
                 )}
