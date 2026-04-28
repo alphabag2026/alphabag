@@ -106,12 +106,13 @@ function ReferralTreeView() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
 
   const { data: topReferrers } = trpc.referrals.topReferrers.useQuery({ limit: 50 });
+  const [maxDepth, setMaxDepth] = useState(3);
   const { data: treeData, isLoading: treeLoading } = trpc.referrals.tree.useQuery(
     { userId: selectedUserId! },
     { enabled: selectedUserId !== null }
   );
   const { data: recursiveTreeData, isLoading: recursiveLoading } = trpc.referrals.treeRecursive.useQuery(
-    { userId: selectedUserId!, maxDepth: 5 },
+    { userId: selectedUserId!, maxDepth: maxDepth },
     { enabled: selectedUserId !== null }
   );
 
@@ -226,6 +227,31 @@ function ReferralTreeView() {
                 '추천인을 선택하면 트리가 표시됩니다'
               )}
             </CardTitle>
+            {selectedUserId && (
+              <div className="flex items-center gap-3 mt-2">
+                <span className="text-xs text-muted-foreground whitespace-nowrap">깊이:</span>
+                <input
+                  type="range"
+                  min={1}
+                  max={5}
+                  value={maxDepth}
+                  onChange={e => setMaxDepth(Number(e.target.value))}
+                  className="w-24 accent-primary cursor-pointer"
+                />
+                <div className="flex gap-1">
+                  {[1,2,3,4,5].map(d => (
+                    <button
+                      key={d}
+                      onClick={() => setMaxDepth(d)}
+                      className={`w-6 h-6 rounded text-xs font-bold transition-colors ${maxDepth >= d ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+                <span className="text-xs text-muted-foreground">L{maxDepth}까지</span>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="pt-0">
             {!selectedUserId && (
