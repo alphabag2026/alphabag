@@ -1,4 +1,5 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useTranslation } from "react-i18next";
 import { trpc } from "@/lib/trpc";
 import { normalize1pageUrl } from "@/lib/utils";
@@ -33,7 +34,11 @@ function extractYouTubeId(url: string): string | null {
 }
 
 export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
-  const [activeTab, setActiveTab] = useState<"overview" | "video" | "docs">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "video" | "docs" | "chart" | "reviews">("overview");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewHover, setReviewHover] = useState(0);
+  const { data: allPlans } = trpc.public.plans.useQuery({});
   const [referralCode, setReferralCode] = useState("");
   const [referralSaved, setReferralSaved] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -64,6 +69,33 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
   const { isConnected, openModal } = useWallet();
 
   const { data: plan, isLoading } = trpc.public.planDetail.useQuery({ id: planId });
+  const { data: reviewData, refetch: refetchReviews } = trpc.public.planReviews.useQuery({ planId }, { enabled: !!planId });
+  const { data: myReview } = trpc.user.myReview.useQuery({ planId }, { enabled: isAuthenticated && !!planId });
+  const upsertReview = trpc.user.upsertReview.useMutation({
+    onSuccess: () => {
+      toast.success("리뷰가 저장되었습니다!");
+      refetchReviews();
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const chartData = useMemo(() => {
+    if (!plan) return [];
+    const daily = Number(plan.dailyRate) || 0;
+    const months = plan.duration ? Math.min(Math.ceil(plan.duration / 30), 12) : 12;
+    return Array.from({ length: months + 1 }, (_, i) => {
+      const days = i * 30;
+      const compound = 100 * Math.pow(1 + daily / 100, days);
+      return { month: i === 0 ? "시작" : `${i}개월`, value: parseFloat(compound.toFixed(2)), days };
+    });
+  }, [plan]);
+
+  const similarPlans = useMemo(() => {
+    if (!plan || !allPlans) return [];
+    return (allPlans as any[])
+      .filter((p) => p.id !== plan.id && p.collectionType === (plan as any).collectionType)
+      .slice(0, 3);
+  }, [plan, allPlans]);
 
   const generateRecommend = (trpc.public as any).generateRecommendText.useMutation({
     onSuccess: (data: any) => {
@@ -215,8 +247,10 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
         <div className="flex gap-1 px-5 pt-3 border-b border-border/60">
           {[
             { key: "overview", label: t("planDetail.overview") },
+            { key: "chart", label: "차트" },
             { key: "video", label: t("planDetail.video") },
             { key: "docs", label: t("planDetail.docs") },
+            { key: "reviews", label: "리뷰" },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -553,6 +587,151 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                 </div>
               )}
 
+              {activeTab === "chart" && (
+                <div className="space-y-6 p-2">
+                  {/* 복리 수익 차트 */}
+                  <div className="bg-muted/30 rounded-xl p-4 border border-border/40">
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="text-base">📈</span>
+                      <span className="text-sm font-bold text-foreground">복리 수익 시뮬레이션</span>
+                      <span className="text-xs text-muted-foreground ml-auto">초기 투자 $100 기준</span>
+                    </div>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                        <defs>
+                          <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} width={50} />
+                        <Tooltip
+                          contentStyle={{ background: "#1a1a2e", border: "1px solid #374151", borderRadius: "8px", fontSize: 12 }}
+                          formatter={(value: number) => [`$${value.toFixed(2)}`, "자산"]}
+                        />
+                        <Area type="monotone" dataKey="value" stroke="#f59e0b" strokeWidth={2} fill="url(#colorValue)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                    <div className="grid grid-cols-3 gap-3 mt-4">
+                      {chartData.length > 1 && [
+                        { label: "1개월 후", idx: 1 },
+                        { label: "3개월 후", idx: Math.min(3, chartData.length - 1) },
+                        { label: `${chartData.length - 1}개월 후`, idx: chartData.length - 1 },
+                      ].map((item) => (
+                        <div key={item.label} className="bg-background/60 rounded-lg p-3 border border-border/40 text-center">
+                          <div className="text-xs text-muted-foreground mb-1">{item.label}</div>
+                          <div className="text-sm font-bold text-amber-500">${chartData[item.idx]?.value.toFixed(2)}</div>
+                          <div className="text-xs text-emerald-500">+{((chartData[item.idx]?.value ?? 100) - 100).toFixed(1)}%</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* 일일 수익률 정보 */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-muted/30 rounded-xl p-4 border border-border/40 text-center">
+                      <div className="text-xs text-muted-foreground mb-1">일일 수익률</div>
+                      <div className={`text-2xl font-black ${colColor.text}`}>{Number(plan.dailyRate).toFixed(2)}%</div>
+                    </div>
+                    <div className="bg-muted/30 rounded-xl p-4 border border-border/40 text-center">
+                      <div className="text-xs text-muted-foreground mb-1">월 환산 수익률</div>
+                      <div className="text-2xl font-black text-emerald-500">{(Number(plan.dailyRate) * 30).toFixed(1)}%</div>
+                    </div>
+                  </div>
+                  {/* 유사 플랜 추천 */}
+                  {similarPlans.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-base">🔗</span>
+                        <span className="text-sm font-bold text-foreground">유사 플랜 추천</span>
+                      </div>
+                      <div className="space-y-2">
+                        {similarPlans.map((p: any) => (
+                          <div key={p.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border border-border/40 hover:border-amber-400/50 transition-colors cursor-pointer" onClick={() => { onClose(); setTimeout(() => window.dispatchEvent(new CustomEvent("open-plan", { detail: { planId: p.id } })), 100); }}>
+                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-900 flex-shrink-0">
+                              {p.logoUrl ? <img src={p.logoUrl} alt={p.name} className="w-full h-full object-contain p-1" /> : <div className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">{p.name?.charAt(0)}</div>}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-semibold text-foreground truncate">{p.name}</div>
+                              <div className="text-xs text-muted-foreground">{p.planType === "staking" ? "Staking" : "Investment"}</div>
+                            </div>
+                            <div className={`text-sm font-black ${colColor.text}`}>{Number(p.dailyRate).toFixed(2)}%</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === "reviews" && (
+                <div className="space-y-4 p-1">
+                  <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-xl border border-border/40">
+                    <div className="text-center">
+                      <div className="text-4xl font-black text-foreground">{reviewData?.avgRating?.toFixed(1) || "0.0"}</div>
+                      <div className="flex gap-0.5 justify-center mt-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={`w-4 h-4 ${i < Math.round(reviewData?.avgRating || 0) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+                        ))}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">{reviewData?.count || 0}개 리뷰</div>
+                    </div>
+                    <div className="flex-1">
+                      {[5,4,3,2,1].map((star) => {
+                        const cnt = (reviewData?.reviews || []).filter((r: any) => r.rating === star).length;
+                        const pct = reviewData?.count ? Math.round((cnt / reviewData.count) * 100) : 0;
+                        return (
+                          <div key={star} className="flex items-center gap-2 mb-1">
+                            <span className="text-xs text-muted-foreground w-3">{star}</span>
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                              <div className="h-full bg-amber-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                            <span className="text-xs text-muted-foreground w-6">{cnt}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  {isAuthenticated ? (
+                    <div className="p-4 bg-muted/20 rounded-xl border border-border/40">
+                      <div className="text-sm font-semibold text-foreground mb-3">{myReview ? "내 리뷰 수정" : "리뷰 작성"}</div>
+                      <div className="flex gap-1 mb-3">
+                        {[1,2,3,4,5].map((star) => (
+                          <button key={star} onMouseEnter={() => setReviewHover(star)} onMouseLeave={() => setReviewHover(0)} onClick={() => setReviewRating(star)} className="transition-transform hover:scale-110">
+                            <Star className={`w-7 h-7 ${star <= (reviewHover || (myReview ? myReview.rating : reviewRating)) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+                          </button>
+                        ))}
+                      </div>
+                      <textarea className="w-full text-sm bg-background border border-border/60 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-amber-400/60 text-foreground placeholder:text-muted-foreground" rows={3} placeholder="이 플랜에 대한 의견을 남겨주세요... (선택사항)" value={reviewComment || (myReview?.comment ?? "")} onChange={(e) => setReviewComment(e.target.value)} />
+                      <button onClick={() => upsertReview.mutate({ planId, rating: reviewRating, comment: reviewComment || undefined })} disabled={upsertReview.isPending} className="mt-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg text-sm transition-all disabled:opacity-50">
+                        {upsertReview.isPending ? "저장 중..." : myReview ? "수정하기" : "리뷰 등록"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center bg-muted/20 rounded-xl border border-border/40">
+                      <p className="text-sm text-muted-foreground mb-2">리뷰를 작성하려면 로그인이 필요합니다.</p>
+                      <button onClick={() => window.dispatchEvent(new CustomEvent("open-wallet-modal"))} className="px-4 py-2 bg-amber-500 text-black font-bold rounded-lg text-sm">로그인</button>
+                    </div>
+                  )}
+                  <div className="space-y-3">
+                    {(reviewData?.reviews || []).length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground text-sm">아직 리뷰가 없습니다. 첫 번째 리뷰를 남겨보세요!</div>
+                    )}
+                    {(reviewData?.reviews || []).map((r: any) => (
+                      <div key={r.id} className="p-3 bg-muted/20 rounded-xl border border-border/30">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-xs font-bold text-amber-700">{(r.userName || "?").charAt(0).toUpperCase()}</div>
+                          <span className="text-xs font-medium text-foreground">{r.userName || "익명"}</span>
+                          <div className="flex gap-0.5 ml-auto">{Array.from({ length: 5 }).map((_, i) => (<Star key={i} className={`w-3 h-3 ${i < r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/20"}`} />))}</div>
+                        </div>
+                        {r.comment && <p className="text-xs text-muted-foreground leading-relaxed">{r.comment}</p>}
+                        <div className="text-[10px] text-muted-foreground/50 mt-1">{new Date(r.createdAt).toLocaleDateString()}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {activeTab === "docs" && (
                 <div className="space-y-3">
                   {docsLinks.length > 0 ? (

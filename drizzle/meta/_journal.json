@@ -253,6 +253,13 @@
       "when": 1777385945271,
       "tag": "0035_ordinary_the_hunter",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "5",
+      "when": 1777387785925,
+      "tag": "0036_parched_talon",
+      "breakpoints": true
     }
   ]
 }

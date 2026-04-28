@@ -786,3 +786,16 @@ export const apiLogs = mysqlTable("apiLogs", {
 });
 export type ApiLog = typeof apiLogs.$inferSelect;
 export type InsertApiLog = typeof apiLogs.$inferInsert;
+
+// ─── Plan Reviews (플랜 리뷰/별점) ────────────────────────────────────────────
+export const planReviews = mysqlTable("planReviews", {
+  id: int("id").autoincrement().primaryKey(),
+  planId: int("planId").notNull(),
+  userId: int("userId").notNull(),
+  rating: int("rating").notNull(), // 1~5
+  comment: text("comment"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type PlanReview = typeof planReviews.$inferSelect;
+export type InsertPlanReview = typeof planReviews.$inferInsert;

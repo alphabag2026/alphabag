@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import { MainNav } from "@/components/MainNav";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Heart, HeartOff, Star, Trash2, ArrowLeft } from "lucide-react";
+import { Loader2, Heart, HeartOff, Star, Trash2, ArrowLeft, ArrowUpDown, TrendingUp, Tag } from "lucide-react";
 import { toast } from "sonner";
 
 const COLLECTION_COLORS: Record<string, { accent: string; bg: string; badge: string; border: string }> = {
@@ -17,6 +16,13 @@ const COLLECTION_COLORS: Record<string, { accent: string; bg: string; badge: str
   node:      { accent: "text-purple-600",  bg: "from-purple-50 to-purple-100", badge: "bg-purple-100 text-purple-700 border-purple-200", border: "border-purple-200/60 hover:border-purple-400/80 hover:shadow-purple-200/60" },
 };
 
+const COLLECTION_LABELS: Record<string, string> = {
+  golden: "Golden", self: "Self", leader: "Leader", influencer: "Influencer", meme: "Meme", node: "Node",
+};
+
+type SortKey = "added" | "rate_desc" | "rate_asc" | "name";
+type FilterKey = "all" | "golden" | "self" | "leader" | "influencer" | "meme" | "node";
+
 function FavoritePlanCard({ item, onRemove }: { item: any; onRemove: (planId: number) => void }) {
   const plan = item.plan;
   const col = COLLECTION_COLORS[plan?.collectionType || plan?.planType] || COLLECTION_COLORS.golden;
@@ -27,7 +33,6 @@ function FavoritePlanCard({ item, onRemove }: { item: any; onRemove: (planId: nu
     <div className="relative group">
       <Link href={`/plan/${plan.id}`}>
         <div className={`bg-card border ${col.border} rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col`}>
-          {/* 이미지 */}
           <div className="relative h-36 overflow-hidden">
             {plan.logoUrl ? (
               <img src={plan.logoUrl} alt={plan.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
@@ -39,6 +44,11 @@ function FavoritePlanCard({ item, onRemove }: { item: any; onRemove: (planId: nu
             {plan.isHighlight && (
               <div className="absolute top-2 right-2">
                 <Badge className="bg-amber-500 text-white border-0 text-[10px] font-bold">HOT</Badge>
+              </div>
+            )}
+            {plan.collectionType && (
+              <div className="absolute bottom-2 left-2">
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-bold ${col.badge}`}>{COLLECTION_LABELS[plan.collectionType] || plan.collectionType}</span>
               </div>
             )}
           </div>
@@ -70,7 +80,6 @@ function FavoritePlanCard({ item, onRemove }: { item: any; onRemove: (planId: nu
         </div>
       </Link>
 
-      {/* 삭제 버튼 */}
       <button
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemove(plan.id); }}
         className="absolute top-2 left-2 w-7 h-7 rounded-full bg-white/90 border border-red-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 hover:border-red-400 shadow-sm"
@@ -86,6 +95,8 @@ export default function FavoritesPage() {
   const { isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const utils = trpc.useUtils();
+  const [sortKey, setSortKey] = useState<SortKey>("added");
+  const [filterKey, setFilterKey] = useState<FilterKey>("all");
 
   const { data: favorites = [], isLoading } = trpc.favorites.list.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -102,6 +113,33 @@ export default function FavoritesPage() {
   const handleRemove = (planId: number) => {
     toggle.mutate({ planId });
   };
+
+  // 필터 + 정렬 적용
+  const filteredSorted = useMemo(() => {
+    let list = [...(favorites as any[])];
+    if (filterKey !== "all") {
+      list = list.filter((item: any) => item.plan?.collectionType === filterKey);
+    }
+    switch (sortKey) {
+      case "rate_desc": list.sort((a: any, b: any) => Number(b.plan?.dailyRate || 0) - Number(a.plan?.dailyRate || 0)); break;
+      case "rate_asc":  list.sort((a: any, b: any) => Number(a.plan?.dailyRate || 0) - Number(b.plan?.dailyRate || 0)); break;
+      case "name":      list.sort((a: any, b: any) => (a.plan?.name || "").localeCompare(b.plan?.name || "")); break;
+      default: break; // "added" - 기본 순서 유지
+    }
+    return list;
+  }, [favorites, sortKey, filterKey]);
+
+  // 카테고리별 개수
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: (favorites as any[]).length };
+    (favorites as any[]).forEach((item: any) => {
+      const col = item.plan?.collectionType;
+      if (col) counts[col] = (counts[col] || 0) + 1;
+    });
+    return counts;
+  }, [favorites]);
+
+  const availableCategories = Object.keys(COLLECTION_LABELS).filter((k) => (categoryCounts[k] || 0) > 0);
 
   if (!isAuthenticated) {
     return (
@@ -126,11 +164,8 @@ export default function FavoritesPage() {
       <MainNav />
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* 헤더 */}
-        <div className="flex items-center gap-4 mb-8">
-          <button
-            onClick={() => navigate("/")}
-            className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-          >
+        <div className="flex items-center gap-4 mb-6">
+          <button onClick={() => navigate("/")} className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
@@ -146,6 +181,47 @@ export default function FavoritesPage() {
             <p className="text-sm text-muted-foreground mt-0.5">저장한 투자 플랜 목록입니다</p>
           </div>
         </div>
+
+        {/* 필터 + 정렬 바 */}
+        {!isLoading && (favorites as any[]).length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 mb-6 p-4 bg-muted/30 rounded-xl border border-border/40">
+            {/* 카테고리 필터 */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Tag className="w-3.5 h-3.5 text-muted-foreground" />
+              {(["all", ...availableCategories] as FilterKey[]).map((key) => (
+                <button
+                  key={key}
+                  onClick={() => setFilterKey(key)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${filterKey === key ? "bg-amber-500 text-black" : "bg-background border border-border/60 text-muted-foreground hover:text-foreground hover:border-amber-400/50"}`}
+                >
+                  {key === "all" ? `전체 (${categoryCounts.all})` : `${COLLECTION_LABELS[key]} (${categoryCounts[key] || 0})`}
+                </button>
+              ))}
+            </div>
+
+            {/* 구분선 */}
+            <div className="w-px h-5 bg-border/60 hidden sm:block" />
+
+            {/* 정렬 */}
+            <div className="flex items-center gap-1.5 ml-auto">
+              <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+              {([
+                { key: "added", label: "추가순" },
+                { key: "rate_desc", label: "수익률 높은순" },
+                { key: "rate_asc", label: "수익률 낮은순" },
+                { key: "name", label: "이름순" },
+              ] as { key: SortKey; label: string }[]).map((s) => (
+                <button
+                  key={s.key}
+                  onClick={() => setSortKey(s.key)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${sortKey === s.key ? "bg-foreground text-background" : "bg-background border border-border/60 text-muted-foreground hover:text-foreground"}`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 로딩 */}
         {isLoading && (
@@ -172,17 +248,27 @@ export default function FavoritesPage() {
           </div>
         )}
 
+        {/* 필터 결과 없음 */}
+        {!isLoading && (favorites as any[]).length > 0 && filteredSorted.length === 0 && (
+          <div className="text-center py-16 text-muted-foreground">
+            <TrendingUp className="w-10 h-10 mx-auto mb-3 opacity-20" />
+            <p className="text-sm">선택한 카테고리에 즐겨찾기한 플랜이 없습니다.</p>
+          </div>
+        )}
+
         {/* 플랜 그리드 */}
-        {!isLoading && (favorites as any[]).length > 0 && (
+        {!isLoading && filteredSorted.length > 0 && (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {(favorites as any[]).map((item: any) => (
+              {filteredSorted.map((item: any) => (
                 <FavoritePlanCard key={item.favoriteId} item={item} onRemove={handleRemove} />
               ))}
             </div>
 
             <div className="mt-8 pt-6 border-t border-border flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">총 {(favorites as any[]).length}개의 플랜이 저장되어 있습니다</p>
+              <p className="text-xs text-muted-foreground">
+                {filterKey !== "all" ? `${filteredSorted.length}개 표시 중 (전체 ${(favorites as any[]).length}개)` : `총 ${(favorites as any[]).length}개의 플랜이 저장되어 있습니다`}
+              </p>
               <button
                 onClick={() => {
                   if (confirm("즐겨찾기를 모두 삭제하시겠습니까?")) {

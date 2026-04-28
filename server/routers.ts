@@ -1665,6 +1665,24 @@ Return this exact JSON structure:
       const notices = await db.getNotices();
       return notices.filter((n: { isActive: boolean }) => n.isActive);
     }),
+    planReviews: publicProcedure.input(z.object({ planId: z.number() })).query(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return { reviews: [], avgRating: 0, count: 0 };
+      const { planReviews, users } = await import("../drizzle/schema");
+      const rows = await drizzleDb.select({
+        id: planReviews.id,
+        rating: planReviews.rating,
+        comment: planReviews.comment,
+        createdAt: planReviews.createdAt,
+        userName: users.name,
+      }).from(planReviews)
+        .leftJoin(users, eq(planReviews.userId, users.id))
+        .where(eq(planReviews.planId, input.planId))
+        .orderBy(desc(planReviews.createdAt))
+        .limit(50);
+      const avg = rows.length > 0 ? rows.reduce((s, r) => s + r.rating, 0) / rows.length : 0;
+      return { reviews: rows, avgRating: Math.round(avg * 10) / 10, count: rows.length };
+    }),
     noticeById: publicProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
       const notices = await db.getNotices();
       const notice = notices.find((n: any) => n.id === input.id && n.isActive);
@@ -1989,6 +2007,42 @@ Return this exact JSON structure:
       return { success: true };
     }),
 
+    // 플랜 리뷰 작성/수정
+    upsertReview: protectedProcedure.input(z.object({
+      planId: z.number(),
+      rating: z.number().min(1).max(5),
+      comment: z.string().max(500).optional(),
+    })).mutation(async ({ input, ctx }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { planReviews } = await import("../drizzle/schema");
+      const existing = await drizzleDb.select().from(planReviews)
+        .where(and(eq(planReviews.planId, input.planId), eq(planReviews.userId, ctx.user!.id)))
+        .limit(1);
+      if (existing.length > 0) {
+        await drizzleDb.update(planReviews)
+          .set({ rating: input.rating, comment: input.comment || null })
+          .where(eq(planReviews.id, existing[0].id));
+      } else {
+        await drizzleDb.insert(planReviews).values({
+          planId: input.planId,
+          userId: ctx.user!.id,
+          rating: input.rating,
+          comment: input.comment || null,
+        });
+      }
+      return { success: true };
+    }),
+    // 내 리뷰 조회
+    myReview: protectedProcedure.input(z.object({ planId: z.number() })).query(async ({ input, ctx }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return null;
+      const { planReviews } = await import("../drizzle/schema");
+      const rows = await drizzleDb.select().from(planReviews)
+        .where(and(eq(planReviews.planId, input.planId), eq(planReviews.userId, ctx.user!.id)))
+        .limit(1);
+      return rows[0] || null;
+    }),
     // 지원 티켓 생성
     createTicket: protectedProcedure.input(z.object({
       subject: z.string().min(1),
