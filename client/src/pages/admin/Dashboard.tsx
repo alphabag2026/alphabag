@@ -19,7 +19,7 @@ const RANGE_OPTIONS = [
 export default function AdminDashboard() {
   const [range, setRange] = useState(7);
 
-  const { data: stats, isLoading: statsLoading, refetch } = trpc.dashboard.stats.useQuery();
+  const { data: stats, isLoading: statsLoading, refetch } = trpc.dashboard.stats.useQuery(undefined, { refetchInterval: 30000 });
   const { data: chartData } = trpc.dashboard.investmentTrend.useQuery({ days: range });
   const { data: categoryData } = trpc.dashboard.planDistribution.useQuery();
   const { data: topInvestors } = trpc.dashboard.topInvestors.useQuery({ limit: 10 });
@@ -32,9 +32,29 @@ export default function AdminDashboard() {
     { label: "Conversion Rate", value: `${(stats?.conversionRate ?? 0).toFixed(1)}%`, sub: "investors/users", color: "purple", icon: TrendingUp },
     { label: "Open Tickets", value: (stats?.openTickets ?? 0).toLocaleString(), sub: "unresolved", color: "red", icon: TicketCheck },
   ];
+  const todayCards = [
+    { label: "오늘 신규 가입", value: (stats as any)?.todayNewUsers ?? 0, color: "#3b82f6" },
+    { label: "오늘 신규 투자", value: (stats as any)?.todayNewInvestments ?? 0, color: "#10b981" },
+  ];
 
   return (
     <AdminLayout title="Dashboard">
+      {/* 오늘 실시간 지표 */}
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem", flexWrap: "wrap" }}>
+        {todayCards.map((c) => (
+          <div key={c.label} style={{ background: c.color + "18", border: `1px solid ${c.color}40`, borderRadius: 12, padding: "0.75rem 1.25rem", display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 160 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.color, boxShadow: `0 0 6px ${c.color}` }} />
+            <div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: c.color, lineHeight: 1 }}>{c.value}</div>
+              <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{c.label}</div>
+            </div>
+          </div>
+        ))}
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#888" }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", display: "inline-block", animation: "pulse 2s infinite" }} />
+          30초마다 자동 갱신
+        </div>
+      </div>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.5rem" }}>
         <div>
           <div className="ab-page-title">Dashboard</div>

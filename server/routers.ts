@@ -1762,6 +1762,52 @@ Return this exact JSON structure:
       const parsed = JSON.parse(typeof content === "string" ? content : JSON.stringify(content));
       return { texts: parsed.texts || [] };
     }),
+    // 레퍼럴 리더보드 (상위 20명)
+    referralLeaderboard: publicProcedure.query(async () => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      const { users, investments } = await import("../drizzle/schema");
+      const { sql, desc } = await import("drizzle-orm");
+      // 레퍼럴 코드 보유자 중 추천인 수 기준 상위 20명
+      const rows = await drizzleDb.execute(sql`
+        SELECT u.name, u.referralCode,
+          COUNT(r.id) AS referralCount,
+          COALESCE(SUM(i.amount), 0) AS totalVolume
+        FROM users u
+        LEFT JOIN users r ON r.referredBy = u.referralCode
+        LEFT JOIN investments i ON i.userId = r.id AND i.status = 'active'
+        WHERE u.referralCode IS NOT NULL
+        GROUP BY u.id
+        ORDER BY referralCount DESC, totalVolume DESC
+        LIMIT 20
+      `);
+      return (rows as unknown as any[]).map((row: any, idx: number) => ({
+        rank: idx + 1,
+        name: row.name || "Anonymous",
+        referralCode: row.referralCode,
+        referralCount: Number(row.referralCount),
+        totalVolume: Number(row.totalVolume),
+      }));
+    }),
+    // 공개 플랜 리뷰 목록
+    planReviewsList: publicProcedure.input(z.object({ planId: z.number() })).query(async ({ input }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      const { planReviews, users } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const rows = await drizzleDb.select({
+        id: planReviews.id,
+        rating: planReviews.rating,
+        comment: planReviews.comment,
+        createdAt: planReviews.createdAt,
+        userName: users.name,
+      })
+      .from(planReviews)
+      .leftJoin(users, eq(planReviews.userId, users.id))
+      .where(eq(planReviews.planId, input.planId))
+      .orderBy(planReviews.createdAt);
+      return rows;
+    }),
   }),
   // 리스팅 신청
   listing: router({
@@ -2063,6 +2109,29 @@ Return this exact JSON structure:
     // 내 지원 티켓 목록
     tickets: protectedProcedure.query(async ({ ctx }) => {
       return await db.getUserTickets(ctx.user!.id);
+    }),
+    // 에어드랍 참여 히스토리
+    airdropHistory: protectedProcedure.query(async ({ ctx }) => {
+      const drizzleDb = await getDb();
+      if (!drizzleDb) return [];
+      const { airdropParticipants, airdrops } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const rows = await drizzleDb.select({
+        id: airdropParticipants.id,
+        airdropId: airdropParticipants.airdropId,
+        amount: airdropParticipants.amount,
+        status: airdropParticipants.status,
+        createdAt: airdropParticipants.createdAt,
+        airdropName: airdrops.name,
+        tokenSymbol: airdrops.tokenSymbol,
+        projectName: airdrops.projectName,
+        imageUrl: airdrops.imageUrl,
+      })
+      .from(airdropParticipants)
+      .leftJoin(airdrops, eq(airdropParticipants.airdropId, airdrops.id))
+      .where(eq(airdropParticipants.userId, ctx.user!.id))
+      .orderBy(airdropParticipants.createdAt);
+      return rows;
     }),
   }),
 
@@ -2734,7 +2803,132 @@ Return this exact JSON structure:
       await database.delete(notifications).where(eq(notifications.id, input.id));
       return { success: true };
     }),
+    // 사용자용 알림 목록 (읽음 여부 포함)
+    listForUser: protectedProcedure.query(async ({ ctx }) => {
+      const database = await getDb();
+      if (!database) return [];
+      const { notifications, userNotificationReads } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const allNotifs = await database.select().from(notifications)
+        .orderBy(notifications.createdAt);
+      const readIds = await database.select({ notificationId: userNotificationReads.notificationId })
+        .from(userNotificationReads)
+        .where(eq(userNotificationReads.userId, String(ctx.user.id)));
+      const readSet = new Set(readIds.map((r: any) => r.notificationId));
+      return allNotifs.map((n: any) => ({ ...n, isRead: readSet.has(n.id) }));
+    }),
+    markRead: protectedProcedure.input(z.object({ notificationId: z.number() })).mutation(async ({ input, ctx }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { userNotificationReads } = await import("../drizzle/schema");
+      const { eq, and } = await import("drizzle-orm");
+      const existing = await database.select().from(userNotificationReads)
+        .where(and(eq(userNotificationReads.userId, String(ctx.user.id)), eq(userNotificationReads.notificationId, input.notificationId)));
+      if (existing.length === 0) {
+        await database.insert(userNotificationReads).values({ userId: String(ctx.user.id), notificationId: input.notificationId });
+      }
+      return { success: true };
+    }),
+    markAllRead: protectedProcedure.mutation(async ({ ctx }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const { notifications, userNotificationReads } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const allNotifs = await database.select({ id: notifications.id }).from(notifications);
+      const readIds = await database.select({ notificationId: userNotificationReads.notificationId })
+        .from(userNotificationReads)
+        .where(eq(userNotificationReads.userId, String(ctx.user.id)));
+      const readSet = new Set(readIds.map((r: any) => r.notificationId));
+      const unread = allNotifs.filter((n: any) => !readSet.has(n.id));
+      if (unread.length > 0) {
+        await database.insert(userNotificationReads).values(
+          unread.map((n: any) => ({ userId: String(ctx.user.id), notificationId: n.id }))
+        );
+      }
+      return { success: true };
+    }),
   }),
+
+  // ─── Influencer Follows ─────────────────────────────────────────────────────
+  followInfluencer: protectedProcedure
+    .input(z.object({ planId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const { influencerFollows } = await import("../drizzle/schema");
+      const { and, eq } = await import("drizzle-orm");
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const existing = await database.select().from(influencerFollows)
+        .where(and(eq(influencerFollows.userId, ctx.user.id), eq(influencerFollows.planId, input.planId)))
+        .limit(1);
+      if (existing.length > 0) {
+        await database.delete(influencerFollows)
+          .where(and(eq(influencerFollows.userId, ctx.user.id), eq(influencerFollows.planId, input.planId)));
+        return { followed: false };
+      } else {
+        await database.insert(influencerFollows).values({ userId: ctx.user.id, planId: input.planId });
+        return { followed: true };
+      }
+    }),
+  listFollowedInfluencers: protectedProcedure
+    .query(async ({ ctx }) => {
+      const { influencerFollows } = await import("../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      return database.select({ planId: influencerFollows.planId })
+        .from(influencerFollows)
+        .where(eq(influencerFollows.userId, ctx.user.id));
+    }),
+  // ─── User Coin Alerts ───────────────────────────────────────────────────────
+  saveCoinAlert: protectedProcedure
+    .input(z.object({
+      coinSymbol: z.string().min(1).max(20),
+      priceChangeThreshold: z.number().min(1).max(100).default(10),
+      isEnabled: z.boolean().default(true),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { userCoinAlerts } = await import("../drizzle/schema");
+      const { and, eq } = await import("drizzle-orm");
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      const existing = await database.select().from(userCoinAlerts)
+        .where(and(eq(userCoinAlerts.userId, ctx.user.id), eq(userCoinAlerts.coinSymbol, input.coinSymbol.toUpperCase())))
+        .limit(1);
+      if (existing.length > 0) {
+        await database.update(userCoinAlerts)
+          .set({ priceChangeThreshold: String(input.priceChangeThreshold), isEnabled: input.isEnabled })
+          .where(and(eq(userCoinAlerts.userId, ctx.user.id), eq(userCoinAlerts.coinSymbol, input.coinSymbol.toUpperCase())));
+      } else {
+        await database.insert(userCoinAlerts).values({
+          userId: ctx.user.id,
+          coinSymbol: input.coinSymbol.toUpperCase(),
+          priceChangeThreshold: String(input.priceChangeThreshold),
+          isEnabled: input.isEnabled,
+        });
+      }
+      return { success: true };
+    }),
+  listCoinAlerts: protectedProcedure
+    .query(async ({ ctx }) => {
+      const { userCoinAlerts } = await import("../drizzle/schema");
+      const { eq, desc } = await import("drizzle-orm");
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      return database.select().from(userCoinAlerts)
+        .where(eq(userCoinAlerts.userId, ctx.user.id))
+        .orderBy(desc(userCoinAlerts.createdAt));
+    }),
+  deleteCoinAlert: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const { userCoinAlerts } = await import("../drizzle/schema");
+      const { and, eq } = await import("drizzle-orm");
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      await database.delete(userCoinAlerts)
+        .where(and(eq(userCoinAlerts.id, input.id), eq(userCoinAlerts.userId, ctx.user.id)));
+      return { success: true };
+    }),
 
   // ─── AI Plan Import ──────────────────────────────────────────────────────────
   aiPlanImport: router({

@@ -378,6 +378,15 @@ export const notifications = mysqlTable("notifications", {
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
 
+// ─── User Notification Read Status ──────────────────────────────────────────
+export const userNotificationReads = mysqlTable("userNotificationReads", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: varchar("userId", { length: 100 }).notNull(),
+  notificationId: int("notificationId").notNull(),
+  readAt: timestamp("readAt").defaultNow().notNull(),
+});
+export type UserNotificationRead = typeof userNotificationReads.$inferSelect;
+
 // ─── Telegram Schedules (예약 발송) ──────────────────────────────────────────────────────────────────────────────────
 export const telegramSchedules = mysqlTable("telegramSchedules", {
   id: int("id").autoincrement().primaryKey(),
@@ -447,6 +456,28 @@ export const trendingAlertSettings = mysqlTable("trendingAlertSettings", {
 });
 export type TrendingAlertSetting = typeof trendingAlertSettings.$inferSelect;
 export type InsertTrendingAlertSetting = typeof trendingAlertSettings.$inferInsert;
+
+// ─── Influencer Follows ──────────────────────────────────────────────────────
+export const influencerFollows = mysqlTable("influencerFollows", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  planId: int("planId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type InfluencerFollow = typeof influencerFollows.$inferSelect;
+export type InsertInfluencerFollow = typeof influencerFollows.$inferInsert;
+
+// ─── User Coin Alert Settings ─────────────────────────────────────────────────
+export const userCoinAlerts = mysqlTable("userCoinAlerts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  coinSymbol: varchar("coinSymbol", { length: 20 }).notNull(),
+  priceChangeThreshold: decimal("priceChangeThreshold", { precision: 5, scale: 2 }).default("10.00").notNull(),
+  isEnabled: boolean("isEnabled").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type UserCoinAlert = typeof userCoinAlerts.$inferSelect;
+export type InsertUserCoinAlert = typeof userCoinAlerts.$inferInsert;
 
 // ─── Listing Requests (프로젝트 리스팅 신청) ─────────────────────────────────
 export const listingRequests = mysqlTable("listingRequests", {

@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Coins, CheckCircle, XCircle, Loader2, RefreshCw,
-  DollarSign, Users, ArrowDownToLine, TrendingUp, Search
+  DollarSign, Users, ArrowDownToLine, TrendingUp, Search, Clock, Calendar, Play
 } from "lucide-react";
 
 const REWARD_STATUS: Record<string, { label: string; color: string }> = {
@@ -26,7 +26,9 @@ const WITHDRAWAL_STATUS: Record<string, { label: string; color: string }> = {
 };
 
 export default function AdminRewards() {
-  const [activeTab, setActiveTab] = useState<"rewards" | "withdrawals">("rewards");
+  const [activeTab, setActiveTab] = useState<"rewards" | "withdrawals" | "schedule">("rewards");
+  const [scheduleConfig, setScheduleConfig] = useState({ frequency: "daily", hour: "00", minute: "00", enabled: false });
+  const [lastAutoRun, setLastAutoRun] = useState<string | null>(localStorage.getItem("lastAutoRewardRun"));
   const [txHash, setTxHash] = useState<Record<number, string>>({});
 
   const { data: adminData, isLoading: rewardsLoading, refetch: refetchRewards } = trpc.rewards.adminList.useQuery();
@@ -125,6 +127,14 @@ export default function AdminRewards() {
             {pendingWithdrawals > 0 && (
               <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">{pendingWithdrawals}</span>
             )}
+          </button>
+          <button
+            onClick={() => setActiveTab("schedule")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              activeTab === "schedule" ? "bg-amber-500 text-black" : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Clock className="w-4 h-4" /> 자동 지급
           </button>
         </div>
 
@@ -269,6 +279,76 @@ export default function AdminRewards() {
           </div>
         )}
       </div>
+      {/* 자동 지급 스케줄 탭 */}
+      {activeTab === "schedule" && (
+        <div style={{ maxWidth: 520, marginTop: "1rem" }}>
+          <Card className="bg-slate-800/50 border-slate-700">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-400" /> 리워드 자동 지급 스케줄러
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-xs text-slate-400 block mb-2">지급 주기</label>
+                <div className="flex gap-2">
+                  {[{ v: "daily", l: "매일" }, { v: "weekly", l: "매주" }, { v: "monthly", l: "매월" }].map(opt => (
+                    <button key={opt.v} onClick={() => setScheduleConfig(c => ({ ...c, frequency: opt.v }))}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${scheduleConfig.frequency === opt.v ? "bg-amber-500 text-black border-amber-500" : "border-slate-600 text-slate-400 hover:border-amber-500/50"}`}>
+                      {opt.l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div>
+                  <label className="text-xs text-slate-400 block mb-1">시(Hour)</label>
+                  <select value={scheduleConfig.hour} onChange={e => setScheduleConfig(c => ({ ...c, hour: e.target.value }))}
+                    className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white">
+                    {Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0")).map(h => <option key={h} value={h}>{h}시</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-400 block mb-1">분(Minute)</label>
+                  <select value={scheduleConfig.minute} onChange={e => setScheduleConfig(c => ({ ...c, minute: e.target.value }))}
+                    className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-white">
+                    {["00", "15", "30", "45"].map(m => <option key={m} value={m}>{m}분</option>)}
+                  </select>
+                </div>
+              </div>
+              {lastAutoRun && (
+                <div className="text-xs text-slate-400 flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> 마지막 자동 실행: {lastAutoRun}
+                </div>
+              )}
+              <div className="flex gap-2 pt-2">
+                <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+                  onClick={() => {
+                    const now = new Date().toLocaleString("ko-KR");
+                    localStorage.setItem("lastAutoRewardRun", now);
+                    setLastAutoRun(now);
+                    toast.info("개별 보상은 '보상 내역' 탭에서 직접 지급해주세요.");
+                  }}
+                  disabled={false}>
+                  <Play className="w-3 h-3 mr-1" />
+                  {distributeRewards.isPending ? "실행 중..." : "지금 즉시 실행"}
+                </Button>
+                <Button size="sm" variant="outline" className="border-slate-600 text-slate-300"
+                  onClick={() => setScheduleConfig(c => ({ ...c, enabled: !c.enabled }))}
+                >
+                  {scheduleConfig.enabled ? "⏸ 자동 지급 중지" : "▶ 자동 지급 활성화"}
+                </Button>
+              </div>
+              {scheduleConfig.enabled && (
+                <div className="text-xs text-green-400 flex items-center gap-1 bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2">
+                  <span className="w-2 h-2 rounded-full bg-green-400 inline-block" style={{ animation: "pulse 2s infinite" }} />
+                  자동 지급 활성화됨 — {scheduleConfig.frequency === "daily" ? "매일" : scheduleConfig.frequency === "weekly" ? "매주" : "매월"} {scheduleConfig.hour}:{scheduleConfig.minute}에 실행
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </AdminLayout>
   );
 }

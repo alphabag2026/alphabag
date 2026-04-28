@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, like, or, sql, count, sum, countDistinct } from "drizzle-orm";
+import { and, desc, eq, gt, gte, like, or, sql, count, sum, countDistinct } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users,
@@ -524,6 +524,7 @@ export async function getAuditLogs(page = 1, limit = 50) {
 export async function getDashboardStats() {
   const db = await getDb();
   if (!db) return null;
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
   const [
     totalUsers,
     totalInvestment,
@@ -531,6 +532,8 @@ export async function getDashboardStats() {
     openTickets,
     totalReferrals,
     recentInvestments,
+    todayNewUsers,
+    todayNewInvestments,
   ] = await Promise.all([
     db.select({ count: count() }).from(users),
     db.select({ total: sum(investments.amount) }).from(investments).where(eq(investments.status, "active")),
@@ -542,6 +545,8 @@ export async function getDashboardStats() {
       volume: sum(investments.amount),
       count: count(),
     }).from(investments).groupBy(sql`DATE(${investments.createdAt})`).orderBy(sql`DATE(${investments.createdAt})`).limit(30),
+    db.select({ count: count() }).from(users).where(gte(users.createdAt, todayStart)),
+    db.select({ count: count() }).from(investments).where(gte(investments.createdAt, todayStart)),
   ]);
   const totalInvestmentNum = Number(totalInvestment[0]?.total ?? 0);
   const totalNodeRevenueNum = Number(totalNodeRevenue[0]?.total ?? 0);
@@ -559,6 +564,8 @@ export async function getDashboardStats() {
     totalReferrals: totalReferralsNum,
     conversionRate: Math.round(conversionRate * 10) / 10,
     recentInvestments,
+    todayNewUsers: todayNewUsers[0]?.count ?? 0,
+    todayNewInvestments: todayNewInvestments[0]?.count ?? 0,
   };
 }
 

@@ -40,6 +40,7 @@ import AdminSns from "./pages/admin/Sns";
 import AdminAiPlanImport from "./pages/admin/AiPlanImport";
 import SubmitPlan from "./pages/SubmitPlan";
 import VotePage from "./pages/VotePage";
+import MobileBottomNav from "./components/MobileBottomNav";
 import MySubmissions from "./pages/MySubmissions";
 import AdminSubmissions from "./pages/admin/Submissions";
 import AdminRewards from "./pages/admin/Rewards";
@@ -63,6 +64,7 @@ import Privacy from "./pages/Privacy";
 
 function Router() {
   return (
+    <>
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={UserDashboard} />
@@ -123,6 +125,8 @@ function Router() {
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
+    <MobileBottomNav />
+    </>
   );
 }
 

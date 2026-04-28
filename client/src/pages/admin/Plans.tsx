@@ -41,13 +41,18 @@ const defaultForm: PlanForm = {
   sortOrder: "0", isActive: true, isMLM: false, planType: "investment", tags: "",
 };
 
-function PlanCard({ plan, onEdit, onDelete, onToggle, onLogoUpload, uploadingPlanId }: {
+function PlanCard({ plan, onEdit, onDelete, onToggle, onLogoUpload, uploadingPlanId, inlineEditId, inlineEditRate, setInlineEditId, setInlineEditRate, onUpdateRate }: {
   plan: any;
   onEdit: (plan: any) => void;
   onDelete: (id: number) => void;
   onToggle: (id: number, current: boolean) => void;
   onLogoUpload: (planId: number, file: File) => void;
   uploadingPlanId: number | null;
+  inlineEditId: number | null;
+  inlineEditRate: string;
+  setInlineEditId: (id: number | null) => void;
+  setInlineEditRate: (rate: string) => void;
+  onUpdateRate: (id: number, rate: string) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const isUploading = uploadingPlanId === plan.id;
@@ -98,7 +103,32 @@ function PlanCard({ plan, onEdit, onDelete, onToggle, onLogoUpload, uploadingPla
           )}
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="text-primary font-medium">{plan.dailyRate}% daily</span>
+          {inlineEditId === plan.id ? (
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <input
+                type="number" step="0.01" value={inlineEditRate}
+                onChange={e => setInlineEditRate(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter") {
+                    onUpdateRate(plan.id, inlineEditRate);
+                  } else if (e.key === "Escape") { setInlineEditId(null); }
+                }}
+                autoFocus
+                style={{ width: 70, padding: "0.15rem 0.4rem", borderRadius: 6, border: "1px solid #f59e0b", background: "var(--ab-bg)", color: "#f59e0b", fontSize: 12, fontWeight: 700 }}
+              />
+              <span style={{ fontSize: 11, color: "#888" }}>% daily</span>
+              <button onClick={() => { onUpdateRate(plan.id, inlineEditRate); }}
+                style={{ fontSize: 11, color: "#22c55e", background: "none", border: "none", cursor: "pointer", fontWeight: 700 }}>✓</button>
+              <button onClick={() => setInlineEditId(null)}
+                style={{ fontSize: 11, color: "#ef4444", background: "none", border: "none", cursor: "pointer", fontWeight: 700 }}>✕</button>
+            </span>
+          ) : (
+            <span className="text-primary font-medium" style={{ cursor: "pointer" }}
+              title="클릭하여 수익률 수정"
+              onClick={() => { setInlineEditId(plan.id); setInlineEditRate(plan.dailyRate); }}>
+              {plan.dailyRate}% daily ✎
+            </span>
+          )}
           {plan.duration && <span>{plan.duration}d</span>}
           {plan.minAmount && <span>Min: ${Number(plan.minAmount).toLocaleString()}</span>}
           {plan.urlId && <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{plan.urlId}</span>}
@@ -135,6 +165,8 @@ export default function Plans() {
   const [editingPlan, setEditingPlan] = useState<any>(null);
   const [form, setForm] = useState<PlanForm>(defaultForm);
   const [uploadingPlanId, setUploadingPlanId] = useState<number | null>(null);
+  const [inlineEditId, setInlineEditId] = useState<number | null>(null);
+  const [inlineEditRate, setInlineEditRate] = useState<string>("");
 
   const utils = trpc.useUtils();
   const { data: plans, isLoading } = trpc.plans.list.useQuery({ planType: activeTab });
@@ -301,6 +333,11 @@ export default function Plans() {
                   reader.readAsDataURL(file);
                 }}
                 uploadingPlanId={uploadingPlanId}
+                inlineEditId={inlineEditId}
+                inlineEditRate={inlineEditRate}
+                setInlineEditId={setInlineEditId}
+                setInlineEditRate={setInlineEditRate}
+                onUpdateRate={(id, rate) => { updateMutation.mutate({ id, dailyRate: rate }); setInlineEditId(null); }}
               />
                       ))}
                     </div>

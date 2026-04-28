@@ -147,8 +147,23 @@ export default function NoticesPage() {
         )}
 
         {isLoading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="border border-border/40 rounded-xl p-4 animate-pulse">
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-4 bg-muted/40 rounded flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-muted/40 rounded w-3/4" />
+                    <div className="h-3 bg-muted/30 rounded w-full" />
+                    <div className="h-3 bg-muted/30 rounded w-2/3" />
+                    <div className="flex gap-2 mt-1">
+                      <div className="h-4 bg-muted/30 rounded w-20" />
+                      <div className="h-4 bg-muted/30 rounded w-16" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : paginated.length > 0 ? (
           <>

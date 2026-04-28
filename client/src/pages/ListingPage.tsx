@@ -1,8 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { MainNav } from "@/components/MainNav";
 import { FileText, CheckCircle, Send, Globe, Twitter, MessageCircle, Upload, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+
+interface ListingForm {
+  projectName: string;
+  projectSymbol: string;
+  projectWebsite: string;
+  projectDescription: string;
+  category: "golden" | "self" | "leader" | "meme" | "influencer" | "cbag" | "airdrop" | "partner" | "";
+  contactName: string;
+  contactEmail: string;
+  contactTelegram: string;
+  logoUrl: string;
+  telegramUrl: string;
+  twitterUrl: string;
+  additionalInfo: string;
+}
 
 const CATEGORIES = [
   { value: "golden", label: "🥇 Golden Collection", desc: "프리미엄 고수익 전략" },
@@ -18,51 +33,107 @@ const CATEGORIES = [
 export default function ListingPage() {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({
-    projectName: "",
-    projectSymbol: "",
-    projectWebsite: "",
-    projectDescription: "",
-    category: "" as any,
-    contactName: "",
-    contactEmail: "",
-    contactTelegram: "",
-    logoUrl: "",
-    telegramUrl: "",
-    twitterUrl: "",
-    additionalInfo: "",
+  const [draftSaved, setDraftSaved] = useState(false);
+  const DRAFT_KEY = "alphabag_listing_draft";
+  const [form, setForm] = useState<ListingForm>(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      projectName: "",
+      projectSymbol: "",
+      projectWebsite: "",
+      projectDescription: "",
+      category: "",
+      contactName: "",
+      contactEmail: "",
+      contactTelegram: "",
+      logoUrl: "",
+      telegramUrl: "",
+      twitterUrl: "",
+      additionalInfo: "",
+    };
   });
+
+  // 임시 저장 (3초 디바운스)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(form));
+        setDraftSaved(true);
+        setTimeout(() => setDraftSaved(false), 2000);
+      } catch {}
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [form]);
+
+  const clearDraft = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+  };
 
   const submit = trpc.listing.submit.useMutation({
     onSuccess: () => {
       setSubmitted(true);
+      clearDraft();
       toast.success("리스팅 신청이 완료되었습니다!");
     },
     onError: (e) => toast.error(e.message),
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value })) as any;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.category) { toast.error("카테고리를 선택해 주세요"); return; }
-    submit.mutate(form);
+    submit.mutate(form as any);
   };
 
   if (submitted) {
+    const STEPS = [
+      { id: 1, label: "신청 접수", desc: "신청서가 접수되었습니다", done: true },
+      { id: 2, label: "검토 중", desc: "팀에서 검토 중입니다 (영업일 3~5일)", done: false },
+      { id: 3, label: "커뮤니티 투표", desc: "커뮤니티 투표 진행", done: false },
+      { id: 4, label: "리스팅 완료", desc: "플랫폼에 등록됩니다", done: false },
+    ];
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-yellow-50">
         <MainNav />
-        <div className="max-w-2xl mx-auto px-4 py-24 text-center">
-          <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-12 h-12 text-green-500" />
+        <div className="max-w-lg mx-auto px-4 py-16">
+          <div className="text-center mb-10">
+            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
+              <CheckCircle className="w-10 h-10 text-green-500" />
+            </div>
+            <h2 className="text-3xl font-black text-gray-900 mb-2">신청 완료!</h2>
+            <p className="text-gray-600 text-sm">리스팅 신청이 성공적으로 접수되었습니다.</p>
           </div>
-          <h2 className="text-3xl font-black text-gray-900 mb-3">신청 완료!</h2>
-          <p className="text-gray-600 mb-2">리스팅 신청이 성공적으로 접수되었습니다.</p>
-          <p className="text-gray-500 text-sm mb-8">담당자가 검토 후 입력하신 이메일로 연락드립니다. (영업일 기준 3~5일)</p>
-          <a href="/" className="inline-flex items-center gap-2 bg-amber-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-amber-400 transition-colors">
+          {/* 진행 상태 트래커 */}
+          <div className="bg-white rounded-2xl border border-amber-100 shadow-sm p-6 mb-6">
+            <h3 className="font-bold text-gray-900 mb-5 text-sm">신청 진행 상태</h3>
+            <div>
+              {STEPS.map((s, idx) => (
+                <div key={s.id} className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold border-2 ${
+                      s.done ? "bg-green-500 border-green-500 text-white" : "bg-white border-gray-200 text-gray-400"
+                    }`}>
+                      {s.done ? "✓" : s.id}
+                    </div>
+                    {idx < STEPS.length - 1 && (
+                      <div className={`w-0.5 h-8 mt-1 ${s.done ? "bg-green-300" : "bg-gray-100"}`} />
+                    )}
+                  </div>
+                  <div className="pb-6 pt-1">
+                    <p className={`text-sm font-semibold ${s.done ? "text-green-700" : "text-gray-500"}`}>{s.label}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <a href="/" className="block w-full text-center px-8 py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-400 transition-colors">
             홈으로 돌아가기
           </a>
         </div>
@@ -107,6 +178,7 @@ export default function ListingPage() {
           ))}
           <div className="ml-2 text-sm text-gray-500">
             {step === 1 ? "프로젝트 정보" : step === 2 ? "연락처 정보" : "추가 정보"}
+            {draftSaved && <span className="text-xs text-green-500 ml-2 animate-pulse">✓ 임시 저장됨</span>}
           </div>
         </div>
 
@@ -123,7 +195,7 @@ export default function ListingPage() {
                     <button
                       key={cat.value}
                       type="button"
-                      onClick={() => setForm((prev) => ({ ...prev, category: cat.value }))}
+                      onClick={() => setForm((prev) => ({ ...prev, category: cat.value as ListingForm["category"] }))}
                       className={`text-left p-3 rounded-xl border-2 transition-all ${
                         form.category === cat.value
                           ? "border-amber-500 bg-amber-50"

@@ -89,6 +89,7 @@
     "node-cron": "^4.2.1",
     "officeparser": "^6.0.7",
     "pdf-parse": "^2.4.5",
+    "qrcode.react": "^4.2.0",
     "react": "^19.2.1",
     "react-day-picker": "^9.11.1",
     "react-dom": "^19.2.1",

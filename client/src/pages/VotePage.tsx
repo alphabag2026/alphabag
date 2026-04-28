@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { getLoginUrl } from "@/const";
 import { useTranslation } from "react-i18next";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 // 실시간 카운트다운 훅
 function useCountdown(endDate: Date | null) {
@@ -150,6 +151,31 @@ function VoteCard({ submission }: { submission: any }) {
                   style={{ left: `${THRESHOLD}%` }}
                 />
               </div>
+              {totalVotes > 0 && (
+                <div className="flex items-center gap-4 mt-2">
+                  <ResponsiveContainer width={80} height={80}>
+                    <PieChart>
+                      <Pie data={[{ name: "Approve", value: approveVotes }, { name: "Reject", value: rejectVotes }]} cx="50%" cy="50%" innerRadius={22} outerRadius={36} dataKey="value" strokeWidth={0}>
+                        <Cell fill="#22c55e" />
+                        <Cell fill="#ef4444" />
+                      </Pie>
+                      <Tooltip formatter={(v: any) => [v, ""]} contentStyle={{ background: "#1e293b", border: "none", borderRadius: 8, fontSize: 11 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                      <span className="text-slate-400">Approve</span>
+                      <span className="ml-auto text-green-400 font-bold">{approveVotes} ({approvePct}%)</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
+                      <span className="text-slate-400">Reject</span>
+                      <span className="ml-auto text-red-400 font-bold">{rejectVotes} ({100 - approvePct}%)</span>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="flex justify-between text-xs">
                 <span className="text-slate-500">{t("vote.totalVotes").replace("{n}", String(totalVotes))}</span>
                 <span className={`flex items-center gap-1 font-medium ${

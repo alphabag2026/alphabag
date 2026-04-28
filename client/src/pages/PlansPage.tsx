@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import {
-  TrendingUp, ArrowLeft, Loader2, CheckCircle2, ChevronRight, GitCompare, X, Check
+  TrendingUp, ArrowLeft, Loader2, CheckCircle2, ChevronRight, GitCompare, X, Check, Search
 } from "lucide-react";
 
 export default function PlansPage() {
@@ -17,6 +17,9 @@ export default function PlansPage() {
   const { data: plans, isLoading } = trpc.public.plans.useQuery({ planType });
   const [compareIds, setCompareIds] = useState<number[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const invest = trpc.user.invest.useMutation({
     onSuccess: () => {
@@ -44,6 +47,18 @@ export default function PlansPage() {
   };
 
   const comparePlans = plans?.filter((p: any) => compareIds.includes(p.id)) || [];
+  const filteredPlans: any[] = searchQuery.trim()
+    ? (plans || []).filter((p: any) =>
+        p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.collectionType?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : (plans || []);
+  const autocompleteSuggestions: any[] = searchQuery.trim().length >= 1
+    ? (plans || []).filter((p: any) =>
+        p.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 5)
+    : [];
 
   const COMPARE_ROWS = [
     { label: "일일 수익률", key: "dailyRate", format: (v: any) => `${Number(v).toFixed(2)}%` },
@@ -111,6 +126,46 @@ export default function PlansPage() {
           )}
         </div>
 
+        {/* 검색 자동완성 */}
+        <div className="flex justify-center mb-6">
+          <div className="relative w-full max-w-md" ref={searchRef}>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
+                placeholder="플랜 이름 검색..."
+                className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-border/60 bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            {searchFocused && autocompleteSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border/60 rounded-xl shadow-xl z-50 overflow-hidden">
+                {autocompleteSuggestions.map((p: any) => (
+                  <button
+                    key={p.id}
+                    onMouseDown={() => { setSearchQuery(p.name); setSearchFocused(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted/60 transition-colors text-left"
+                  >
+                    <Search className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                    <div>
+                      <div className="text-sm font-medium text-foreground">{p.name}</div>
+                      <div className="text-xs text-muted-foreground">{Number(p.dailyRate).toFixed(2)}% 일일 수익률</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Tabs */}
         <div className="flex justify-center mb-8">
           <Tabs value={planType} onValueChange={(v) => setPlanType(v as "investment" | "staking")}>
@@ -123,12 +178,31 @@ export default function PlansPage() {
 
         {/* Plans Grid */}
         {isLoading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="border border-border/40 rounded-xl overflow-hidden animate-pulse">
+                <div className="h-32 bg-muted/40" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-muted/40 rounded w-3/4" />
+                  <div className="h-3 bg-muted/30 rounded w-1/2" />
+                  <div className="flex gap-2">
+                    <div className="h-6 bg-muted/40 rounded-full w-16" />
+                    <div className="h-6 bg-muted/40 rounded-full w-20" />
+                  </div>
+                  <div className="h-8 bg-muted/30 rounded w-full mt-2" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {plans?.map((plan: any, i: number) => {
+            {searchQuery.trim() && filteredPlans.length === 0 ? (
+              <div className="col-span-full text-center py-16 text-muted-foreground">
+                <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p>'{searchQuery}'에 해당하는 플랜이 없습니다.</p>
+              </div>
+            ) : null}
+            {filteredPlans.map((plan: any, i: number) => {
               const isSelected = compareIds.includes(plan.id);
               return (
                 <Card

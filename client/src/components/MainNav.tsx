@@ -4,7 +4,9 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useWallet } from "@/contexts/WalletContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { BarChart3, Menu, X, ShoppingCart, Wallet, ChevronDown, Copy, LogOut, ExternalLink, User, Heart } from "lucide-react";
+import { BarChart3, Menu, X, ShoppingCart, Wallet, ChevronDown, Copy, LogOut, ExternalLink, User, Heart, Bell, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
+import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
 const ALPHABAG_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663373200888/TGrbnQ7ygm6GBAS6CWnuGe/alphabag-logo_df90878d.png";
@@ -13,10 +15,35 @@ export function MainNav() {
   const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { isConnected, address, chainId, openModal, disconnectWallet } = useWallet();
+  const { theme, toggleTheme } = useTheme();
   const [location] = useLocation();
+
+  const { data: notifData } = trpc.notifications.listForUser.useQuery(undefined, {
+    enabled: isAuthenticated,
+    refetchInterval: 60000,
+  });
+  const markRead = trpc.notifications.markRead.useMutation();
+  const markAllRead = trpc.notifications.markAllRead.useMutation({
+    onSuccess: () => { trpc.useUtils().notifications.listForUser.invalidate(); },
+  });
+  const notifications = notifData ?? [];
+  const unreadCount = notifications.filter((n: any) => !n.isRead).length;
+
+  // 알림 드롭다운 외부 클릭 닫기
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   const navItems = [
     { href: "/golden", label: "Golden", color: "hover:text-amber-600 hover:bg-amber-50", active: "text-amber-600 bg-amber-50 font-semibold" },
@@ -210,6 +237,75 @@ export function MainNav() {
               </button>
             )}
 
+            {/* 테마 토글 버튼 */}
+            <button
+              onClick={toggleTheme}
+              className="flex items-center justify-center w-9 h-9 rounded-lg border border-border/50 hover:bg-muted transition-all"
+              title={theme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-muted-foreground" />}
+            </button>
+
+            {isAuthenticated && (
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={() => setNotifOpen(!notifOpen)}
+                  className="relative flex items-center justify-center w-9 h-9 rounded-lg border border-border/50 hover:bg-muted transition-all"
+                >
+                  <Bell className="w-4 h-4 text-muted-foreground" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+                {notifOpen && (
+                  <div className="absolute right-0 top-11 w-80 bg-popover border border-border rounded-xl shadow-xl z-50 overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
+                      <span className="text-sm font-semibold">Notifications</span>
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={() => markAllRead.mutate()}
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="py-8 text-center text-sm text-muted-foreground">No notifications</div>
+                      ) : (
+                        notifications.slice().reverse().map((n: any) => (
+                          <div
+                            key={n.id}
+                            onClick={() => {
+                              if (!n.isRead) {
+                                markRead.mutate({ notificationId: n.id }, {
+                                  onSuccess: () => trpc.useUtils().notifications.listForUser.invalidate(),
+                                });
+                              }
+                            }}
+                            className={`px-4 py-3 border-b border-border/30 cursor-pointer hover:bg-muted/50 transition-colors ${!n.isRead ? "bg-primary/5" : ""}`}
+                          >
+                            <div className="flex items-start gap-2">
+                              {!n.isRead && <span className="w-2 h-2 mt-1.5 rounded-full bg-primary flex-shrink-0" />}
+                              <div className={!n.isRead ? "" : "ml-4"}>
+                                <p className="text-sm font-medium leading-tight">{n.title}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                                <p className="text-[10px] text-muted-foreground/60 mt-1">
+                                  {new Date(n.createdAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             <Link href="/cart">
               <button className="relative flex items-center gap-1.5 h-9 px-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 text-xs font-medium hover:bg-amber-100 transition-all">
                 <ShoppingCart className="w-3.5 h-3.5" />
