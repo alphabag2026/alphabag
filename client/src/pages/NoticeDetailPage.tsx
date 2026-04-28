@@ -280,10 +280,14 @@ export default function NoticeDetailPage() {
                   {/* 본문 */}
                   <div className="prose prose-sm max-w-none">
                     {activeContent ? (
-                      <div
-                        className="rich-editor-content text-foreground leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: activeContent }}
-                      />
+                      activeContent.startsWith('<') ? (
+                        <div
+                          className="rich-editor-content text-foreground leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: activeContent }}
+                        />
+                      ) : (
+                        <p className="text-foreground leading-relaxed whitespace-pre-wrap">{activeContent}</p>
+                      )
                     ) : (
                       <p className="text-muted-foreground italic">내용이 없습니다.</p>
                     )}

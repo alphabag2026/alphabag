@@ -298,10 +298,14 @@ export default function NoticesPage() {
           </DialogHeader>
           <div className="py-2">
             {selected?.content && (
-              <div
-                className="prose prose-sm max-w-none text-foreground rich-editor-content"
-                dangerouslySetInnerHTML={{ __html: selected.content }}
-              />
+              selected.content.startsWith('<') ? (
+                <div
+                  className="prose prose-sm max-w-none text-foreground rich-editor-content"
+                  dangerouslySetInnerHTML={{ __html: selected.content }}
+                />
+              ) : (
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{selected.content}</p>
+              )
             )}
             {/* 첨부 파일 */}
             {selected?.attachments && (() => {

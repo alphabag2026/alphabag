@@ -91,6 +91,8 @@ export default function Content() {
   const updateAnnouncement = trpc.content.announcements.update.useMutation({ onSuccess: () => { toast.success("수정 완료"); utils.content.announcements.list.invalidate(); setDialogOpen(false); } });
   const deleteAnnouncement = trpc.content.announcements.delete.useMutation({ onSuccess: () => { toast.success("삭제 완료"); utils.content.announcements.list.invalidate(); setDeleteTarget(null); } });
 
+  const uploadBannerImage = trpc.content.eventBanners.uploadImage.useMutation();
+  const [bannerImageUploading, setBannerImageUploading] = useState(false);
   const createBanner = trpc.content.eventBanners.create.useMutation({ onSuccess: () => { toast.success("배너 생성 완료"); utils.content.eventBanners.list.invalidate(); setDialogOpen(false); } });
   const updateBanner = trpc.content.eventBanners.update.useMutation({ onSuccess: () => { toast.success("수정 완료"); utils.content.eventBanners.list.invalidate(); setDialogOpen(false); } });
   const deleteBanner = trpc.content.eventBanners.delete.useMutation({ onSuccess: () => { toast.success("삭제 완료"); utils.content.eventBanners.list.invalidate(); setDeleteTarget(null); } });
@@ -676,7 +678,37 @@ export default function Content() {
                   <>
                     <div>
                       <Label className="text-xs text-muted-foreground">이미지 URL *</Label>
-                      <Input value={form.imageUrl ?? ""} onChange={e => setForm((f: any) => ({ ...f, imageUrl: e.target.value }))} placeholder="https://..." className="mt-1 bg-input" />
+                      <div className="flex gap-2 mt-1">
+                        <Input value={form.imageUrl ?? ""} onChange={e => setForm((f: any) => ({ ...f, imageUrl: e.target.value }))} placeholder="https://..." className="bg-input flex-1" />
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              if (file.size > 5 * 1024 * 1024) { toast.error("파일 크기는 5MB 이하여야 합니다"); return; }
+                              setBannerImageUploading(true);
+                              try {
+                                const reader = new FileReader();
+                                reader.onload = async (ev) => {
+                                  const base64 = (ev.target?.result as string).split(",")[1];
+                                  const result = await uploadBannerImage.mutateAsync({ base64, mimeType: file.type, fileName: file.name });
+                                  setForm((f: any) => ({ ...f, imageUrl: result.url }));
+                                  toast.success("이미지 업로드 완료");
+                                };
+                                reader.readAsDataURL(file);
+                              } catch { toast.error("업로드 실패"); }
+                              finally { setBannerImageUploading(false); }
+                            }}
+                          />
+                          <span className={`inline-flex items-center px-3 py-2 rounded-md text-xs font-medium border transition-colors ${bannerImageUploading ? "opacity-50 cursor-not-allowed" : "hover:bg-accent cursor-pointer"} bg-input border-input`}>
+                            {bannerImageUploading ? "업로드 중..." : "파일 선택"}
+                          </span>
+                        </label>
+                      </div>
+                      {form.imageUrl && <img src={form.imageUrl} alt="미리보기" className="mt-2 rounded-lg max-h-24 object-contain border border-border" />}
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">링크 URL</Label>

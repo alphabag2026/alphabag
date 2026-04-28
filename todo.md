@@ -987,3 +987,26 @@
 - [x] 30. 모바일 하단 탭 네비게이션 - 모바일 홈/플랜/에어드랍/마이페이지 하단 고정 탭
 - [x] 31. 페이지 로딩 스켈레톤 개선 - 주요 페이지에 스켈레톤 UI 적용
 - [x] 32. 검색 자동완성 - 메인 검색창에 플랜명 자동완성 드롭다운
+
+## Phase 34 - 버그 수정 및 UI 개선 (2026-04-29)
+- [ ] 공지사항 클릭 시 세부내용 안 보이는 문제 수정 (NoticesPage → NoticeDetailPage 라우팅)
+- [ ] Notices 탭 클릭 시 공지 목록 안 보이는 문제 수정
+- [ ] FAQ 탭 텍스트 인코딩 깨짐 수정 (한글 깨짐)
+- [ ] 1page.to 탭 글자체 다른 버튼과 통일 (폰트/스타일 수정)
+- [ ] 우측 배너 관리자 대시보드 연동 확인 (Content 탭 배너 관리)
+
+## Phase 35 - 1page.to 탭 신규 사이트 추가 + 배너 파일 업로드 (2026-04-29)
+- [ ] 1page.to 탭에 6개 신규 서브도메인 추가 (twamm, frontier, algox, deepquest, aurumx, shadowsclaw) - 각 사이트 로고 포함
+- [ ] 배너(Banners) 추가/수정 폼에 이미지 파일 직접 업로드 기능 추가
+- [ ] 이전 수정사항 배포 (공지사항 내용 표시, 1page.to 글자체, NoticesPage Dialog 수정)
+
+## Phase 35 - 1page.to 탭 신규 사이트 추가 + 배너 파일 업로드 + 버그 수정
+
+- [x] 공지사항 세부내용 표시 수정 (whitespace-pre-wrap)
+- [x] NoticesPage Dialog 내용 표시 수정
+- [x] 1page.to 탭 글자체 수정 (text-base 통일)
+- [x] FAQ 인코딩 문제 확인 (DB 데이터 정상)
+- [x] 1page.to 탭에 6개 신규 사이트 추가 (TWAMM, Frontier, AlgoX, DeepQuest, AurumX, ShadowsClaw)
+- [x] 배너 이미지 파일 직접 업로드 기능 추가 (파일 선택 버튼 + 미리보기)
+- [x] 프로덕션 배포 완료 (alphabag.net HTTP 200)
+

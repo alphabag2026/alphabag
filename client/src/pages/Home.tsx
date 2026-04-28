@@ -1118,8 +1118,8 @@ export default function Home() {
                 }`}
               >
                 {menu.icon === "1page" ? (
-                  <span className={`text-[10px] font-black tracking-tight px-1 py-0.5 rounded ${activeTab === menu.id ? "text-amber-400" : "text-current"}`} style={{fontFamily: 'monospace', letterSpacing: '-0.05em'}}>
-                    1page
+                  <span className="text-base leading-none flex items-center justify-center w-6 h-6" style={{fontFamily: 'inherit', fontWeight: 700, fontSize: '0.75rem'}}>
+                    1p
                   </span>
                 ) : (
                   <span className="text-base">{menu.icon}</span>

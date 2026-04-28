@@ -190,6 +190,11 @@ export const notices = mysqlTable("notices", {
   isPinned: boolean("isPinned").default(false).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
   attachments: text("attachments"), // JSON array: [{name, url, size, mimeType}]
+  type: mysqlEnum("type", ["info", "warning", "success", "urgent", "meeting"]).default("info").notNull(),
+  meetingPlatform: varchar("meetingPlatform", { length: 50 }),
+  meetingUrl: text("meetingUrl"),
+  meetingDate: timestamp("meetingDate"),
+  linkUrl: text("linkUrl"),
   category: varchar("category", { length: 50 }).default("general"), // general, event, update, airdrop, partnership
   viewCount: int("viewCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

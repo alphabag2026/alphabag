@@ -720,6 +720,17 @@ Return this exact JSON structure:
     }),
     eventBanners: router({
       list: adminProcedure.query(async () => await db.getEventBanners()),
+      uploadImage: superAdminProcedure.input(z.object({
+        base64: z.string(),
+        mimeType: z.string().default("image/png"),
+        fileName: z.string().default("banner.png"),
+      })).mutation(async ({ input }) => {
+        const { storagePut } = await import("./storage");
+        const buffer = Buffer.from(input.base64, "base64");
+        const key = `banners/${Date.now()}-${input.fileName}`;
+        const { url } = await storagePut(key, buffer, input.mimeType);
+        return { success: true, url };
+      }),
       create: superAdminProcedure.input(z.object({
         title: z.string().optional(),
         imageUrl: z.string().min(1),
