@@ -722,7 +722,7 @@ Return this exact JSON structure:
     }),
     eventBanners: router({
       list: adminProcedure.query(async () => await db.getEventBanners()),
-      uploadImage: superAdminProcedure.input(z.object({
+      uploadImage: adminProcedure.input(z.object({
         base64: z.string(),
         mimeType: z.string().default("image/png"),
         fileName: z.string().default("banner.png"),
@@ -733,7 +733,7 @@ Return this exact JSON structure:
         const { url } = await storagePut(key, buffer, input.mimeType);
         return { success: true, url };
       }),
-      create: superAdminProcedure.input(z.object({
+      create: adminProcedure.input(z.object({
         title: z.string().optional(),
         imageUrl: z.string().min(1),
         linkUrl: z.string().optional(),
@@ -745,7 +745,7 @@ Return this exact JSON structure:
         await db.createEventBanner(input);
         return { success: true };
       }),
-      update: superAdminProcedure.input(z.object({
+      update: adminProcedure.input(z.object({
         id: z.number(),
         title: z.string().optional(),
         imageUrl: z.string().optional(),
@@ -757,14 +757,14 @@ Return this exact JSON structure:
         await db.updateEventBanner(id, data);
         return { success: true };
       }),
-      delete: superAdminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
         await db.deleteEventBanner(input.id);
         return { success: true };
       }),
     }),
     adImages: router({
       list: adminProcedure.query(async () => await db.getAdImages()),
-      create: superAdminProcedure.input(z.object({
+      create: adminProcedure.input(z.object({
         title: z.string().optional(),
         imageUrl: z.string().min(1),
         linkUrl: z.string().optional(),
@@ -775,7 +775,7 @@ Return this exact JSON structure:
         await db.createAdImage(input);
         return { success: true };
       }),
-      update: superAdminProcedure.input(z.object({
+      update: adminProcedure.input(z.object({
         id: z.number(),
         title: z.string().optional(),
         imageUrl: z.string().optional(),
@@ -788,7 +788,7 @@ Return this exact JSON structure:
         await db.updateAdImage(id, data);
         return { success: true };
       }),
-      delete: superAdminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+      delete: adminProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
         await db.deleteAdImage(input.id);
         return { success: true };
       }),
