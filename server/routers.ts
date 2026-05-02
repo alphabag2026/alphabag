@@ -213,6 +213,114 @@ export const appRouter = router({
       await createAuditLog({ adminId: ctx.user!.id, action: "UPDATE_PLAN", targetType: "plan", targetId: input.planId, details: { logoUrl: url } });
       return { success: true, url };
     }),
+    analyzeFile: adminProcedure.input(z.object({
+      base64: z.string(),
+      mimeType: z.string(),
+      fileName: z.string(),
+      extraPrompt: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      // Upload file to S3 first for LLM access
+      const buffer = Buffer.from(input.base64, "base64");
+      const key = `plan-analysis/${Date.now()}-${input.fileName}`;
+      const { url: fileUrl } = await storagePut(key, buffer, input.mimeType);
+
+      const isImage = input.mimeType.startsWith("image/");
+      const isPdf = input.mimeType === "application/pdf";
+
+      const systemPrompt = `You are an expert at analyzing blockchain/crypto project documents (PPT, PDF, one-page images).
+Extract the following information and return as JSON:
+- name: Project name (string)
+- description: Short project description in Korean (2-3 sentences, string)
+- revenueModel: Revenue model explanation in Korean (2-4 sentences describing how the project generates revenue, string)
+- logoUrl: Logo image URL if visible/extractable (string or null)
+- telegramUrl: Telegram community URL (string or null, must start with t.me or telegram.me or https://t.me)
+- youtubeUrl: YouTube channel or community URL (string or null)
+- twitterUrl: Twitter/X URL (string or null)
+- websiteUrl: Official website URL (string or null)
+- tags: Array of relevant tags (max 5, e.g. ["DeFi", "NFT", "GameFi"])
+If information is not found, use null. Always respond with valid JSON only.`;
+
+      const userContent: any[] = [];
+
+      if (input.extraPrompt) {
+        userContent.push({ type: "text", text: `Additional context from user: ${input.extraPrompt}` });
+      }
+
+      if (isImage) {
+        userContent.push({ type: "image_url", image_url: { url: fileUrl, detail: "high" } });
+        userContent.push({ type: "text", text: "Analyze this project image and extract all information as JSON." });
+      } else if (isPdf) {
+        userContent.push({ type: "file_url", file_url: { url: fileUrl, mime_type: "application/pdf" as any } });
+        userContent.push({ type: "text", text: "Analyze this project document and extract all information as JSON." });
+      } else {
+        // PPT/PPTX or other - extract text first using officeparser
+        try {
+          const officeParserModule = await import("officeparser");
+          const officeParser = (officeParserModule as any).default ?? officeParserModule;
+          const extractedText = await new Promise<string>((resolve, reject) => {
+            officeParser.parseOffice(buffer, (data: any, err: any) => {
+              if (err) reject(err);
+              else resolve(typeof data === "string" ? data : JSON.stringify(data));
+            }, { outputErrorToConsole: false });
+          });
+          if (extractedText && extractedText.trim()) {
+            userContent.push({ type: "text", text: `Document text content:\n\n${extractedText.slice(0, 8000)}\n\nExtract all project information as JSON.` });
+          } else {
+            userContent.push({ type: "text", text: `Analyze the project document at: ${fileUrl}\nExtract all project information as JSON.` });
+          }
+        } catch {
+          userContent.push({ type: "text", text: `Analyze the project document at: ${fileUrl}\nExtract all project information as JSON.` });
+        }
+      }
+
+      const llmMessages: import("./_core/llm").Message[] = [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userContent as import("./_core/llm").MessageContent[] },
+      ];
+      const response = await invokeLLM({
+        messages: llmMessages,
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "project_info",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                description: { type: "string" },
+                revenueModel: { type: "string" },
+                logoUrl: { anyOf: [{ type: "string" }, { type: "null" }] },
+                telegramUrl: { anyOf: [{ type: "string" }, { type: "null" }] },
+                youtubeUrl: { anyOf: [{ type: "string" }, { type: "null" }] },
+                twitterUrl: { anyOf: [{ type: "string" }, { type: "null" }] },
+                websiteUrl: { anyOf: [{ type: "string" }, { type: "null" }] },
+                tags: { type: "array", items: { type: "string" } },
+              },
+              required: ["name", "description", "revenueModel", "logoUrl", "telegramUrl", "youtubeUrl", "twitterUrl", "websiteUrl", "tags"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+
+      const rawContent = response.choices[0]?.message?.content;
+      const content = typeof rawContent === "string" ? rawContent : null;
+      if (!content) throw new Error("AI 분석 결과가 없습니다.");
+
+      let parsed: any;
+      try {
+        parsed = JSON.parse(content);
+      } catch {
+        throw new Error("AI 응답 파싱 실패: " + content);
+      }
+
+      return {
+        success: true,
+        fileUrl,
+        data: parsed,
+      };
+    }),
   }),
 
   // ─── Nodes ─────────────────────────────────────────────────────────────────
@@ -1836,6 +1944,8 @@ Return this exact JSON structure:
       logoUrl: z.string().optional(),
       telegramUrl: z.string().optional(),
       twitterUrl: z.string().optional(),
+      youtubeUrl: z.string().optional(),
+      revenueModel: z.string().optional(),
       additionalInfo: z.string().optional(),
     })).mutation(async ({ input }) => {
       const drizzleDb = await getDb();
@@ -1867,6 +1977,104 @@ Return this exact JSON structure:
         console.warn("[Listing] notifyOwner failed:", err);
       }
       return { success: true };
+    }),
+    analyzeFile: publicProcedure.input(z.object({
+      base64: z.string(),
+      mimeType: z.string(),
+      fileName: z.string(),
+      extraPrompt: z.string().optional(),
+    })).mutation(async ({ input }) => {
+      const { storagePut } = await import("./storage");
+      const { invokeLLM } = await import("./_core/llm");
+
+      const buffer = Buffer.from(input.base64, "base64");
+      const key = `listing-analysis/${Date.now()}-${input.fileName}`;
+      const { url: fileUrl } = await storagePut(key, buffer, input.mimeType);
+
+      const isImage = input.mimeType.startsWith("image/");
+      const isPdf = input.mimeType === "application/pdf";
+
+      const systemPrompt = `You are an expert at analyzing blockchain/crypto project documents (PPT, PDF, one-page images).
+Extract the following information and return as JSON:
+- projectName: Project name (string)
+- projectDescription: Short project description in Korean (2-3 sentences, string)
+- revenueModel: Revenue model explanation in Korean (2-4 sentences describing how the project generates revenue and rewards users, string)
+- logoUrl: Logo image URL if clearly visible in the document (string or null)
+- telegramUrl: Telegram community URL (string or null, must start with https://t.me or t.me)
+- youtubeUrl: YouTube channel or community URL (string or null)
+- twitterUrl: Twitter/X URL (string or null)
+- projectWebsite: Official website URL (string or null)
+- projectSymbol: Token/coin symbol e.g. BTC, ETH (string or null)
+If information is not found, use null. Always respond with valid JSON only.`;
+
+      const userContent: any[] = [];
+      if (input.extraPrompt) {
+        userContent.push({ type: "text", text: `Additional context: ${input.extraPrompt}` });
+      }
+      if (isImage) {
+        userContent.push({ type: "image_url", image_url: { url: fileUrl, detail: "high" } });
+        userContent.push({ type: "text", text: "Analyze this project image and extract all information as JSON." });
+      } else if (isPdf) {
+        userContent.push({ type: "file_url", file_url: { url: fileUrl, mime_type: "application/pdf" as any } });
+        userContent.push({ type: "text", text: "Analyze this project document and extract all information as JSON." });
+      } else {
+        // PPT/PPTX or other - extract text first using officeparser
+        try {
+          const officeParserModule2 = await import("officeparser");
+          const officeParser2 = (officeParserModule2 as any).default ?? officeParserModule2;
+          const extractedText2 = await new Promise<string>((resolve, reject) => {
+            officeParser2.parseOffice(buffer, (data: any, err: any) => {
+              if (err) reject(err);
+              else resolve(typeof data === "string" ? data : JSON.stringify(data));
+            }, { outputErrorToConsole: false });
+          });
+          if (extractedText2 && extractedText2.trim()) {
+            userContent.push({ type: "text", text: `Document text content:\n\n${extractedText2.slice(0, 8000)}\n\nExtract all project information as JSON.` });
+          } else {
+            userContent.push({ type: "text", text: `Analyze the project document at: ${fileUrl}\nExtract all project information as JSON.` });
+          }
+        } catch {
+          userContent.push({ type: "text", text: `Analyze the project document at: ${fileUrl}\nExtract all project information as JSON.` });
+        }
+      }
+
+      const llmMessages2: import("./_core/llm").Message[] = [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userContent as import("./_core/llm").MessageContent[] },
+      ];
+      const response = await invokeLLM({
+        messages: llmMessages2,
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "listing_project_info",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                projectName: { type: "string" },
+                projectDescription: { type: "string" },
+                revenueModel: { type: "string" },
+                logoUrl: { anyOf: [{ type: "string" }, { type: "null" }] },
+                telegramUrl: { anyOf: [{ type: "string" }, { type: "null" }] },
+                youtubeUrl: { anyOf: [{ type: "string" }, { type: "null" }] },
+                twitterUrl: { anyOf: [{ type: "string" }, { type: "null" }] },
+                projectWebsite: { anyOf: [{ type: "string" }, { type: "null" }] },
+                projectSymbol: { anyOf: [{ type: "string" }, { type: "null" }] },
+              },
+              required: ["projectName", "projectDescription", "revenueModel", "logoUrl", "telegramUrl", "youtubeUrl", "twitterUrl", "projectWebsite", "projectSymbol"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+
+      const rawContent2 = response.choices[0]?.message?.content;
+      const content = typeof rawContent2 === "string" ? rawContent2 : null;
+      if (!content) throw new Error("AI 분석 결과가 없습니다.");
+      let parsed: any;
+      try { parsed = JSON.parse(content); } catch { throw new Error("AI 응답 파싱 실패: " + content); }
+      return { success: true, fileUrl, data: parsed };
     }),
     list: adminProcedure.query(async () => {
       const drizzleDb = await getDb();

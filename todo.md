@@ -1010,3 +1010,9 @@
 - [x] 배너 이미지 파일 직접 업로드 기능 추가 (파일 선택 버튼 + 미리보기)
 - [x] 프로덕션 배포 완료 (alphabag.net HTTP 200)
 
+
+## Phase 36 - 차트리뷰 비디오 1page.to 탭 + SNS 정보 + 파싱 수정 (2026-05-03)
+- [x] 프로젝트 상세 모달 video 탭에 1page.to 서브탭 추가 (onepageUrl 있을 때 iframe 표시)
+- [x] 프로젝트 상세 모달 overview 탭에 SNS/커뮤니티 섹션 추가 (telegramUrl, videoUrl, twitterUrl, websiteUrl)
+- [x] plans.analyzeFile PPTX 파싱 실패 수정 (officeparser로 텍스트 추출 후 LLM 전달)
+- [x] listing.analyzeFile PPTX 파싱 실패 수정 (officeparser로 텍스트 추출 후 LLM 전달)

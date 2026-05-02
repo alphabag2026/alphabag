@@ -499,6 +499,8 @@ export const listingRequests = mysqlTable("listingRequests", {
   whitepaperUrl: text("whitepaperUrl"),
   telegramUrl: text("telegramUrl"),
   twitterUrl: text("twitterUrl"),
+  youtubeUrl: text("youtubeUrl"),
+  revenueModel: text("revenueModel"),
   additionalInfo: text("additionalInfo"),
   status: mysqlEnum("status", ["pending", "reviewing", "approved", "rejected"]).default("pending").notNull(),
   adminNote: text("adminNote"),

@@ -34,7 +34,7 @@ function extractYouTubeId(url: string): string | null {
 }
 
 export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
-  const [activeTab, setActiveTab] = useState<"overview" | "video" | "docs" | "chart" | "reviews">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "video" | "docs" | "chart" | "reviews" | "onepage">("overview");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewHover, setReviewHover] = useState(0);
@@ -251,6 +251,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
             { key: "video", label: t("planDetail.video") },
             { key: "docs", label: t("planDetail.docs") },
             { key: "reviews", label: "리뷰" },
+          ...(onepageUrl ? [{ key: "onepage", label: "1page.to" }] : []),
           ].map((tab) => (
             <button
               key={tab.key}
@@ -416,6 +417,45 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                     </div>
                   )}
 
+                  {/* SNS / 커뮤니티 링크 */}
+                  {((plan as any).telegramUrl || (plan as any).videoUrl || (plan as any).twitterUrl || (plan as any).websiteUrl) && (
+                    <div className="bg-muted/30 rounded-xl p-4 border border-border/40">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-base">🔗</span>
+                        <span className="text-xs font-bold text-foreground uppercase tracking-wide">SNS / 커뮤니티</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {(plan as any).telegramUrl && (
+                          <a href={(plan as any).telegramUrl} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/30 hover:border-blue-400 text-blue-400 text-xs font-medium transition-all">
+                            <Send className="w-3.5 h-3.5" />
+                            Telegram
+                          </a>
+                        )}
+                        {(plan as any).videoUrl && (
+                          <a href={(plan as any).videoUrl} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 hover:border-red-400 text-red-400 text-xs font-medium transition-all">
+                            <Play className="w-3.5 h-3.5" />
+                            YouTube
+                          </a>
+                        )}
+                        {(plan as any).twitterUrl && (
+                          <a href={(plan as any).twitterUrl} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500/10 border border-sky-500/30 hover:border-sky-400 text-sky-400 text-xs font-medium transition-all">
+                            <Twitter className="w-3.5 h-3.5" />
+                            Twitter / X
+                          </a>
+                        )}
+                        {(plan as any).websiteUrl && (
+                          <a href={(plan as any).websiteUrl} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 hover:border-emerald-400 text-emerald-400 text-xs font-medium transition-all">
+                            <Globe className="w-3.5 h-3.5" />
+                            공식 사이트
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   {/* 추천문구 자동생성 */}
                   <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 rounded-xl p-4 border border-amber-400/30">
                     <div className="flex items-center justify-between mb-3">
@@ -777,6 +817,29 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                       <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-blue-600 transition-colors" />
                     </a>
                   )}
+                </div>
+              )}
+              {activeTab === "onepage" && onepageUrl && (
+                <div className="h-full flex flex-col">
+                  <div className="flex items-center justify-between px-3 py-2 bg-muted/50 border-b border-border/40">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Globe className="w-3.5 h-3.5 text-amber-500" />
+                      <span className="font-medium text-foreground">1page.to</span>
+                      <span className="text-muted-foreground truncate max-w-[200px]">{onepageUrl}</span>
+                    </div>
+                    <a href={onepageUrl} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-amber-500 hover:text-amber-400 transition-colors">
+                      <ExternalLink className="w-3 h-3" />
+                      새 탭
+                    </a>
+                  </div>
+                  <iframe
+                    src={onepageUrl}
+                    className="flex-1 w-full border-0"
+                    style={{ minHeight: "500px" }}
+                    title={`${plan.name} - 1page.to`}
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                  />
                 </div>
               )}
             </div>

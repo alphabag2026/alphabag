@@ -274,6 +274,13 @@
       "when": 1777389977675,
       "tag": "0038_natural_glorian",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "5",
+      "when": 1777726810521,
+      "tag": "0039_nosy_ironclad",
+      "breakpoints": true
     }
   ]
 }

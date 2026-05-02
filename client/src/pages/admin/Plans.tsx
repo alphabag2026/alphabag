@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, GripVertical, TrendingUp, Coins, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, GripVertical, TrendingUp, Coins, Upload, Sparkles, FileText, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -166,6 +166,10 @@ export default function Plans() {
   const [editingPlan, setEditingPlan] = useState<any>(null);
   const [form, setForm] = useState<PlanForm>(defaultForm);
   const [uploadingPlanId, setUploadingPlanId] = useState<number | null>(null);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [aiExtraPrompt, setAiExtraPrompt] = useState("");
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const aiFileRef = React.useRef<HTMLInputElement>(null);
   const [inlineEditId, setInlineEditId] = useState<number | null>(null);
   const [inlineEditRate, setInlineEditRate] = useState<string>("");
 
@@ -196,6 +200,45 @@ export default function Plans() {
     onError: (e) => { toast.error(e.message); setUploadingPlanId(null); },
   });
 
+  const analyzeFileMutation = trpc.plans.analyzeFile.useMutation({
+    onSuccess: (data) => {
+      const d = data.data;
+      setForm(f => ({
+        ...f,
+        name: d.name || f.name,
+        description: d.description || f.description,
+        logoUrl: d.logoUrl || f.logoUrl,
+        tags: d.tags?.join(", ") || f.tags,
+      }));
+      // 추가 필드 처리 - revenueModel, telegramUrl, youtubeUrl, twitterUrl, websiteUrl
+      if (d.revenueModel) toast.info(`수익모델: ${d.revenueModel.substring(0, 80)}...`);
+      if (d.telegramUrl) toast.info(`텔레그램: ${d.telegramUrl}`);
+      if (d.youtubeUrl) toast.info(`유튜브: ${d.youtubeUrl}`);
+      toast.success("✅ AI 분석 완료! 폼에 자동 입력되었습니다.");
+      setAiAnalyzing(false);
+      setShowAiPanel(false);
+    },
+    onError: (e) => { toast.error("AI 분석 실패: " + e.message); setAiAnalyzing(false); },
+  });
+  const handleAiAnalyze = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { toast.error("파일은 10MB 이하여야 합니다."); return; }
+    setAiAnalyzing(true);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      const base64 = dataUrl.split(",")[1];
+      analyzeFileMutation.mutate({
+        base64,
+        mimeType: file.type,
+        fileName: file.name,
+        extraPrompt: aiExtraPrompt || undefined,
+      });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
   const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -394,6 +437,53 @@ export default function Plans() {
           <DialogHeader>
             <DialogTitle className="font-display">{editingPlan ? "Edit Plan" : "Create New Plan"}</DialogTitle>
           </DialogHeader>
+          {/* AI 자동완성 패널 */}
+          <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span className="text-sm font-medium text-amber-400">AI 자동완성</span>
+                <span className="text-xs text-muted-foreground">PPT/PDF/이미지 업로드 시 자동 입력</span>
+              </div>
+              <Button type="button" variant="ghost" size="sm" className="h-7 gap-1.5 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+                onClick={() => setShowAiPanel(v => !v)}>
+                {showAiPanel ? <X className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
+                {showAiPanel ? "닫기" : "파일 선택"}
+              </Button>
+            </div>
+            {showAiPanel && (
+              <div className="space-y-2">
+                <textarea
+                  className="w-full text-xs bg-input border border-border rounded-lg p-2 resize-none text-foreground placeholder:text-muted-foreground"
+                  rows={2}
+                  placeholder="추가 정보 입력 (선택): 수익모델, 텔레그램, 유튜브 링크 등을 텍스트로 입력하면 AI가 함께 분석합니다."
+                  value={aiExtraPrompt}
+                  onChange={e => setAiExtraPrompt(e.target.value)}
+                />
+                <div className="flex gap-2">
+                  <input ref={aiFileRef} type="file" accept="image/*,.pdf,.ppt,.pptx" className="hidden" onChange={handleAiAnalyze} />
+                  <Button type="button" variant="outline" size="sm" className="gap-1.5 border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+                    disabled={aiAnalyzing} onClick={() => aiFileRef.current?.click()}>
+                    {aiAnalyzing ? (
+                      <><span className="animate-spin">⟳</span> AI 분석 중...</>
+                    ) : (
+                      <><Upload className="w-3 h-3" /> 파일 업로드 & AI 분석</>
+                    )}
+                  </Button>
+                  {aiExtraPrompt && (
+                    <Button type="button" variant="outline" size="sm" className="gap-1.5 border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+                      disabled={aiAnalyzing} onClick={() => {
+                        if (!aiExtraPrompt.trim()) return;
+                        setAiAnalyzing(true);
+                        analyzeFileMutation.mutate({ base64: "", mimeType: "text/plain", fileName: "prompt.txt", extraPrompt: aiExtraPrompt });
+                      }}>
+                      <Sparkles className="w-3 h-3" /> 텍스트만으로 분석
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-4 py-2">
             <div className="col-span-2">
               <Label className="text-xs text-muted-foreground">Plan Name *</Label>
