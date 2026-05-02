@@ -63,6 +63,7 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
   const [recommendTexts, setRecommendTexts] = useState<string[]>([]);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [recommendLang, setRecommendLang] = useState("ko");
+  const [iframeBlocked, setIframeBlocked] = useState(false);
 
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
@@ -833,13 +834,41 @@ export function PlanDetailModal({ planId, onClose }: PlanDetailModalProps) {
                       새 탭
                     </a>
                   </div>
-                  <iframe
-                    src={onepageUrl}
-                    className="flex-1 w-full border-0"
-                    style={{ minHeight: "500px" }}
-                    title={`${plan.name} - 1page.to`}
-                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                  />
+                  {iframeBlocked ? (
+                    <div className="flex-1 flex flex-col items-center justify-center gap-4 py-16 text-muted-foreground">
+                      <Globe className="w-12 h-12 opacity-20" />
+                      <div className="text-center">
+                        <div className="text-sm font-medium text-foreground mb-1">페이지를 직접 열어주세요</div>
+                        <div className="text-xs text-muted-foreground mb-4">해당 사이트는 보안 정책으로 인해 임베드가 차단되었습니다.</div>
+                        <a
+                          href={onepageUrl!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold transition-all"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          1page.to 새 탭으로 열기
+                        </a>
+                      </div>
+                    </div>
+                  ) : (
+                    <iframe
+                      src={onepageUrl}
+                      className="flex-1 w-full border-0"
+                      style={{ minHeight: "500px" }}
+                      title={`${plan.name} - 1page.to`}
+                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                      onError={() => setIframeBlocked(true)}
+                      onLoad={(e) => {
+                        try {
+                          const doc = (e.target as HTMLIFrameElement).contentDocument;
+                          if (!doc) setIframeBlocked(true);
+                        } catch {
+                          setIframeBlocked(true);
+                        }
+                      }}
+                    />
+                  )}
                 </div>
               )}
             </div>

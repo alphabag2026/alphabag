@@ -27,6 +27,9 @@ interface ParsedPlan {
   ratioInfo?: string;
   rating?: number;
   logoUrl?: string;
+  twitterUrl?: string;
+  websiteUrl?: string;
+  telegramUrl?: string;
 }
 
 function PlanPreviewCard({ plan }: { plan: ParsedPlan }) {
@@ -143,6 +146,18 @@ function EditablePlanForm({ plan, onChange }: { plan: ParsedPlan; onChange: (p: 
         <Input type="number" min={1} max={5} step={0.1} value={plan.rating ?? 4.0} onChange={e => onChange({ ...plan, rating: parseFloat(e.target.value) })} />
       </div>
       <div className="space-y-1">
+        <Label>텔레그램 URL</Label>
+        <Input value={plan.telegramUrl ?? ""} onChange={e => onChange({ ...plan, telegramUrl: e.target.value })} placeholder="https://t.me/project" />
+      </div>
+      <div className="space-y-1">
+        <Label>Twitter / X URL</Label>
+        <Input value={plan.twitterUrl ?? ""} onChange={e => onChange({ ...plan, twitterUrl: e.target.value })} placeholder="https://x.com/project" />
+      </div>
+      <div className="space-y-1">
+        <Label>공식 웹사이트 URL</Label>
+        <Input value={plan.websiteUrl ?? ""} onChange={e => onChange({ ...plan, websiteUrl: e.target.value })} placeholder="https://project.io" />
+      </div>
+      <div className="space-y-1">
         <Label>플랜 타입</Label>
         <select
           className="w-full border rounded-md px-3 py-2 text-sm bg-background"
@@ -239,6 +254,9 @@ export default function AiPlanImport() {
         ratioInfo: parsedPlan.ratioInfo,
         rating: parsedPlan.rating,
         logoUrl: parsedPlan.logoUrl,
+        telegramUrl: parsedPlan.telegramUrl || undefined,
+        twitterUrl: parsedPlan.twitterUrl || undefined,
+        websiteUrl: parsedPlan.websiteUrl || undefined,
         sortOrder: 0,
         isActive: true,
       });

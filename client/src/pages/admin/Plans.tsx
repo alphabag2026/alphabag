@@ -28,6 +28,8 @@ interface PlanForm {
   description: string;
   urlId: string;
   onepageUrl: string;
+  twitterUrl: string;
+  websiteUrl: string;
   sortOrder: string;
   isActive: boolean;
   isMLM: boolean;
@@ -39,6 +41,7 @@ const defaultForm: PlanForm = {
   name: "", logoUrl: "", label: "", dailyRate: "0.5",
   minAmount: "100", maxAmount: "", duration: "30",
   totalReturn: "", description: "", urlId: "", onepageUrl: "",
+  twitterUrl: "", websiteUrl: "",
   sortOrder: "0", isActive: true, isMLM: false, planType: "investment", tags: "",
 };
 
@@ -209,11 +212,15 @@ export default function Plans() {
         description: d.description || f.description,
         logoUrl: d.logoUrl || f.logoUrl,
         tags: d.tags?.join(", ") || f.tags,
+        twitterUrl: d.twitterUrl || f.twitterUrl,
+        websiteUrl: d.websiteUrl || f.websiteUrl,
       }));
-      // 추가 필드 처리 - revenueModel, telegramUrl, youtubeUrl, twitterUrl, websiteUrl
+      // 추가 필드 처리 - revenueModel, telegramUrl, youtubeUrl
       if (d.revenueModel) toast.info(`수익모델: ${d.revenueModel.substring(0, 80)}...`);
       if (d.telegramUrl) toast.info(`텔레그램: ${d.telegramUrl}`);
       if (d.youtubeUrl) toast.info(`유튜브: ${d.youtubeUrl}`);
+      if (d.twitterUrl) toast.info(`Twitter: ${d.twitterUrl}`);
+      if (d.websiteUrl) toast.info(`웹사이트: ${d.websiteUrl}`);
       toast.success("✅ AI 분석 완료! 폼에 자동 입력되었습니다.");
       setAiAnalyzing(false);
       setShowAiPanel(false);
@@ -290,6 +297,8 @@ export default function Plans() {
       description: plan.description ?? "",
       urlId: plan.urlId ?? "",
       onepageUrl: plan.onepageUrl ?? "",
+      twitterUrl: plan.twitterUrl ?? "",
+      websiteUrl: plan.websiteUrl ?? "",
       sortOrder: plan.sortOrder?.toString() ?? "0",
       isActive: plan.isActive ?? true,
       isMLM: plan.isMLM ?? false,
@@ -312,6 +321,8 @@ export default function Plans() {
       description: form.description || undefined,
       urlId: form.urlId || undefined,
       onepageUrl: form.onepageUrl || undefined,
+      twitterUrl: form.twitterUrl || undefined,
+      websiteUrl: form.websiteUrl || undefined,
       sortOrder: Number(form.sortOrder),
       isActive: form.isActive,
       isMLM: form.isMLM,
@@ -546,6 +557,14 @@ export default function Plans() {
             <div>
               <Label className="text-xs text-muted-foreground">1page.to URL</Label>
               <Input value={form.onepageUrl} onChange={e => setForm(f => ({ ...f, onepageUrl: e.target.value }))} placeholder="nice.1page.to" className="mt-1 bg-input font-mono text-xs" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Twitter / X URL</Label>
+              <Input value={form.twitterUrl} onChange={e => setForm(f => ({ ...f, twitterUrl: e.target.value }))} placeholder="https://x.com/project" className="mt-1 bg-input text-xs" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">공식 웹사이트 URL</Label>
+              <Input value={form.websiteUrl} onChange={e => setForm(f => ({ ...f, websiteUrl: e.target.value }))} placeholder="https://project.io" className="mt-1 bg-input text-xs" />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground">Sort Order</Label>

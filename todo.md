@@ -1016,3 +1016,9 @@
 - [x] 프로젝트 상세 모달 overview 탭에 SNS/커뮤니티 섹션 추가 (telegramUrl, videoUrl, twitterUrl, websiteUrl)
 - [x] plans.analyzeFile PPTX 파싱 실패 수정 (officeparser로 텍스트 추출 후 LLM 전달)
 - [x] listing.analyzeFile PPTX 파싱 실패 수정 (officeparser로 텍스트 추출 후 LLM 전달)
+
+## Phase 37 - iframe 대체 UI, 파싱 미리보기, 백오피스 SNS 필드 (2026-05-03)
+- [x] 1page.to 탭 iframe X-Frame-Options 차단 시 대체 링크 버튼 표시
+- [x] 문서 파싱 결과 미리보기 및 수정 기능 (analyzeFile 결과 편집 후 저장)
+- [x] 백오피스 플랜 편집에 twitterUrl, websiteUrl 필드 추가
+- [ ] 서버 배포 (alphabag.net)

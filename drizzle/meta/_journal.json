@@ -281,6 +281,13 @@
       "when": 1777726810521,
       "tag": "0039_nosy_ironclad",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1777743287534,
+      "tag": "0040_motionless_mad_thinker",
+      "breakpoints": true
     }
   ]
 }

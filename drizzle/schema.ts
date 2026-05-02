@@ -61,6 +61,7 @@ export const investmentPlans = mysqlTable("investmentPlans", {
   blogUrl: text("blogUrl"),
   telegramUrl: text("telegramUrl"),
   twitterUrl: text("twitterUrl"),
+  websiteUrl: text("websiteUrl"),
   recommendedAmount: decimal("recommendedAmount", { precision: 18, scale: 2 }),
   allocation: varchar("allocation", { length: 50 }),
   strategy: varchar("strategy", { length: 100 }),
