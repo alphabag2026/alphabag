@@ -3,6 +3,8 @@ import type { User } from "../../drizzle/schema";
 import { COOKIE_NAME } from "@shared/const";
 import { jwtVerify } from "jose";
 import * as db from "../db";
+import { getCookieValue } from "./cookies";
+import { getUserJwtSecretBytes } from "./jwtSecret";
 
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
@@ -10,18 +12,14 @@ export type TrpcContext = {
   user: User | null;
 };
 
-const JWT_SECRET = process.env.JWT_SECRET ?? "alphabag-secret-key";
-
 export async function createContext(
   opts: CreateExpressContextOptions
 ): Promise<TrpcContext> {
   let user: User | null = null;
   try {
-    const cookies = opts.req.cookies ?? {};
-    const sessionCookie = cookies[COOKIE_NAME];
+    const sessionCookie = getCookieValue(opts.req, COOKIE_NAME);
     if (sessionCookie) {
-      const secret = new TextEncoder().encode(JWT_SECRET);
-      const { payload } = await jwtVerify(sessionCookie, secret);
+      const { payload } = await jwtVerify(sessionCookie, getUserJwtSecretBytes());
       const userId = payload.userId as number | undefined;
       if (userId) {
         const found = await db.getUserById(userId);
