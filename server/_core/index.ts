@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
+import { parse as parseCookieHeader } from "cookie";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
@@ -17,6 +18,7 @@ import { startVoteDeadlineScheduler } from "../voteDeadlineScheduler";
 import { startTwitterStreamScheduler } from "../twitterStreamScheduler";
 import apiV1Router from "../apiV1";
 import apiDocsRouter from "../apiDocs";
+import { assertJwtSecretConfigured } from "./jwtSecret";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -38,11 +40,18 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  assertJwtSecretConfigured();
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  app.use((req, _res, next) => {
+    if (!req.cookies) {
+      req.cookies = parseCookieHeader(req.headers.cookie ?? "");
+    }
+    next();
+  });
   // Storage proxy for /manus-storage/* paths
   registerStorageProxy(app);
   // OAuth callback under /api/oauth/callback

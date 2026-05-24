@@ -1,4 +1,5 @@
 import type { CookieOptions, Request } from "express";
+import { parse } from "cookie";
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
@@ -45,4 +46,18 @@ export function getSessionCookieOptions(
     sameSite: "none",
     secure: isSecureRequest(req),
   };
+}
+
+export function getCookieValue(req: Request, name: string): string | undefined {
+  const parsedCookies = req.cookies as Record<string, string> | undefined;
+  if (parsedCookies?.[name]) {
+    return parsedCookies[name];
+  }
+
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) {
+    return undefined;
+  }
+
+  return parse(cookieHeader)[name];
 }

@@ -3,6 +3,8 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import jwt from "jsonwebtoken";
 import type { TrpcContext } from "./context";
+import { getCookieValue } from "./cookies";
+import { getAdminJwtSecret } from "./jwtSecret";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -31,10 +33,9 @@ export const protectedProcedure = t.procedure.use(requireUser);
 // Helper: verify admin_token cookie (username/password login)
 function verifyAdminTokenCore(req: any): { id: number; username: string; role: string } | null {
   try {
-    const token = req.cookies?.admin_token;
+    const token = getCookieValue(req, "admin_token");
     if (!token) return null;
-    const secret = process.env.JWT_SECRET ?? "alphabag-admin-secret";
-    return jwt.verify(token, secret) as { id: number; username: string; role: string };
+    return jwt.verify(token, getAdminJwtSecret()) as { id: number; username: string; role: string };
   } catch {
     return null;
   }
