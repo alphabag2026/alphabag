@@ -1021,4 +1021,4 @@
 - [x] 1page.to 탭 iframe X-Frame-Options 차단 시 대체 링크 버튼 표시
 - [x] 문서 파싱 결과 미리보기 및 수정 기능 (analyzeFile 결과 편집 후 저장)
 - [x] 백오피스 플랜 편집에 twitterUrl, websiteUrl 필드 추가
-- [ ] 서버 배포 (alphabag.net)
+- [x] 서버 배포 (alphabag.net)
