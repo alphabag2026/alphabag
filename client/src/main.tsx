@@ -10,6 +10,7 @@ import "./index.css";
 import i18n from "@/lib/i18n"; // Initialize i18n
 import { wagmiConfig } from "@/lib/wagmi";
 import { WalletProvider } from "@/contexts/WalletContext";
+import { injectAnalyticsScript } from "./analytics";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,8 @@ const trpcClient = trpc.createClient({
     }),
   ],
 });
+
+injectAnalyticsScript();
 
 createRoot(document.getElementById("root")!).render(
   <I18nextProvider i18n={i18n}>

@@ -152,6 +152,101 @@ function vitePluginManusDebugCollector(): Plugin {
 
 const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
 
+function manualChunks(id: string) {
+  if (!id.includes("node_modules")) {
+    return undefined;
+  }
+
+  const normalizedId = id.split(path.sep).join("/");
+
+  if (normalizedId.includes("@reown")) {
+    return "reown-vendor";
+  }
+
+  if (normalizedId.includes("@walletconnect")) {
+    return "wallet-connect-vendor";
+  }
+
+  if (
+    normalizedId.includes("/lit/") ||
+    normalizedId.includes("/lit-html/") ||
+    normalizedId.includes("/lit-element/") ||
+    normalizedId.includes("@lit")
+  ) {
+    return "webcomponent-vendor";
+  }
+
+  if (normalizedId.includes("/viem/") || normalizedId.includes("/ox/")) {
+    return "wallet-core-vendor";
+  }
+
+  if (normalizedId.includes("@wagmi") || normalizedId.includes("/wagmi/") || normalizedId.includes("/ethers/")) {
+    return "wallet-vendor";
+  }
+
+  if (
+    normalizedId.includes("@radix-ui") ||
+    normalizedId.includes("/lucide-react/") ||
+    normalizedId.includes("/framer-motion/")
+  ) {
+    return "ui-vendor";
+  }
+
+  if (normalizedId.includes("@tiptap") || normalizedId.includes("/streamdown/")) {
+    return "editor-vendor";
+  }
+
+  if (normalizedId.includes("/recharts/") || normalizedId.includes("/d3-")) {
+    return "charts-vendor";
+  }
+
+  if (normalizedId.includes("@tanstack") || normalizedId.includes("@trpc")) {
+    return "query-vendor";
+  }
+
+  if (normalizedId.includes("@dnd-kit")) {
+    return "dnd-vendor";
+  }
+
+  if (normalizedId.includes("/i18next") || normalizedId.includes("/react-i18next/")) {
+    return "i18n-vendor";
+  }
+
+  if (
+    normalizedId.includes("/axios/") ||
+    normalizedId.includes("/date-fns/") ||
+    normalizedId.includes("/superjson/") ||
+    normalizedId.includes("/clsx/") ||
+    normalizedId.includes("/class-variance-authority/") ||
+    normalizedId.includes("/tailwind-merge/") ||
+    normalizedId.includes("/nanoid/")
+  ) {
+    return "utility-vendor";
+  }
+
+  if (
+    normalizedId.includes("/@babel/") ||
+    normalizedId.includes("/scheduler/") ||
+    normalizedId.includes("/use-sync-external-store/")
+  ) {
+    return "react-support-vendor";
+  }
+
+  if (normalizedId.includes("/react/") || normalizedId.includes("/react-dom/")) {
+    return "react-vendor";
+  }
+
+  return "vendor";
+}
+
+function onwarn(warning: { code?: string; id?: string; message: string }, warn: (warning: unknown) => void) {
+  if (warning.code === "INVALID_ANNOTATION" && warning.id?.includes("/ox/")) {
+    return;
+  }
+
+  warn(warning);
+}
+
 export default defineConfig({
   plugins,
   resolve: {
@@ -167,6 +262,13 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      onwarn,
+      output: {
+        manualChunks,
+      },
+    },
   },
   server: {
     host: true,

@@ -1,65 +1,70 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
+import { lazy, Suspense } from "react";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
-import AdminDashboard from "./pages/admin/Dashboard";
-import AdminPlans from "./pages/admin/Plans";
-import AdminNodes from "./pages/admin/Nodes";
-import AdminUsers from "./pages/admin/Users";
-import AdminContent from "./pages/admin/Content";
-import AdminTickets from "./pages/admin/Tickets";
-import AdminAirdrops from "./pages/admin/Airdrops";
-import AdminReferrals from "./pages/admin/Referrals";
-import AdminAnalytics from "./pages/admin/Analytics";
-import AdminSubAdmins from "./pages/admin/SubAdmins";
-import AdminNotifications from "./pages/admin/Notifications";
-import AdminAuditLogs from "./pages/admin/AuditLogs";
-import AdminTelegramSchedules from "./pages/admin/TelegramSchedules";
-import AdminMediaAssets from "./pages/admin/MediaAssets";
-import AdminTrendingAlerts from "./pages/admin/TrendingAlerts";
-import CbagPage from "./pages/CbagPage";
-import AirdropPage from "./pages/AirdropPage";
-import PartnersPage from "./pages/PartnersPage";
-import ListingPage from "./pages/ListingPage";
-import AdminListingRequests from "./pages/admin/ListingRequests";
-import AdminPartners from "./pages/admin/Partners";
-import UserDashboard from "./pages/UserDashboard";
-import PlansPage from "./pages/PlansPage";
-import NodesPage from "./pages/NodesPage";
-import ProfilePage from "./pages/ProfilePage";
-import TicketsPage from "./pages/TicketsPage";
-import ReferralsPage from "./pages/ReferralsPage";
-import NoticesPage from "./pages/NoticesPage";
-import NoticeDetailPage from "./pages/NoticeDetailPage";
-import AdminLogin from "./pages/admin/Login";
-import AdminMyAccount from "./pages/admin/MyAccount";
-import AdminSns from "./pages/admin/Sns";
-import AdminAiPlanImport from "./pages/admin/AiPlanImport";
-import SubmitPlan from "./pages/SubmitPlan";
-import VotePage from "./pages/VotePage";
-import MySubmissions from "./pages/MySubmissions";
-import AdminSubmissions from "./pages/admin/Submissions";
-import AdminRewards from "./pages/admin/Rewards";
-import AdminCbag from "./pages/admin/Cbag";
-import AdminApiKeys from "./pages/admin/ApiKeys";
-import { WalletConnectModal } from "./components/WalletConnectModal";
-import GoldenPage from "./pages/GoldenPage";
-import SelfPage from "./pages/SelfPage";
-import NodePage from "./pages/NodePage";
-import LeaderPage from "./pages/LeaderPage";
-import MemePage from "./pages/MemePage";
-import InfluencerPage from "./pages/InfluencerPage";
-import PlanDetailPage from "./pages/PlanDetailPage";
-import FavoritesPage from "./pages/FavoritesPage";
-import About from "./pages/About";
-import Introduction from "./pages/Introduction";
-import FaqQnaPage from "./pages/FaqQnaPage";
-import CartPage from "./pages/CartPage";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
+
+const Home = lazy(() => import("./pages/Home"));
+const UserDashboard = lazy(() => import("./pages/UserDashboard"));
+const PlansPage = lazy(() => import("./pages/PlansPage"));
+const NodesPage = lazy(() => import("./pages/NodesPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const TicketsPage = lazy(() => import("./pages/TicketsPage"));
+const ReferralsPage = lazy(() => import("./pages/ReferralsPage"));
+const NoticesPage = lazy(() => import("./pages/NoticesPage"));
+const NoticeDetailPage = lazy(() => import("./pages/NoticeDetailPage"));
+const GoldenPage = lazy(() => import("./pages/GoldenPage"));
+const SelfPage = lazy(() => import("./pages/SelfPage"));
+const NodePage = lazy(() => import("./pages/NodePage"));
+const LeaderPage = lazy(() => import("./pages/LeaderPage"));
+const MemePage = lazy(() => import("./pages/MemePage"));
+const InfluencerPage = lazy(() => import("./pages/InfluencerPage"));
+const PlanDetailPage = lazy(() => import("./pages/PlanDetailPage"));
+const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
+const CbagPage = lazy(() => import("./pages/CbagPage"));
+const AirdropPage = lazy(() => import("./pages/AirdropPage"));
+const PartnersPage = lazy(() => import("./pages/PartnersPage"));
+const ListingPage = lazy(() => import("./pages/ListingPage"));
+const SubmitPlan = lazy(() => import("./pages/SubmitPlan"));
+const VotePage = lazy(() => import("./pages/VotePage"));
+const MySubmissions = lazy(() => import("./pages/MySubmissions"));
+const About = lazy(() => import("./pages/About"));
+const Introduction = lazy(() => import("./pages/Introduction"));
+const FaqQnaPage = lazy(() => import("./pages/FaqQnaPage"));
+const CartPage = lazy(() => import("./pages/CartPage"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+const AdminLogin = lazy(() => import("./pages/admin/Login"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminPlans = lazy(() => import("./pages/admin/Plans"));
+const AdminNodes = lazy(() => import("./pages/admin/Nodes"));
+const AdminUsers = lazy(() => import("./pages/admin/Users"));
+const AdminContent = lazy(() => import("./pages/admin/Content"));
+const AdminTickets = lazy(() => import("./pages/admin/Tickets"));
+const AdminAirdrops = lazy(() => import("./pages/admin/Airdrops"));
+const AdminReferrals = lazy(() => import("./pages/admin/Referrals"));
+const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
+const AdminSubAdmins = lazy(() => import("./pages/admin/SubAdmins"));
+const AdminNotifications = lazy(() => import("./pages/admin/Notifications"));
+const AdminAuditLogs = lazy(() => import("./pages/admin/AuditLogs"));
+const AdminTelegramSchedules = lazy(() => import("./pages/admin/TelegramSchedules"));
+const AdminMediaAssets = lazy(() => import("./pages/admin/MediaAssets"));
+const AdminTrendingAlerts = lazy(() => import("./pages/admin/TrendingAlerts"));
+const AdminListingRequests = lazy(() => import("./pages/admin/ListingRequests"));
+const AdminPartners = lazy(() => import("./pages/admin/Partners"));
+const AdminMyAccount = lazy(() => import("./pages/admin/MyAccount"));
+const AdminSns = lazy(() => import("./pages/admin/Sns"));
+const AdminAiPlanImport = lazy(() => import("./pages/admin/AiPlanImport"));
+const AdminSubmissions = lazy(() => import("./pages/admin/Submissions"));
+const AdminRewards = lazy(() => import("./pages/admin/Rewards"));
+const AdminCbag = lazy(() => import("./pages/admin/Cbag"));
+const AdminApiKeys = lazy(() => import("./pages/admin/ApiKeys"));
+const WalletConnectModal = lazy(() =>
+  import("./components/WalletConnectModal").then((module) => ({ default: module.WalletConnectModal }))
+);
 
 function Router() {
   return (
@@ -134,8 +139,10 @@ function App() {
       <ThemeProvider defaultTheme="dark" switchable={true}>
         <TooltipProvider>
           <Toaster />
-          <WalletConnectModal />
-          <Router />
+          <Suspense fallback={null}>
+            <WalletConnectModal />
+            <Router />
+          </Suspense>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
