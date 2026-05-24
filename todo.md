@@ -1029,3 +1029,25 @@
 - [x] 번들 최적화 검토 (WalletConnectModal lazy, manualChunks 이미 적용됨)
 - [x] alphabag.net 서버 재배포 (redeploy.sh + docker-compose)
 - [x] 인증 API /api/trpc/auth.me HTTP 200 정상 응답 확인
+
+## Phase 39 - BSCScan TxHash 검증 자동화 (2026-05-24)
+- [ ] BSCScan API 연동 (nodes.verifyTxHash 프로시저 - TxHash 상태 조회)
+- [ ] 단일 TxHash 검증 프로시저 (nodes.verifyTxHash)
+- [ ] pending 노드 주문 일괄 검증 프로시저 (nodes.bulkVerifyTxHash)
+- [ ] 관리자 Nodes 구매자 Sheet에 "일괄 검증" 버튼 추가
+- [ ] 검증 결과 표시 (성공/실패/미확인 건수)
+- [ ] TxHash 검증 결과에 따라 pending → confirmed/failed 자동 업데이트
+- [ ] Vitest 테스트 작성
+- [ ] alphabag.net 서버 재배포
+
+## Phase 39 - 텔레그램 예약 발송 스케줄러 (2026-05-24)
+- [x] telegramSchedules 테이블 구조 확인 및 필요 시 컬럼 보완
+- [x] Heartbeat 스케줄러 구현 (1분 간격 - 예약 시간 도달한 발송 건 처리)
+- [x] 중복 발송 방지 (메모리 락 runningSchedules Set)
+- [x] 발송 실패 시 재시도 로직 (최대 3회, 429/500 처리)
+- [x] 타임존 처리 (schedule.timezone 기준 getNextRunAt() 개선, Intl.DateTimeFormat 활용)
+- [x] 관리자 UI - 예약 발송 목록 페이지 (TelegramSchedules.tsx) - 이미 완성
+- [x] 관리자 UI - 예약 발송 생성 다이얼로그 (날짜/시간 선택, 메시지 작성) - 이미 완성
+- [x] 예약 발송 취소 기능 - 이미 완성
+- [x] TypeScript 에러 0개, 빌드 성공 (38.85s)
+- [ ] alphabag.net 서버 재배포
