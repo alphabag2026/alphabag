@@ -1038,7 +1038,7 @@
 - [ ] 검증 결과 표시 (성공/실패/미확인 건수)
 - [ ] TxHash 검증 결과에 따라 pending → confirmed/failed 자동 업데이트
 - [ ] Vitest 테스트 작성
-- [ ] alphabag.net 서버 재배포
+- [x] alphabag.net 서버 재배포 (v64777079, HTTP 200 확인)
 
 ## Phase 39 - 텔레그램 예약 발송 스케줄러 (2026-05-24)
 - [x] telegramSchedules 테이블 구조 확인 및 필요 시 컬럼 보완
@@ -1050,4 +1050,4 @@
 - [x] 관리자 UI - 예약 발송 생성 다이얼로그 (날짜/시간 선택, 메시지 작성) - 이미 완성
 - [x] 예약 발송 취소 기능 - 이미 완성
 - [x] TypeScript 에러 0개, 빌드 성공 (38.85s)
-- [ ] alphabag.net 서버 재배포
+- [x] alphabag.net 서버 재배포 (v64777079, HTTP 200 확인)
