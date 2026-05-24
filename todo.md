@@ -1022,3 +1022,10 @@
 - [x] 문서 파싱 결과 미리보기 및 수정 기능 (analyzeFile 결과 편집 후 저장)
 - [x] 백오피스 플랜 편집에 twitterUrl, websiteUrl 필드 추가
 - [x] 서버 배포 (alphabag.net)
+
+## Phase 38 - 코덱스 PR 동기화 및 서버 재배포 (2026-05-24)
+- [x] GitHub main(코덱스 PR #1~#3) Manus 개발 환경 동기화
+- [x] JWT_SECRET 서버 환경변수 확인 및 docker-compose 방식으로 재시작
+- [x] 번들 최적화 검토 (WalletConnectModal lazy, manualChunks 이미 적용됨)
+- [x] alphabag.net 서버 재배포 (redeploy.sh + docker-compose)
+- [x] 인증 API /api/trpc/auth.me HTTP 200 정상 응답 확인
