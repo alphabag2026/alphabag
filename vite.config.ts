@@ -224,15 +224,14 @@ function manualChunks(id: string) {
     return "utility-vendor";
   }
 
+  // react-support-vendor merged into react-vendor to avoid circular dependency
   if (
+    normalizedId.includes("/react/") ||
+    normalizedId.includes("/react-dom/") ||
     normalizedId.includes("/@babel/") ||
     normalizedId.includes("/scheduler/") ||
     normalizedId.includes("/use-sync-external-store/")
   ) {
-    return "react-support-vendor";
-  }
-
-  if (normalizedId.includes("/react/") || normalizedId.includes("/react-dom/")) {
     return "react-vendor";
   }
 
@@ -265,9 +264,6 @@ export default defineConfig({
     chunkSizeWarningLimit: 900,
     rollupOptions: {
       onwarn,
-      output: {
-        manualChunks,
-      },
     },
   },
   server: {
