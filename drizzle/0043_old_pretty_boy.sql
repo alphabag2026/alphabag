@@ -1,0 +1,1 @@
+ALTER TABLE `pointTokenConfigs` ADD `usdtDecimals` int DEFAULT 6 NOT NULL;

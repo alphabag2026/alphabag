@@ -288,6 +288,34 @@
       "when": 1777743287534,
       "tag": "0040_motionless_mad_thinker",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1788089315317,
+      "tag": "0041_mushy_korath",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1788089392010,
+      "tag": "0042_slimy_malcolm_colcord",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1788089449242,
+      "tag": "0043_old_pretty_boy",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "5",
+      "when": 1788090608271,
+      "tag": "0044_even_pixie",
+      "breakpoints": true
     }
   ]
 }

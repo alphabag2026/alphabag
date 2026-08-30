@@ -17,6 +17,7 @@ import { adminAccounts } from "../drizzle/schema";
 import { referralMessages as referralMessagesTable } from "../drizzle/schema.js";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
+import { createPointAdminRouter, pointCheckoutRouter, pointMarketRouter, pointsRouter } from "./routers/pointEconomy";
 
 // ─── Admin Procedure ──────────────────────────────────────────────────────────
 // Helper: verify admin_token cookie and return payload
@@ -71,6 +72,10 @@ const superAdminProcedure = publicProcedure.use(({ ctx, next }) => {
 // ─── App Router ───────────────────────────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
+  points: pointsRouter,
+  pointMarket: pointMarketRouter,
+  pointCheckout: pointCheckoutRouter,
+  pointAdmin: createPointAdminRouter({ adminProcedure, superAdminProcedure }),
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

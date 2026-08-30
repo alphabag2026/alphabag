@@ -4,7 +4,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useWallet } from "@/contexts/WalletContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { BarChart3, Menu, X, ShoppingCart, Wallet, ChevronDown, Copy, LogOut, ExternalLink, User, Heart, Bell, Sun, Moon } from "lucide-react";
+import { BarChart3, Menu, X, ShoppingCart, Wallet, ChevronDown, Copy, LogOut, ExternalLink, User, Heart, Bell, Sun, Moon, Coins } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -49,6 +49,7 @@ export function MainNav() {
     { href: "/golden", label: "Golden", color: "hover:text-amber-600 hover:bg-amber-50", active: "text-amber-600 bg-amber-50 font-semibold" },
     { href: "/self", label: "Self", color: "hover:text-blue-600 hover:bg-blue-50", active: "text-blue-600 bg-blue-50 font-semibold" },
     { href: "/node", label: "Node", color: "hover:text-purple-600 hover:bg-purple-50", active: "text-purple-600 bg-purple-50 font-semibold" },
+    { href: "/points", label: "ABP Market", color: "hover:text-emerald-600 hover:bg-emerald-50", active: "text-emerald-600 bg-emerald-50 font-semibold" },
     { href: "/leader", label: "Leader", color: "hover:text-emerald-600 hover:bg-emerald-50", active: "text-emerald-600 bg-emerald-50 font-semibold" },
     { href: "/meme", label: "Meme", color: "hover:text-pink-600 hover:bg-pink-50", active: "text-pink-600 bg-pink-50 font-semibold" },
     { href: "/influencer", label: "Influencer", color: "hover:text-orange-600 hover:bg-orange-50", active: "text-orange-600 bg-orange-50 font-semibold" },

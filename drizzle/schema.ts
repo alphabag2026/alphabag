@@ -141,6 +141,177 @@ export const nodeOrders = mysqlTable("nodeOrders", {
 export type NodeOrder = typeof nodeOrders.$inferSelect;
 export type InsertNodeOrder = typeof nodeOrders.$inferInsert;
 
+// ─── Point Economy: Chain Configuration ───────────────────────────────────────
+// 온체인 자산의 최종 기록은 블록체인 이벤트이며, 이 테이블은 UI·인덱싱·검증을 위한
+// 체인별 계약 주소와 운영 정책을 관리한다. 계약 주소가 확정되기 전에는 isLive=false다.
+export const pointTokenConfigs = mysqlTable("pointTokenConfigs", {
+  id: int("id").autoincrement().primaryKey(),
+  network: mysqlEnum("network", ["BSC", "ERC20", "TRC20"]).notNull(),
+  chainId: varchar("chainId", { length: 32 }).notNull(),
+  pointTokenAddress: varchar("pointTokenAddress", { length: 100 }),
+  usdtTokenAddress: varchar("usdtTokenAddress", { length: 100 }),
+  marketEscrowAddress: varchar("marketEscrowAddress", { length: 100 }),
+  checkoutAddress: varchar("checkoutAddress", { length: 100 }),
+  treasuryAddress: varchar("treasuryAddress", { length: 100 }),
+  pointSymbol: varchar("pointSymbol", { length: 24 }).default("ABP").notNull(),
+  pointDecimals: int("pointDecimals").default(18).notNull(),
+  usdtDecimals: int("usdtDecimals").default(6).notNull(),
+  minConfirmations: int("minConfirmations").default(12).notNull(),
+  marketFeeBps: int("marketFeeBps").default(100).notNull(),
+  auditStatus: mysqlEnum("auditStatus", ["not_started", "in_review", "passed"]).default("not_started").notNull(),
+  auditReportUrl: varchar("auditReportUrl", { length: 500 }),
+  multisigAddress: varchar("multisigAddress", { length: 100 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  isLive: boolean("isLive").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type PointTokenConfig = typeof pointTokenConfigs.$inferSelect;
+export type InsertPointTokenConfig = typeof pointTokenConfigs.$inferInsert;
+
+// ─── Point Economy: Verified Wallets ──────────────────────────────────────────
+export const userWallets = mysqlTable("userWallets", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  network: mysqlEnum("network", ["BSC", "ERC20", "TRC20"]).notNull(),
+  address: varchar("address", { length: 100 }).notNull(),
+  normalizedAddress: varchar("normalizedAddress", { length: 100 }).notNull(),
+  signatureNonce: varchar("signatureNonce", { length: 96 }).notNull(),
+  verifiedAt: timestamp("verifiedAt"),
+  isPrimary: boolean("isPrimary").default(false).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type UserWallet = typeof userWallets.$inferSelect;
+export type InsertUserWallet = typeof userWallets.$inferInsert;
+
+// ─── Point Economy: Read Model Ledger ─────────────────────────────────────────
+// eventKey=(network,txHash,logIndex) 또는 발행 reasonId에 기반한 멱등성 키.
+export const pointLedgerEntries = mysqlTable("pointLedgerEntries", {
+  id: int("id").autoincrement().primaryKey(),
+  eventKey: varchar("eventKey", { length: 180 }).notNull().unique(),
+  userId: int("userId"),
+  walletAddress: varchar("walletAddress", { length: 100 }).notNull(),
+  network: mysqlEnum("network", ["BSC", "ERC20", "TRC20"]).notNull(),
+  direction: mysqlEnum("direction", ["credit", "debit"]).notNull(),
+  entryType: mysqlEnum("entryType", ["mint", "transfer_in", "transfer_out", "market_fill", "checkout", "burn", "adjustment"]).notNull(),
+  amount: decimal("amount", { precision: 36, scale: 18 }).notNull(),
+  txHash: varchar("txHash", { length: 100 }),
+  blockNumber: varchar("blockNumber", { length: 48 }),
+  logIndex: int("logIndex"),
+  confirmations: int("confirmations").default(0).notNull(),
+  status: mysqlEnum("status", ["pending", "confirmed", "finalized", "reverted", "failed"]).default("pending").notNull(),
+  metadata: json("metadata"),
+  occurredAt: timestamp("occurredAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type PointLedgerEntry = typeof pointLedgerEntries.$inferSelect;
+export type InsertPointLedgerEntry = typeof pointLedgerEntries.$inferInsert;
+
+// ─── Point Economy: P2P Orders and Fills ──────────────────────────────────────
+export const pointMarketOrders = mysqlTable("pointMarketOrders", {
+  id: int("id").autoincrement().primaryKey(),
+  chainOrderId: varchar("chainOrderId", { length: 100 }).unique(),
+  sellerUserId: int("sellerUserId").notNull(),
+  sellerWalletAddress: varchar("sellerWalletAddress", { length: 100 }).notNull(),
+  network: mysqlEnum("network", ["BSC", "ERC20", "TRC20"]).notNull(),
+  configId: int("configId"),
+  pointAmount: decimal("pointAmount", { precision: 36, scale: 18 }).notNull(),
+  remainingPointAmount: decimal("remainingPointAmount", { precision: 36, scale: 18 }).notNull(),
+  minFillAmount: decimal("minFillAmount", { precision: 36, scale: 18 }).notNull(),
+  priceUsdtPerPoint: decimal("priceUsdtPerPoint", { precision: 36, scale: 18 }).notNull(),
+  feeBpsSnapshot: int("feeBpsSnapshot").notNull(),
+  status: mysqlEnum("status", ["draft", "open", "partially_filled", "filled", "cancelled", "expired", "paused", "dispute_review"]).default("draft").notNull(),
+  orderTxHash: varchar("orderTxHash", { length: 100 }),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type PointMarketOrder = typeof pointMarketOrders.$inferSelect;
+export type InsertPointMarketOrder = typeof pointMarketOrders.$inferInsert;
+
+export const pointMarketFills = mysqlTable("pointMarketFills", {
+  id: int("id").autoincrement().primaryKey(),
+  chainFillId: varchar("chainFillId", { length: 120 }).notNull().unique(),
+  orderId: int("orderId").notNull(),
+  buyerUserId: int("buyerUserId"),
+  buyerWalletAddress: varchar("buyerWalletAddress", { length: 100 }).notNull(),
+  pointAmount: decimal("pointAmount", { precision: 36, scale: 18 }).notNull(),
+  grossUsdtAmount: decimal("grossUsdtAmount", { precision: 36, scale: 18 }).notNull(),
+  feeUsdtAmount: decimal("feeUsdtAmount", { precision: 36, scale: 18 }).notNull(),
+  sellerNetUsdtAmount: decimal("sellerNetUsdtAmount", { precision: 36, scale: 18 }).notNull(),
+  txHash: varchar("txHash", { length: 100 }).notNull(),
+  blockNumber: varchar("blockNumber", { length: 48 }),
+  status: mysqlEnum("status", ["pending", "confirmed", "finalized", "reverted"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type PointMarketFill = typeof pointMarketFills.$inferSelect;
+export type InsertPointMarketFill = typeof pointMarketFills.$inferInsert;
+
+// ─── Point Economy: Investment Checkout Policies ──────────────────────────────
+export const investmentPaymentPolicies = mysqlTable("investmentPaymentPolicies", {
+  id: int("id").autoincrement().primaryKey(),
+  planId: int("planId").notNull(),
+  version: int("version").notNull(),
+  nominalUsdtAmount: decimal("nominalUsdtAmount", { precision: 36, scale: 18 }).notNull(),
+  usdtShareBps: int("usdtShareBps").notNull(),
+  pointShareBps: int("pointShareBps").notNull(),
+  checkoutPointUsdtRate: decimal("checkoutPointUsdtRate", { precision: 36, scale: 18 }).notNull(),
+  network: mysqlEnum("network", ["BSC", "ERC20", "TRC20"]).notNull(),
+  configId: int("configId"),
+  isActive: boolean("isActive").default(false).notNull(),
+  effectiveAt: timestamp("effectiveAt").defaultNow().notNull(),
+  expiresAt: timestamp("expiresAt"),
+  createdBy: int("createdBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type InvestmentPaymentPolicy = typeof investmentPaymentPolicies.$inferSelect;
+export type InsertInvestmentPaymentPolicy = typeof investmentPaymentPolicies.$inferInsert;
+
+export const investmentPaymentReceipts = mysqlTable("investmentPaymentReceipts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  planId: int("planId").notNull(),
+  policyId: int("policyId").notNull(),
+  network: mysqlEnum("network", ["BSC", "ERC20", "TRC20"]).notNull(),
+  usdtAmount: decimal("usdtAmount", { precision: 36, scale: 18 }).notNull(),
+  pointAmount: decimal("pointAmount", { precision: 36, scale: 18 }).notNull(),
+  walletAddress: varchar("walletAddress", { length: 100 }).notNull(),
+  txHash: varchar("txHash", { length: 100 }).unique(),
+  status: mysqlEnum("status", ["intent", "pending", "confirmed", "finalized", "failed", "reverted"]).default("intent").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type InvestmentPaymentReceipt = typeof investmentPaymentReceipts.$inferSelect;
+export type InsertInvestmentPaymentReceipt = typeof investmentPaymentReceipts.$inferInsert;
+
+// ─── Point Economy: Node Benefits ─────────────────────────────────────────────
+export const nodeBenefitPolicies = mysqlTable("nodeBenefitPolicies", {
+  id: int("id").autoincrement().primaryKey(),
+  nodeId: int("nodeId").notNull(),
+  version: int("version").notNull(),
+  pointEarnBoostBps: int("pointEarnBoostBps").default(0).notNull(),
+  pointSpendCapPct: int("pointSpendCapPct").default(5).notNull(),
+  p2pFeeDiscountBps: int("p2pFeeDiscountBps").default(0).notNull(),
+  dailyP2PVolumeCapUsdt: decimal("dailyP2PVolumeCapUsdt", { precision: 36, scale: 18 }).default("0").notNull(),
+  voteWeightMultiplierBps: int("voteWeightMultiplierBps").default(10000).notNull(),
+  prioritySupport: boolean("prioritySupport").default(false).notNull(),
+  earlyAccess: boolean("earlyAccess").default(false).notNull(),
+  terms: text("terms"),
+  isActive: boolean("isActive").default(false).notNull(),
+  effectiveAt: timestamp("effectiveAt").defaultNow().notNull(),
+  expiresAt: timestamp("expiresAt"),
+  createdBy: int("createdBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type NodeBenefitPolicy = typeof nodeBenefitPolicies.$inferSelect;
+export type InsertNodeBenefitPolicy = typeof nodeBenefitPolicies.$inferInsert;
+
 // ─── Notices ──────────────────────────────────────────────────────────────────
 export const notices = mysqlTable("notices", {
   id: int("id").autoincrement().primaryKey(),

@@ -1,0 +1,1 @@
+ALTER TABLE `pointTokenConfigs` ADD `marketFeeBps` int DEFAULT 100 NOT NULL;
