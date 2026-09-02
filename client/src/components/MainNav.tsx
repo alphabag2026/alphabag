@@ -49,6 +49,7 @@ export function MainNav() {
     { href: "/golden", label: "Golden", color: "hover:text-amber-600 hover:bg-amber-50", active: "text-amber-600 bg-amber-50 font-semibold" },
     { href: "/self", label: "Self", color: "hover:text-blue-600 hover:bg-blue-50", active: "text-blue-600 bg-blue-50 font-semibold" },
     { href: "/node", label: "Node", color: "hover:text-purple-600 hover:bg-purple-50", active: "text-purple-600 bg-purple-50 font-semibold" },
+    { href: "/ab-points", label: "A/B Points", color: "hover:text-amber-600 hover:bg-amber-50", active: "text-amber-600 bg-amber-50 font-semibold" },
     { href: "/points", label: "ABP Market", color: "hover:text-emerald-600 hover:bg-emerald-50", active: "text-emerald-600 bg-emerald-50 font-semibold" },
     { href: "/leader", label: "Leader", color: "hover:text-emerald-600 hover:bg-emerald-50", active: "text-emerald-600 bg-emerald-50 font-semibold" },
     { href: "/meme", label: "Meme", color: "hover:text-pink-600 hover:bg-pink-50", active: "text-pink-600 bg-pink-50 font-semibold" },

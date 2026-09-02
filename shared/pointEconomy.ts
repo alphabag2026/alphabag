@@ -23,6 +23,11 @@ export type HybridCheckoutQuote = {
   pointAmountBaseUnits: bigint;
 };
 
+export type InternalABPointQuote = {
+  usdtAmountBaseUnits: bigint;
+  aPointAmountBaseUnits: bigint;
+};
+
 const INTEGER_RE = /^\d+$/;
 const DECIMAL_RE = /^(0|[1-9]\d*)(?:\.\d+)?$/;
 const ZERO = BigInt(0);
@@ -131,6 +136,50 @@ export function calculateHybridCheckoutQuote(params: {
   const pointAmountBaseUnits = (pointValueUsdtBaseUnits * powerOfTen(params.pointDecimals)) / params.checkoutPointUsdtRateBaseUnits;
   assertPositiveBaseUnits(pointAmountBaseUnits, "Required point amount");
   return { usdtAmountBaseUnits, pointValueUsdtBaseUnits, pointAmountBaseUnits };
+}
+
+/**
+ * 내부 A포인트는 1 A = 1 USDT 기준으로 투자금의 5~30%에 사용한다.
+ * USDT와 A포인트는 동일한 18자리 내부 원장 단위를 사용한다.
+ */
+export function calculateInternalABPointPayment(params: {
+  nominalUsdtBaseUnits: bigint;
+  usdtShareBps: number;
+  aPointShareBps: number;
+}): InternalABPointQuote {
+  assertValidHybridPaymentSplit({
+    usdtShareBps: params.usdtShareBps,
+    pointShareBps: params.aPointShareBps,
+  });
+  assertPositiveBaseUnits(params.nominalUsdtBaseUnits, "Nominal investment amount");
+  const usdtAmountBaseUnits = (params.nominalUsdtBaseUnits * BigInt(params.usdtShareBps)) / BigInt(BASIS_POINTS);
+  return {
+    usdtAmountBaseUnits,
+    aPointAmountBaseUnits: params.nominalUsdtBaseUnits - usdtAmountBaseUnits,
+  };
+}
+
+/** 100% USDT 매출액의 5~30%를 1 A = 1 B 기준으로 전환한다. */
+export function calculateFullUsdtSaleConversion(params: {
+  saleAmountUsdtBaseUnits: bigint;
+  conversionBps: number;
+}): bigint {
+  assertPositiveBaseUnits(params.saleAmountUsdtBaseUnits, "Full-USDT sale amount");
+  if (!Number.isInteger(params.conversionBps) || params.conversionBps < MIN_POINT_SHARE_BPS || params.conversionBps > MAX_POINT_SHARE_BPS) {
+    throw new Error("A-to-B conversion share must be between 5% and 30%.");
+  }
+  const conversionAmount = (params.saleAmountUsdtBaseUnits * BigInt(params.conversionBps)) / BigInt(BASIS_POINTS);
+  assertPositiveBaseUnits(conversionAmount, "A-to-B conversion amount");
+  return conversionAmount;
+}
+
+export function calculateAvailableReserveBaseUnits(params: {
+  fundedUsdtBaseUnits: bigint;
+  committedUsdtBaseUnits: bigint;
+  paidUsdtBaseUnits: bigint;
+}): bigint {
+  const available = params.fundedUsdtBaseUnits - params.committedUsdtBaseUnits - params.paidUsdtBaseUnits;
+  return available > ZERO ? available : ZERO;
 }
 
 export function assertValidOrderAmounts(params: {

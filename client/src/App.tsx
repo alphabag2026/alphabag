@@ -34,6 +34,7 @@ const Introduction = lazy(() => import("./pages/Introduction"));
 const FaqQnaPage = lazy(() => import("./pages/FaqQnaPage"));
 const CartPage = lazy(() => import("./pages/CartPage"));
 const PointsMarket = lazy(() => import("./pages/PointsMarket"));
+const ABPoints = lazy(() => import("./pages/ABPoints"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -64,6 +65,7 @@ const AdminRewards = lazy(() => import("./pages/admin/Rewards"));
 const AdminCbag = lazy(() => import("./pages/admin/Cbag"));
 const AdminApiKeys = lazy(() => import("./pages/admin/ApiKeys"));
 const AdminPointEconomy = lazy(() => import("./pages/admin/PointEconomy"));
+const AdminABPointManagement = lazy(() => import("./pages/admin/ABPointManagement"));
 const WalletConnectModal = lazy(() =>
   import("./components/WalletConnectModal").then((module) => ({ default: module.WalletConnectModal }))
 );
@@ -120,6 +122,7 @@ function Router() {
       <Route path="/admin/cbag" component={AdminCbag} />
       <Route path="/admin/api-keys" component={AdminApiKeys} />
       <Route path="/admin/point-economy" component={AdminPointEconomy} />
+      <Route path="/admin/ab-points" component={AdminABPointManagement} />
       <Route path="/submit-plan" component={SubmitPlan} />
       <Route path="/vote" component={VotePage} />
       <Route path="/my-submissions" component={MySubmissions} />
@@ -128,6 +131,7 @@ function Router() {
       <Route path="/faq" component={FaqQnaPage} />
       <Route path="/cart" component={CartPage} />
       <Route path="/points" component={PointsMarket} />
+      <Route path="/ab-points" component={ABPoints} />
       <Route path="/market/points" component={PointsMarket} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />

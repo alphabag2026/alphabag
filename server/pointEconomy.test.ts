@@ -3,7 +3,10 @@ import {
   assertValidHybridPaymentSplit,
   assertValidOrderAmounts,
   baseUnitsToDecimal,
+  calculateAvailableReserveBaseUnits,
+  calculateFullUsdtSaleConversion,
   calculateHybridCheckoutQuote,
+  calculateInternalABPointPayment,
   calculateMarketFillQuote,
   decimalToBaseUnits,
   normalizeWalletAddress,
@@ -83,6 +86,47 @@ describe("hybrid investment checkout quote", () => {
     expect(baseUnitsToDecimal(quote.usdtAmountBaseUnits, 6)).toBe("700");
     expect(baseUnitsToDecimal(quote.pointValueUsdtBaseUnits, 6)).toBe("300");
     expect(baseUnitsToDecimal(quote.pointAmountBaseUnits, 18)).toBe("300");
+  });
+});
+
+describe("internal A/B point economy", () => {
+  it("splits a 1,000 USDT investment into 700 USDT and 300 A points", () => {
+    const quote = calculateInternalABPointPayment({
+      nominalUsdtBaseUnits: decimalToBaseUnits("1000", 18),
+      usdtShareBps: 7_000,
+      aPointShareBps: 3_000,
+    });
+    expect(baseUnitsToDecimal(quote.usdtAmountBaseUnits, 18)).toBe("700");
+    expect(baseUnitsToDecimal(quote.aPointAmountBaseUnits, 18)).toBe("300");
+  });
+
+  it("supports the 95% USDT and 5% A-point boundary", () => {
+    const quote = calculateInternalABPointPayment({
+      nominalUsdtBaseUnits: decimalToBaseUnits("1000", 18),
+      usdtShareBps: 9_500,
+      aPointShareBps: 500,
+    });
+    expect(baseUnitsToDecimal(quote.usdtAmountBaseUnits, 18)).toBe("950");
+    expect(baseUnitsToDecimal(quote.aPointAmountBaseUnits, 18)).toBe("50");
+  });
+
+  it("converts 5% to 30% of a full-USDT sale from A points to B points at 1:1", () => {
+    const sale = decimalToBaseUnits("1000", 18);
+    expect(baseUnitsToDecimal(calculateFullUsdtSaleConversion({ saleAmountUsdtBaseUnits: sale, conversionBps: 500 }), 18)).toBe("50");
+    expect(baseUnitsToDecimal(calculateFullUsdtSaleConversion({ saleAmountUsdtBaseUnits: sale, conversionBps: 3_000 }), 18)).toBe("300");
+  });
+
+  it("rejects a full-USDT conversion percentage outside the 5% to 30% policy", () => {
+    expect(() => calculateFullUsdtSaleConversion({ saleAmountUsdtBaseUnits: decimalToBaseUnits("1000", 18), conversionBps: 400 })).toThrow("between 5% and 30%");
+  });
+
+  it("calculates withdrawable reserve after commitments and completed payouts", () => {
+    const available = calculateAvailableReserveBaseUnits({
+      fundedUsdtBaseUnits: decimalToBaseUnits("1000", 18),
+      committedUsdtBaseUnits: decimalToBaseUnits("150", 18),
+      paidUsdtBaseUnits: decimalToBaseUnits("250", 18),
+    });
+    expect(baseUnitsToDecimal(available, 18)).toBe("600");
   });
 });
 

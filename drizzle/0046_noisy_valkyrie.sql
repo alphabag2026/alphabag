@@ -1,0 +1,1 @@
+ALTER TABLE `internalPointLedgerEntries` MODIFY COLUMN `actionType` enum('grant','transfer_in','transfer_out','investment_hold','investment_use','investment_refund','conversion_hold','conversion_release','conversion_debit','conversion_credit','withdrawal_reserve','withdrawal_release','withdrawal_paid','adjustment') NOT NULL;

@@ -312,6 +312,158 @@ export const nodeBenefitPolicies = mysqlTable("nodeBenefitPolicies", {
 export type NodeBenefitPolicy = typeof nodeBenefitPolicies.$inferSelect;
 export type InsertNodeBenefitPolicy = typeof nodeBenefitPolicies.$inferInsert;
 
+// ─── AlphaBag Internal A/B Point Economy ─────────────────────────────────────
+// A Point: 내부 지급·회원 간 전송·투자 결제에 사용하는 비출금성 포인트.
+// B Point: 승인된 전환으로만 생성되며 준비금 범위에서 USDT 출금 신청이 가능한 포인트.
+export const internalPointAccounts = mysqlTable("internalPointAccounts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  aAvailable: decimal("aAvailable", { precision: 36, scale: 18 }).default("0").notNull(),
+  aHeld: decimal("aHeld", { precision: 36, scale: 18 }).default("0").notNull(),
+  bAvailable: decimal("bAvailable", { precision: 36, scale: 18 }).default("0").notNull(),
+  bReserved: decimal("bReserved", { precision: 36, scale: 18 }).default("0").notNull(),
+  status: mysqlEnum("status", ["active", "frozen", "closed"]).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type InternalPointAccount = typeof internalPointAccounts.$inferSelect;
+export type InsertInternalPointAccount = typeof internalPointAccounts.$inferInsert;
+
+export const internalPointLedgerEntries = mysqlTable("internalPointLedgerEntries", {
+  id: int("id").autoincrement().primaryKey(),
+  idempotencyKey: varchar("idempotencyKey", { length: 160 }).notNull().unique(),
+  userId: int("userId").notNull(),
+  pointType: mysqlEnum("pointType", ["A", "B"]).notNull(),
+  direction: mysqlEnum("direction", ["credit", "debit"]).notNull(),
+  actionType: mysqlEnum("actionType", ["grant", "transfer_in", "transfer_out", "investment_hold", "investment_use", "investment_refund", "conversion_hold", "conversion_release", "conversion_debit", "conversion_credit", "withdrawal_reserve", "withdrawal_release", "withdrawal_paid", "adjustment"]).notNull(),
+  amount: decimal("amount", { precision: 36, scale: 18 }).notNull(),
+  balanceAfter: decimal("balanceAfter", { precision: 36, scale: 18 }).notNull(),
+  relatedUserId: int("relatedUserId"),
+  referenceType: varchar("referenceType", { length: 50 }),
+  referenceId: varchar("referenceId", { length: 100 }),
+  memo: text("memo"),
+  metadata: json("metadata"),
+  approvedBy: int("approvedBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type InternalPointLedgerEntry = typeof internalPointLedgerEntries.$inferSelect;
+export type InsertInternalPointLedgerEntry = typeof internalPointLedgerEntries.$inferInsert;
+
+export const internalPointGrantRequests = mysqlTable("internalPointGrantRequests", {
+  id: int("id").autoincrement().primaryKey(),
+  beneficiaryUserId: int("beneficiaryUserId").notNull(),
+  reasonType: mysqlEnum("reasonType", ["project_failure_join", "leg_move", "manual"]).notNull(),
+  amountA: decimal("amountA", { precision: 36, scale: 18 }).notNull(),
+  sourceProjectName: varchar("sourceProjectName", { length: 160 }),
+  evidenceUrl: text("evidenceUrl"),
+  memo: text("memo"),
+  status: mysqlEnum("status", ["requested", "approved", "rejected", "cancelled"]).default("requested").notNull(),
+  requestedBy: int("requestedBy").notNull(),
+  approvedBy: int("approvedBy"),
+  approvedAt: timestamp("approvedAt"),
+  rejectedReason: text("rejectedReason"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type InternalPointGrantRequest = typeof internalPointGrantRequests.$inferSelect;
+export type InsertInternalPointGrantRequest = typeof internalPointGrantRequests.$inferInsert;
+
+export const internalPointInvestmentUses = mysqlTable("internalPointInvestmentUses", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  planId: int("planId").notNull(),
+  investmentId: int("investmentId"),
+  nominalUsdtAmount: decimal("nominalUsdtAmount", { precision: 36, scale: 18 }).notNull(),
+  usdtShareBps: int("usdtShareBps").notNull(),
+  aPointShareBps: int("aPointShareBps").notNull(),
+  usdtAmount: decimal("usdtAmount", { precision: 36, scale: 18 }).notNull(),
+  aPointAmount: decimal("aPointAmount", { precision: 36, scale: 18 }).notNull(),
+  paymentNetwork: mysqlEnum("paymentNetwork", ["BSC", "ERC20", "TRC20"]),
+  usdtTxHash: varchar("usdtTxHash", { length: 100 }).unique(),
+  paymentConfirmedBy: int("paymentConfirmedBy"),
+  paymentConfirmedAt: timestamp("paymentConfirmedAt"),
+  status: mysqlEnum("status", ["intent", "confirmed", "completed", "cancelled", "refunded"]).default("intent").notNull(),
+  completedBy: int("completedBy"),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type InternalPointInvestmentUse = typeof internalPointInvestmentUses.$inferSelect;
+export type InsertInternalPointInvestmentUse = typeof internalPointInvestmentUses.$inferInsert;
+
+export const internalPointConversionRequests = mysqlTable("internalPointConversionRequests", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  conversionType: mysqlEnum("conversionType", ["investment_completion", "full_usdt_sale"]).notNull(),
+  investmentUseId: int("investmentUseId"),
+  planId: int("planId"),
+  saleAmountUsdt: decimal("saleAmountUsdt", { precision: 36, scale: 18 }),
+  conversionBps: int("conversionBps").notNull(),
+  requestedAPoints: decimal("requestedAPoints", { precision: 36, scale: 18 }).notNull(),
+  convertedBPoints: decimal("convertedBPoints", { precision: 36, scale: 18 }).notNull(),
+  evidenceUrl: text("evidenceUrl"),
+  memo: text("memo"),
+  status: mysqlEnum("status", ["requested", "approved", "rejected", "cancelled"]).default("requested").notNull(),
+  requestedBy: int("requestedBy").notNull(),
+  approvedBy: int("approvedBy"),
+  approvedAt: timestamp("approvedAt"),
+  rejectedReason: text("rejectedReason"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type InternalPointConversionRequest = typeof internalPointConversionRequests.$inferSelect;
+export type InsertInternalPointConversionRequest = typeof internalPointConversionRequests.$inferInsert;
+
+export const bPointReserveAccounts = mysqlTable("bPointReserveAccounts", {
+  id: int("id").autoincrement().primaryKey(),
+  network: mysqlEnum("network", ["BSC", "ERC20", "TRC20"]).notNull(),
+  walletAddress: varchar("walletAddress", { length: 100 }),
+  fundedUsdt: decimal("fundedUsdt", { precision: 36, scale: 18 }).default("0").notNull(),
+  committedUsdt: decimal("committedUsdt", { precision: 36, scale: 18 }).default("0").notNull(),
+  paidUsdt: decimal("paidUsdt", { precision: 36, scale: 18 }).default("0").notNull(),
+  status: mysqlEnum("status", ["active", "paused", "closed"]).default("paused").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type BPointReserveAccount = typeof bPointReserveAccounts.$inferSelect;
+export type InsertBPointReserveAccount = typeof bPointReserveAccounts.$inferInsert;
+
+export const bPointWithdrawalRequests = mysqlTable("bPointWithdrawalRequests", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  amountB: decimal("amountB", { precision: 36, scale: 18 }).notNull(),
+  usdtAmount: decimal("usdtAmount", { precision: 36, scale: 18 }).notNull(),
+  network: mysqlEnum("network", ["BSC", "ERC20", "TRC20"]).notNull(),
+  walletAddress: varchar("walletAddress", { length: 100 }).notNull(),
+  reserveAccountId: int("reserveAccountId"),
+  status: mysqlEnum("status", ["requested", "approved", "processing", "paid", "rejected", "failed", "cancelled"]).default("requested").notNull(),
+  txHash: varchar("txHash", { length: 100 }),
+  requestedAt: timestamp("requestedAt").defaultNow().notNull(),
+  approvedBy: int("approvedBy"),
+  approvedAt: timestamp("approvedAt"),
+  paidAt: timestamp("paidAt"),
+  rejectedReason: text("rejectedReason"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type BPointWithdrawalRequest = typeof bPointWithdrawalRequests.$inferSelect;
+export type InsertBPointWithdrawalRequest = typeof bPointWithdrawalRequests.$inferInsert;
+
+export const bPointReserveMovements = mysqlTable("bPointReserveMovements", {
+  id: int("id").autoincrement().primaryKey(),
+  idempotencyKey: varchar("idempotencyKey", { length: 160 }).notNull().unique(),
+  reserveAccountId: int("reserveAccountId").notNull(),
+  movementType: mysqlEnum("movementType", ["fund", "commit", "release", "payout", "adjustment"]).notNull(),
+  amountUsdt: decimal("amountUsdt", { precision: 36, scale: 18 }).notNull(),
+  withdrawalRequestId: int("withdrawalRequestId"),
+  txHash: varchar("txHash", { length: 100 }),
+  memo: text("memo"),
+  createdBy: int("createdBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type BPointReserveMovement = typeof bPointReserveMovements.$inferSelect;
+export type InsertBPointReserveMovement = typeof bPointReserveMovements.$inferInsert;
+
 // ─── Notices ──────────────────────────────────────────────────────────────────
 export const notices = mysqlTable("notices", {
   id: int("id").autoincrement().primaryKey(),
